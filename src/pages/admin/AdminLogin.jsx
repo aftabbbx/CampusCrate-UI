@@ -1,36 +1,37 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, BookOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
+import API from '../../api/axios';
 
-const Login = () => {
+const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [suspendedMsg, setSuspendedMsg] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuspendedMsg('');
-    if (!email || !password) { toast.error('Email aur password required hain'); return; }
+    if (!email || !password) { 
+      toast.error('Email aur password required hain'); 
+      return; 
+    }
+    
     setIsLoading(true);
     try {
-      const data = await login(email, password);
-      if (data.success) { toast.success('Login successful! 🎉'); navigate('/dashboard'); }
-      else toast.error(data.message || 'Login failed');
-    } catch (err) {
-      const res = err.response?.data;
-      if (res?.suspended) {
-        setSuspendedMsg(res.message);
-      } else {
-        toast.error(res?.message || 'Something went wrong');
+      const res = await API.post('/admin/login', { email, password });
+      if (res.data.success) {
+        localStorage.setItem('campuscrate_admin_token', res.data.token);
+        localStorage.setItem('campuscrate_admin', JSON.stringify(res.data.admin));
+        toast.success('Admin Login successful! 🎉');
+        navigate('/admin/dashboard');
       }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
     }
-    finally { setIsLoading(false); }
   };
 
   return (
@@ -43,29 +44,19 @@ const Login = () => {
             alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem',
             background: 'var(--color-brand)', boxShadow: '0 4px 12px rgba(79,70,229,0.2)',
           }}>
-            <BookOpen style={{ width: '24px', height: '24px', color: 'white' }} />
+            <ShieldAlert style={{ width: '24px', height: '24px', color: 'white' }} />
           </div>
           <h1 style={{ fontSize: '1.625rem', fontWeight: 700, color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>
-            Welcome back
+            Admin Portal
           </h1>
           <p style={{ color: 'var(--color-text-sub)', fontSize: '0.875rem', marginTop: '0.375rem' }}>
-            Sign in to your CampusCrate account
+            Secure access for CampusCrate administrators
           </p>
         </div>
 
         {/* ─── Card ────────────────────────────────────────────────── */}
         <div className="card-lg anim-up" style={{ padding: '1.75rem', animationDelay: '0.08s' }}>
           <form onSubmit={handleSubmit}>
-            {/* Suspended Alert */}
-            {suspendedMsg && (
-              <div style={{
-                background: 'var(--color-danger-pale)', border: '1px solid #fecaca', borderRadius: '0.625rem',
-                padding: '0.75rem 1rem', marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem',
-              }}>
-                <span style={{ fontSize: '1rem' }}>🚫</span>
-                <p style={{ color: 'var(--color-danger)', fontSize: '0.8125rem', lineHeight: 1.5, margin: 0 }}>{suspendedMsg}</p>
-              </div>
-            )}
             {/* Email */}
             <div style={{ marginBottom: '1rem' }}>
               <label htmlFor="login-email" className="form-label">Email</label>
@@ -76,7 +67,7 @@ const Login = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@college.edu"
+                  placeholder="admin@campuscrate.com"
                   className="form-input"
                 />
               </div>
@@ -110,23 +101,14 @@ const Login = () => {
             </div>
 
             {/* Submit */}
-            <button id="login-submit" type="submit" disabled={isLoading} className="btn btn-brand">
+            <button type="submit" disabled={isLoading} className="btn btn-brand">
               {isLoading ? <div className="spinner" /> : <>Sign In <ArrowRight style={{ width: '16px', height: '16px' }} /></>}
             </button>
           </form>
         </div>
-
-        {/* ─── Footer ──────────────────────────────────────────────── */}
-        <p className="anim-fade" style={{
-          textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem',
-          color: 'var(--color-text-sub)', animationDelay: '0.16s',
-        }}>
-          Don't have an account?{' '}
-          <Link to="/signup" style={{ color: 'var(--color-brand)', fontWeight: 600 }}>Sign up</Link>
-        </p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default AdminLogin;

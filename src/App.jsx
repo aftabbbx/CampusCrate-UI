@@ -11,6 +11,9 @@ import ExploreResources from './pages/resources/ExploreResources';
 import AddResource from './pages/resources/AddResource';
 import ResourceDetail from './pages/resources/ResourceDetail';
 import Messages from './pages/Messages';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
 
 function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -33,6 +36,10 @@ function App() {
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />} />
       <Route path="/verify-otp" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <VerifyOTP />} />
+
+      {/* Admin */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/dashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
 
       {/* Protected */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
