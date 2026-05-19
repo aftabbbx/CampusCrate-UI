@@ -6,6 +6,7 @@ import {
   BookOpen, LayoutDashboard, Users, Package, ShoppingBag,
   LogOut, Search, Bell, ChevronRight, MoreHorizontal, Menu, X,
   ShieldAlert, Eye, Ban, UserCheck, Trash2, ArrowLeft, Mail, Calendar,
+  Shield, ShieldCheck, Hash, GraduationCap, Layers,
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -98,6 +99,46 @@ const AdminDashboard = () => {
             if (selectedUser === userId) viewProfile(userId);
           }
         } catch { toast.error('Failed to unsuspend user'); }
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  const handleVerify = (userId) => {
+    setConfirmModal({
+      title: 'Verify College Student',
+      message: 'This will mark the user as a verified college student. A verified badge will appear on their profile.',
+      icon: 'reactivate',
+      btnLabel: 'Verify',
+      onConfirm: async () => {
+        try {
+          const res = await API.patch(`/admin/users/${userId}/verify`);
+          if (res.data.success) {
+            toast.success(res.data.message);
+            fetchUsers();
+            if (selectedUser === userId) viewProfile(userId);
+          }
+        } catch { toast.error('Failed to verify user'); }
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  const handleUnverify = (userId) => {
+    setConfirmModal({
+      title: 'Remove Verification',
+      message: 'This will remove the college student verification badge from this user. Continue?',
+      icon: 'suspend',
+      btnLabel: 'Remove',
+      onConfirm: async () => {
+        try {
+          const res = await API.patch(`/admin/users/${userId}/unverify`);
+          if (res.data.success) {
+            toast.success(res.data.message);
+            fetchUsers();
+            if (selectedUser === userId) viewProfile(userId);
+          }
+        } catch { toast.error('Failed to unverify user'); }
         setConfirmModal(null);
       },
     });
@@ -198,13 +239,22 @@ const AdminDashboard = () => {
             </div>
             <div style={{ flex: 1 }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-display)' }}>{u.name}</h2>
-              <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>@{u.username}</p>
+              <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Hash style={{ width: '13px', height: '13px' }} /> {u.roll_number || '—'}
+              </p>
             </div>
-            {u.is_suspended ? (
-              <span className="chip" style={{ background: 'var(--color-danger-pale)', color: 'var(--color-danger)' }}>Suspended</span>
-            ) : (
-              <span className="chip" style={{ background: 'var(--color-success-pale)', color: 'var(--color-success)' }}>Active</span>
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', alignItems: 'flex-end' }}>
+              {u.is_suspended ? (
+                <span className="chip" style={{ background: 'var(--color-danger-pale)', color: 'var(--color-danger)' }}>Suspended</span>
+              ) : (
+                <span className="chip" style={{ background: 'var(--color-success-pale)', color: 'var(--color-success)' }}>Active</span>
+              )}
+              {u.is_college_verified ? (
+                <span className="badge-verified"><ShieldCheck style={{ width: '12px', height: '12px' }} /> Verified</span>
+              ) : (
+                <span className="badge-unverified"><Shield style={{ width: '12px', height: '12px' }} /> Unverified</span>
+              )}
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>
@@ -213,13 +263,20 @@ const AdminDashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>
               <Calendar style={{ width: '15px', height: '15px' }} /> Joined {new Date(u.createdAt).toLocaleDateString()}
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>
+              <GraduationCap style={{ width: '15px', height: '15px' }} /> {u.course || 'Course not set'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>
+              <Layers style={{ width: '15px', height: '15px' }} /> Batch {u.batch || 'not set'}
+            </div>
           </div>
           {u.bio && <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', marginBottom: '1rem', padding: '0.75rem', background: 'var(--color-bg)', borderRadius: '0.5rem' }}>{u.bio}</p>}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
             {[
               { label: 'Resources', value: userProfile.resourcesCount },
               { label: 'Requests', value: userProfile.requestsCount },
               { label: 'Semester', value: u.semester || 'N/A' },
+              { label: 'Trust Score', value: u.trust_score ?? 50 },
             ].map((s, i) => (
               <div key={i} style={{ textAlign: 'center', padding: '0.75rem', background: 'var(--color-bg)', borderRadius: '0.625rem' }}>
                 <div style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>{s.value}</div>
@@ -227,7 +284,16 @@ const AdminDashboard = () => {
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            {u.is_college_verified ? (
+              <button onClick={() => handleUnverify(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: 'var(--color-warning-pale)', color: '#d97706', borderRadius: '0.625rem' }}>
+                <Shield style={{ width: '16px', height: '16px' }} /> Remove Verification
+              </button>
+            ) : (
+              <button onClick={() => handleVerify(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: '#d1fae5', color: '#059669', borderRadius: '0.625rem' }}>
+                <ShieldCheck style={{ width: '16px', height: '16px' }} /> Verify Student
+              </button>
+            )}
             {u.is_suspended ? (
               <button onClick={() => handleUnsuspend(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: 'var(--color-success-pale)', color: 'var(--color-success)' }}>
                 <UserCheck style={{ width: '16px', height: '16px' }} /> Reactivate
@@ -258,7 +324,7 @@ const AdminDashboard = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  {['Name', 'Email', 'Semester', 'Status', 'Joined', 'Actions'].map(h => (
+                  {['Name', 'Roll No.', 'Course', 'Status', 'Verified', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '0.75rem 1.25rem', textAlign: 'left', fontWeight: 500, color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
                   ))}
                 </tr>
@@ -279,18 +345,29 @@ const AdminDashboard = () => {
                           {u.name}
                         </div>
                       </td>
-                      <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)' }}>{u.email}</td>
-                      <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)' }}>{u.semester || '—'}</td>
+                      <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)', fontSize: '0.75rem' }}>{u.roll_number || '—'}</td>
+                      <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)' }}>{u.course || '—'}</td>
                       <td style={{ padding: '0.75rem 1.25rem' }}>
                         <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600,
                           background: u.is_suspended ? '#fee2e2' : !u.is_verified ? '#fef3c7' : '#d1fae5',
                           color: u.is_suspended ? '#ef4444' : !u.is_verified ? '#d97706' : '#059669',
                         }}>{u.is_suspended ? 'Suspended' : !u.is_verified ? 'Unverified' : 'Active'}</span>
                       </td>
-                      <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '0.75rem 1.25rem' }}>
+                        {u.is_college_verified ? (
+                          <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: '#d1fae5', color: '#059669' }}>✓ Verified</span>
+                        ) : (
+                          <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: '#fef3c7', color: '#d97706' }}>Pending</span>
+                        )}
+                      </td>
                       <td style={{ padding: '0.75rem 1.25rem' }}>
                         <div style={{ display: 'flex', gap: '0.375rem' }}>
                           <button onClick={() => viewProfile(u._id)} title="View" style={{ background: 'var(--color-brand-pale)', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex' }}><Eye style={{ width: '14px', height: '14px' }} /></button>
+                          {u.is_college_verified ? (
+                            <button onClick={() => handleUnverify(u._id)} title="Unverify" style={{ background: '#fef3c7', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: '#d97706', display: 'flex' }}><Shield style={{ width: '14px', height: '14px' }} /></button>
+                          ) : (
+                            <button onClick={() => handleVerify(u._id)} title="Verify" style={{ background: '#d1fae5', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: '#059669', display: 'flex' }}><ShieldCheck style={{ width: '14px', height: '14px' }} /></button>
+                          )}
                           {u.is_suspended ? (
                             <button onClick={() => handleUnsuspend(u._id)} title="Unsuspend" style={{ background: '#d1fae5', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: '#059669', display: 'flex' }}><UserCheck style={{ width: '14px', height: '14px' }} /></button>
                           ) : (

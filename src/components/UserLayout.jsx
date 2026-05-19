@@ -17,7 +17,7 @@ const UserLayout = ({ children }) => {
     { id: 'resources', label: 'Resources', icon: Package, path: '/resources' },
     { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages' },
     { id: 'notifications', label: 'Notifications', icon: Bell, path: '#' },
-    { id: 'profile', label: 'Profile', icon: User, path: '#' },
+    { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
   ];
 
   // Helper to check active route
