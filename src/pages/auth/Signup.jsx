@@ -3,14 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, BookOpen,
-  User, Phone, GraduationCap, AtSign,
+  User, Phone, GraduationCap, Hash, Layers,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const COURSES = ['BCA', 'BBA', 'BCom', 'BSc', 'BA', 'BTech', 'MBA', 'MCA', 'MCom', 'MSc', 'Other'];
+const BATCHES = ['2023-2027', '2024-2028', '2025-2029', '2026-2030'];
 
 const Signup = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    name: '', username: '', email: '', password: '', confirmPassword: '', phone_number: '', semester: '',
+    name: '', roll_number: '', email: '', password: '', confirmPassword: '',
+    phone_number: '', course: '', batch: '', semester: '',
   });
   const [showPw, setShowPw] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +24,7 @@ const Signup = () => {
   const set = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const next = () => {
-    if (!form.name || !form.username) { toast.error('Name and Username are required'); return; }
+    if (!form.name || !form.roll_number) { toast.error('Name and Roll Number are required'); return; }
     setStep(2);
   };
 
@@ -102,13 +106,16 @@ const Signup = () => {
                   </div>
                 </div>
 
-                {/* Username */}
+                {/* Roll Number */}
                 <div style={{ marginBottom: '0.875rem' }}>
-                  <label className="form-label">Username *</label>
+                  <label className="form-label">College Roll Number *</label>
                   <div className="form-group" style={{ position: 'relative' }}>
-                    <AtSign className="form-icon" />
-                    <input name="username" value={form.username} onChange={set} placeholder="saifali" className="form-input" />
+                    <Hash className="form-icon" />
+                    <input name="roll_number" value={form.roll_number} onChange={set} placeholder="e.g. BCA2023045" className="form-input" style={{ textTransform: 'uppercase' }} />
                   </div>
+                  <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                    This will be your unique identifier. Cannot be changed later.
+                  </p>
                 </div>
 
                 {/* Phone */}
@@ -117,6 +124,30 @@ const Signup = () => {
                   <div className="form-group" style={{ position: 'relative' }}>
                     <Phone className="form-icon" />
                     <input name="phone_number" value={form.phone_number} onChange={set} placeholder="9876543210" className="form-input" />
+                  </div>
+                </div>
+
+                {/* Course */}
+                <div style={{ marginBottom: '0.875rem' }}>
+                  <label className="form-label">Course</label>
+                  <div className="form-group" style={{ position: 'relative' }}>
+                    <GraduationCap className="form-icon" />
+                    <select name="course" value={form.course} onChange={set} className="form-input" style={{ cursor: 'pointer', appearance: 'none' }}>
+                      <option value="">Select course</option>
+                      {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Batch */}
+                <div style={{ marginBottom: '0.875rem' }}>
+                  <label className="form-label">Batch</label>
+                  <div className="form-group" style={{ position: 'relative' }}>
+                    <Layers className="form-icon" />
+                    <select name="batch" value={form.batch} onChange={set} className="form-input" style={{ cursor: 'pointer', appearance: 'none' }}>
+                      <option value="">Select batch</option>
+                      {BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                    </select>
                   </div>
                 </div>
 

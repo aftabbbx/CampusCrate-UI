@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import API from '../api/axios';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
 
@@ -70,6 +71,29 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  // ─── Refresh Profile ───────────────────────────────────────────────
+  const refreshProfile = async () => {
+    try {
+      const res = await API.get('/user/profile');
+      if (res.data.success) {
+        const updatedUser = res.data.user;
+        setUser(updatedUser);
+        localStorage.setItem('campuscrate_user', JSON.stringify(updatedUser));
+        return updatedUser;
+      }
+    } catch (error) {
+      console.error('Failed to refresh profile:', error);
+    }
+    return null;
+  };
+
+  // ─── Update User State ─────────────────────────────────────────────
+  const updateUser = (updatedData) => {
+    const merged = { ...user, ...updatedData };
+    setUser(merged);
+    localStorage.setItem('campuscrate_user', JSON.stringify(merged));
+  };
+
   // ─── Logout ─────────────────────────────────────────────────────────
   const logout = () => {
     setToken(null);
@@ -88,6 +112,8 @@ export const AuthProvider = ({ children }) => {
     resendOTP,
     login,
     logout,
+    refreshProfile,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
