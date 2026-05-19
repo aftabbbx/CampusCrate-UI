@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import API from '../../api/axios';
 import { Search, Filter, IndianRupee, MapPin } from 'lucide-react';
 import UserLayout from '../../components/UserLayout';
+import toast from 'react-hot-toast';
 
 const ExploreResources = () => {
   const [resources, setResources] = useState([]);
@@ -18,6 +19,11 @@ const ExploreResources = () => {
         }
       } catch (error) {
         console.error('Failed to fetch resources', error);
+        if (error.response) {
+          toast.error(`Failed to load resources: ${error.response.data?.message || error.response.status}`);
+        } else if (error.request) {
+          toast.error('Cannot connect to server. Is the backend running?');
+        }
       } finally {
         setLoading(false);
       }

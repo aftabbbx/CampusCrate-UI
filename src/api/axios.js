@@ -27,6 +27,13 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Network error — backend not reachable
+    if (!error.response) {
+      console.error('🔴 Network Error: Cannot reach backend at', API.defaults.baseURL);
+      console.error('   Make sure the backend server is running on the correct port.');
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401) {
       const isAdminRoute = error.config?.url?.startsWith('/admin');
       
@@ -40,6 +47,11 @@ API.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+
+    if (error.response?.status === 500) {
+      console.error('🔴 Server Error:', error.response.data?.message || 'Internal server error');
+    }
+
     return Promise.reject(error);
   }
 );

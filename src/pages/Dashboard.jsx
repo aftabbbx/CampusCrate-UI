@@ -3,6 +3,7 @@ import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Package, MessageSquare, TrendingUp, Handshake, ChevronRight, MoreHorizontal } from 'lucide-react';
 import UserLayout from '../components/UserLayout';
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -26,6 +27,11 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error('Failed to fetch resources', error);
+        if (error.response) {
+          toast.error(`Failed to load resources: ${error.response.data?.message || error.response.status}`);
+        } else if (error.request) {
+          toast.error('Cannot connect to server. Is the backend running?');
+        }
       } finally {
         setLoadingResources(false);
       }
