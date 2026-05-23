@@ -492,7 +492,7 @@ const Messages = () => {
                 padding: '0.875rem 1.25rem', background: 'var(--color-card)',
                 borderBottom: '1px solid var(--color-border)',
               }}>
-                <button className="chat-action-btn" onClick={() => { setMobileShowChat(false); setSelectedUser(null); }} style={{ display: 'none' }} className="mobile-back-btn">
+                <button className="chat-action-btn mobile-back-btn" onClick={() => { setMobileShowChat(false); setSelectedUser(null); }} style={{ display: 'none' }}>
                   <ArrowLeft style={{ width: '20px', height: '20px' }} />
                 </button>
                 <div className="conv-avatar" style={{ width: '40px', height: '40px', fontSize: '0.85rem' }}>
