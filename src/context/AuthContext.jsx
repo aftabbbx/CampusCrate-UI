@@ -29,6 +29,13 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // ─── Helper: strip volatile data before saving to localStorage ─────
+  const toStorableUser = (userData) => {
+    if (!userData) return null;
+    const { followers_count, following_count, followers, following, ...rest } = userData;
+    return rest;
+  };
+
   // ─── Signup ─────────────────────────────────────────────────────────
   const signup = async (userData) => {
     const res = await API.post('/user/signup', userData);
@@ -44,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(newUser);
       localStorage.setItem('campuscrate_token', newToken);
-      localStorage.setItem('campuscrate_user', JSON.stringify(newUser));
+      localStorage.setItem('campuscrate_user', JSON.stringify(toStorableUser(newUser)));
     }
 
     return res.data;
@@ -65,7 +72,7 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(newUser);
       localStorage.setItem('campuscrate_token', newToken);
-      localStorage.setItem('campuscrate_user', JSON.stringify(newUser));
+      localStorage.setItem('campuscrate_user', JSON.stringify(toStorableUser(newUser)));
     }
 
     return res.data;
@@ -78,7 +85,7 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         const updatedUser = res.data.user;
         setUser(updatedUser);
-        localStorage.setItem('campuscrate_user', JSON.stringify(updatedUser));
+        localStorage.setItem('campuscrate_user', JSON.stringify(toStorableUser(updatedUser)));
         return updatedUser;
       }
     } catch (error) {
@@ -91,7 +98,7 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (updatedData) => {
     const merged = { ...user, ...updatedData };
     setUser(merged);
-    localStorage.setItem('campuscrate_user', JSON.stringify(merged));
+    localStorage.setItem('campuscrate_user', JSON.stringify(toStorableUser(merged)));
   };
 
   // ─── Logout ─────────────────────────────────────────────────────────
