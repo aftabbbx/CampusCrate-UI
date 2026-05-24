@@ -95,7 +95,7 @@ const OTPForm = ({ email }) => {
 
   return (
     <div className="auth-bg">
-      <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 1 }}>
+      <div style={{ width: '100%', maxWidth: '420px', margin: 'auto', position: 'relative', zIndex: 1 }}>
         {/* Back */}
         <Link to="/signup" style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
