@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Package, MessageSquare, TrendingUp, Handshake, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { Package, MessageSquare, TrendingUp, Handshake, ChevronRight, MoreHorizontal, AlertTriangle, CheckCircle } from 'lucide-react';
 import UserLayout from '../components/UserLayout';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, isProfileComplete } = useAuth();
   
   const stats = [
     { label: 'Total Resources', value: '24', icon: Package, color: '#4f46e5', bg: '#eef2ff' },
@@ -52,6 +53,57 @@ const Dashboard = () => {
             Here's what's happening on your campus today.
           </p>
         </div>
+
+        {/* ─── Complete Profile Banner ──────────────────────────────── */}
+        {!isProfileComplete && (
+          <div className="anim-up" style={{
+            marginBottom: '1.25rem', padding: '1.25rem 1.5rem', borderRadius: '1rem', animationDelay: '0.04s',
+            background: 'linear-gradient(135deg, rgba(79,70,229,0.06), rgba(129,140,248,0.08))',
+            border: '1px solid rgba(79,70,229,0.15)',
+            display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap',
+          }}>
+            <div style={{
+              width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
+              background: 'linear-gradient(135deg, var(--color-brand), var(--color-brand-light))',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(79,70,229,0.25)',
+            }}>
+              <AlertTriangle style={{ width: '22px', height: '22px', color: 'white' }} />
+            </div>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <p style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text)', marginBottom: '0.25rem', fontFamily: 'var(--font-display)' }}>
+                Complete Your Profile
+              </p>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-sub)', lineHeight: 1.5 }}>
+                Add your roll number, course, batch & semester to unlock messaging, resource listing, and more.
+              </p>
+              {/* Missing fields indicators */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.5rem' }}>
+                {[
+                  { field: 'Roll Number', done: !!user?.roll_number },
+                  { field: 'Course', done: !!user?.course },
+                  { field: 'Batch', done: !!user?.batch },
+                  { field: 'Semester', done: !!user?.semester },
+                ].map((item) => (
+                  <span key={item.field} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                    padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600,
+                    background: item.done ? '#d1fae5' : '#fee2e2',
+                    color: item.done ? '#059669' : '#dc2626',
+                  }}>
+                    {item.done ? <CheckCircle style={{ width: '10px', height: '10px' }} /> : <AlertTriangle style={{ width: '10px', height: '10px' }} />}
+                    {item.field}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <Link to="/profile" style={{
+              padding: '0.625rem 1.25rem', borderRadius: '0.625rem', fontSize: '0.8125rem',
+              fontWeight: 600, background: 'var(--color-brand)', color: 'white', textDecoration: 'none',
+              whiteSpace: 'nowrap', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(79,70,229,0.3)',
+            }}>Complete Profile →</Link>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="anim-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem', animationDelay: '0.08s' }}>
