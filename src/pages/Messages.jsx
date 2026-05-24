@@ -1,17 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import useProfileGate from '../hooks/useProfileGate';
 import API from '../api/axios';
 import UserLayout from '../components/UserLayout';
 import toast from 'react-hot-toast';
 import {
   Search, Send, Image, Mic, MicOff, Play, Pause, ArrowLeft,
-  MessageSquare, Phone, Video, MoreVertical, Check, CheckCheck, X,
+  MessageSquare, Phone, Video, MoreVertical, Check, CheckCheck, X, AlertTriangle,
 } from 'lucide-react';
 
 const Messages = () => {
   const { user } = useAuth();
   const { socket, onlineUsers, lastIncomingMessage, typingUsers, emitTyping, emitStopTyping, emitMessagesRead, markConversationRead } = useSocket();
+  const { isProfileComplete, guardAction } = useProfileGate();
 
   // ─── State ────────────────────────────────────────────────────────
   const [conversations, setConversations] = useState([]);
@@ -128,180 +130,193 @@ const Messages = () => {
   // ─── Send text message ────────────────────────────────────────────
   const sendTextMessage = async () => {
     if (!text.trim() || !selectedUser || sending) return;
-    setSending(true);
+    guardAction(async () => {
+      setSending(true);
 
-    try {
-      const res = await API.post('/message/send', {
-        receiver_id: selectedUser._id,
-        message: text.trim(),
-        message_type: 'text',
-      });
-
-      if (res.data.success) {
-        const newMsg = res.data.data;
-        setMessages((prev) => [...prev, newMsg]);
-        setText('');
-        if (textareaRef.current) textareaRef.current.style.height = '40px';
-
-        // Update conversation list
-        setConversations((prev) => {
-          const exists = prev.find((c) => c.user?._id === selectedUser._id);
-          if (exists) {
-            return prev.map((c) =>
-              c.user?._id === selectedUser._id
-                ? { ...c, lastMessage: text.trim(), lastMessageAt: newMsg.createdAt }
-                : c
-            ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
-          }
-          return [
-            { user: selectedUser, lastMessage: text.trim(), lastMessageAt: newMsg.createdAt, unreadCount: 0, isOnline: onlineUsers.has(selectedUser._id) },
-            ...prev,
-          ];
-        });
-
-        // Emit socket event
-        socket?.emit('send-message', {
+      try {
+        const res = await API.post('/message/send', {
           receiver_id: selectedUser._id,
           message: text.trim(),
           message_type: 'text',
-          _id: newMsg._id,
-          createdAt: newMsg.createdAt,
         });
+
+        if (res.data.success) {
+          const newMsg = res.data.data;
+          setMessages((prev) => [...prev, newMsg]);
+          setText('');
+          if (textareaRef.current) textareaRef.current.style.height = '40px';
+
+          // Update conversation list
+          setConversations((prev) => {
+            const exists = prev.find((c) => c.user?._id === selectedUser._id);
+            if (exists) {
+              return prev.map((c) =>
+                c.user?._id === selectedUser._id
+                  ? { ...c, lastMessage: text.trim(), lastMessageAt: newMsg.createdAt }
+                  : c
+              ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+            }
+            return [
+              { user: selectedUser, lastMessage: text.trim(), lastMessageAt: newMsg.createdAt, unreadCount: 0, isOnline: onlineUsers.has(selectedUser._id) },
+              ...prev,
+            ];
+          });
+
+          // Emit socket event
+          socket?.emit('send-message', {
+            receiver_id: selectedUser._id,
+            message: text.trim(),
+            message_type: 'text',
+            _id: newMsg._id,
+            createdAt: newMsg.createdAt,
+          });
+        }
+      } catch (err) {
+        if (err.response?.data?.profileIncomplete) {
+          toast.error('Complete your profile to unlock this feature 🔒');
+        } else {
+          toast.error('Failed to send message');
+        }
+      } finally {
+        setSending(false);
       }
-    } catch (err) {
-      toast.error('Failed to send message');
-    } finally {
-      setSending(false);
-    }
+    });
   };
 
   // ─── Send image ───────────────────────────────────────────────────
   const handleImageSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !selectedUser) return;
+    guardAction(async () => {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Image must be under 10MB');
+        return;
+      }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image must be under 10MB');
-      return;
-    }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result;
+        setSending(true);
+        try {
+          // Upload to Cloudinary
+          const uploadRes = await API.post('/upload/image', { base64 });
+          if (!uploadRes.data.success) throw new Error('Upload failed');
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = reader.result;
-      setSending(true);
-      try {
-        // Upload to Cloudinary
-        const uploadRes = await API.post('/upload/image', { base64 });
-        if (!uploadRes.data.success) throw new Error('Upload failed');
-
-        // Send message
-        const res = await API.post('/message/send', {
-          receiver_id: selectedUser._id,
-          message: '',
-          message_type: 'image',
-          media_url: uploadRes.data.url,
-        });
-
-        if (res.data.success) {
-          const newMsg = res.data.data;
-          setMessages((prev) => [...prev, newMsg]);
-
-          setConversations((prev) =>
-            prev.map((c) =>
-              c.user?._id === selectedUser._id
-                ? { ...c, lastMessage: '📷 Photo', lastMessageAt: newMsg.createdAt }
-                : c
-            ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt))
-          );
-
-          socket?.emit('send-message', {
+          // Send message
+          const res = await API.post('/message/send', {
             receiver_id: selectedUser._id,
             message: '',
             message_type: 'image',
             media_url: uploadRes.data.url,
-            _id: newMsg._id,
-            createdAt: newMsg.createdAt,
           });
+
+          if (res.data.success) {
+            const newMsg = res.data.data;
+            setMessages((prev) => [...prev, newMsg]);
+
+            setConversations((prev) =>
+              prev.map((c) =>
+                c.user?._id === selectedUser._id
+                  ? { ...c, lastMessage: '📷 Photo', lastMessageAt: newMsg.createdAt }
+                  : c
+              ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt))
+            );
+
+            socket?.emit('send-message', {
+              receiver_id: selectedUser._id,
+              message: '',
+              message_type: 'image',
+              media_url: uploadRes.data.url,
+              _id: newMsg._id,
+              createdAt: newMsg.createdAt,
+            });
+          }
+        } catch (err) {
+          if (err.response?.data?.profileIncomplete) {
+            toast.error('Complete your profile to unlock this feature 🔒');
+          } else {
+            toast.error('Failed to send image');
+          }
+        } finally {
+          setSending(false);
         }
-      } catch (err) {
-        toast.error('Failed to send image');
-      } finally {
-        setSending(false);
-      }
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
   };
 
   // ─── Voice Recording ─────────────────────────────────────────────
   const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
+    guardAction(async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
 
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
 
-      mediaRecorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        mediaRecorder.onstop = async () => {
+          stream.getTracks().forEach((t) => t.stop());
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
 
-        // Convert to base64
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const base64 = reader.result;
-          setSending(true);
-          try {
-            const uploadRes = await API.post('/upload/audio', { base64 });
-            if (!uploadRes.data.success) throw new Error('Upload failed');
+          // Convert to base64
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const base64 = reader.result;
+            setSending(true);
+            try {
+              const uploadRes = await API.post('/upload/audio', { base64 });
+              if (!uploadRes.data.success) throw new Error('Upload failed');
 
-            const res = await API.post('/message/send', {
-              receiver_id: selectedUser._id,
-              message: '',
-              message_type: 'voice',
-              media_url: uploadRes.data.url,
-            });
-
-            if (res.data.success) {
-              const newMsg = res.data.data;
-              setMessages((prev) => [...prev, newMsg]);
-
-              setConversations((prev) =>
-                prev.map((c) =>
-                  c.user?._id === selectedUser._id
-                    ? { ...c, lastMessage: '🎙️ Voice note', lastMessageAt: newMsg.createdAt }
-                    : c
-                ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt))
-              );
-
-              socket?.emit('send-message', {
+              const res = await API.post('/message/send', {
                 receiver_id: selectedUser._id,
                 message: '',
                 message_type: 'voice',
                 media_url: uploadRes.data.url,
-                _id: newMsg._id,
-                createdAt: newMsg.createdAt,
               });
-            }
-          } catch (err) {
-            toast.error('Failed to send voice note');
-          } finally {
-            setSending(false);
-          }
-        };
-        reader.readAsDataURL(audioBlob);
-      };
 
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-      recordingIntervalRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
-    } catch (err) {
-      toast.error('Microphone access denied');
-    }
+              if (res.data.success) {
+                const newMsg = res.data.data;
+                setMessages((prev) => [...prev, newMsg]);
+
+                setConversations((prev) =>
+                  prev.map((c) =>
+                    c.user?._id === selectedUser._id
+                      ? { ...c, lastMessage: '🎙️ Voice note', lastMessageAt: newMsg.createdAt }
+                      : c
+                  ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt))
+                );
+
+                socket?.emit('send-message', {
+                  receiver_id: selectedUser._id,
+                  message: '',
+                  message_type: 'voice',
+                  media_url: uploadRes.data.url,
+                  _id: newMsg._id,
+                  createdAt: newMsg.createdAt,
+                });
+              }
+            } catch (err) {
+              toast.error('Failed to send voice note');
+            } finally {
+              setSending(false);
+            }
+          };
+          reader.readAsDataURL(audioBlob);
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+        setRecordingTime(0);
+        recordingIntervalRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
+      } catch (err) {
+        toast.error('Microphone access denied');
+      }
+    });
   };
 
   const stopRecording = () => {

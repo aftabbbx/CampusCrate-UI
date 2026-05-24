@@ -3,8 +3,7 @@ import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
-import Login from './pages/auth/Login';
-import Signup from './pages/auth/Signup';
+import AuthPage from './pages/auth/AuthPage';
 import VerifyOTP from './pages/auth/VerifyOTP';
 import Dashboard from './pages/Dashboard';
 import ExploreResources from './pages/resources/ExploreResources';
@@ -36,8 +35,8 @@ function App() {
   return (
     <Routes>
       {/* Auth */}
-      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
-      <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />} />
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
+      <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
       <Route path="/verify-otp" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <VerifyOTP />} />
 
       {/* Admin */}

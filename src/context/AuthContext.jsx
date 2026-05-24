@@ -109,11 +109,20 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('campuscrate_user');
   };
 
+  // ─── Profile completeness check ──────────────────────────────────────
+  const isProfileComplete = !!(
+    user?.roll_number && user.roll_number.trim() !== '' &&
+    user?.course && user.course.trim() !== '' &&
+    user?.batch && user.batch.trim() !== '' &&
+    user?.semester && user.semester.trim() !== ''
+  );
+
   const value = {
     user,
     token,
     loading,
     isAuthenticated: !!token,
+    isProfileComplete,
     signup,
     verifyOTP,
     resendOTP,

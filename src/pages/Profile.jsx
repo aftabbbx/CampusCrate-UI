@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import {
   User, Mail, Phone, GraduationCap, Calendar, Shield, Star,
   Users, Package, Edit3, Save, X, Copy, Check, Link as LinkIcon,
-  Clock, ChevronRight, Hash, Layers, BookOpen, Camera,
+  Clock, ChevronRight, Hash, Layers, BookOpen, Camera, AlertTriangle,
 } from 'lucide-react';
 
 const COURSES = ['BCA', 'BBA', 'BCom', 'BSc', 'BA', 'BTech', 'MBA', 'MCA', 'MCom', 'MSc', 'Other'];
@@ -29,7 +29,7 @@ const CompletionRing = ({ percent }) => {
 };
 
 const Profile = () => {
-  const { user, refreshProfile, updateUser } = useAuth();
+  const { user, refreshProfile, updateUser, isProfileComplete } = useAuth();
   const [profile, setProfile] = useState(null);
   const [recentResources, setRecentResources] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +58,13 @@ const Profile = () => {
       setLoading(false);
     }
   };
+
+  // Auto-open edit mode when profile is incomplete
+  useEffect(() => {
+    if (profile && !isProfileComplete && !editing) {
+      startEdit();
+    }
+  }, [profile, isProfileComplete]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -90,6 +97,7 @@ const Profile = () => {
   const startEdit = () => {
     setEditForm({
       name: profile?.name || '',
+      roll_number: profile?.roll_number || '',
       phone_number: profile?.phone_number || '',
       course: profile?.course || '',
       batch: profile?.batch || '',
@@ -297,12 +305,45 @@ const Profile = () => {
             <h3 style={{ fontSize: '1rem', fontWeight: 600, fontFamily: 'var(--font-display)', marginBottom: '1.25rem', color: 'var(--color-text)' }}>
               Edit Profile
             </h3>
+
+            {/* Incomplete profile alert */}
+            {!isProfileComplete && (
+              <div style={{
+                marginBottom: '1.25rem', padding: '0.875rem 1rem', borderRadius: '0.75rem',
+                background: 'linear-gradient(135deg, #fef3c7, #fde68a22)', border: '1px solid #fde68a',
+                display: 'flex', alignItems: 'center', gap: '0.625rem',
+              }}>
+                <AlertTriangle style={{ width: '18px', height: '18px', color: '#d97706', flexShrink: 0 }} />
+                <p style={{ fontSize: '0.8125rem', color: '#92400e', lineHeight: 1.4 }}>
+                  <strong>Complete these fields</strong> to unlock messaging, resource listing, and more.
+                </p>
+              </div>
+            )}
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               {/* Name */}
               <div>
                 <label className="form-label">Full Name</label>
                 <input value={editForm.name} onChange={(e) => setEditForm(p => ({ ...p, name: e.target.value }))}
                   className="form-input" style={{ paddingLeft: '0.875rem' }} />
+              </div>
+              {/* Roll Number */}
+              <div>
+                <label className="form-label">
+                  Roll Number {!profile?.roll_number && <span style={{ color: '#dc2626', fontSize: '0.7rem' }}>Required</span>}
+                </label>
+                <input
+                  value={editForm.roll_number}
+                  onChange={(e) => setEditForm(p => ({ ...p, roll_number: e.target.value }))}
+                  className="form-input"
+                  style={{
+                    paddingLeft: '0.875rem',
+                    ...(profile?.roll_number ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
+                  }}
+                  placeholder="e.g. 2024BCA001"
+                  readOnly={!!profile?.roll_number}
+                  title={profile?.roll_number ? 'Roll number cannot be changed once set' : ''}
+                />
               </div>
               {/* Phone */}
               <div>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import API from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import useProfileGate from '../../hooks/useProfileGate';
 import UserLayout from '../../components/UserLayout';
 import toast from 'react-hot-toast';
 import {
@@ -16,6 +17,7 @@ const ResourceDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { onlineUsers } = useSocket();
+  const { isProfileComplete, guardAction } = useProfileGate();
   const [resource, setResource] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -40,29 +42,35 @@ const ResourceDetail = () => {
   }, [id, navigate]);
 
   // ─── Message Seller: create a conversation & redirect ─────────
-  const handleMessageSeller = async () => {
-    if (!resource?.owner_id?._id) return;
-    if (resource.owner_id._id === user?._id) {
-      toast.error("You can't message yourself!");
-      return;
-    }
+  const handleMessageSeller = () => {
+    guardAction(async () => {
+      if (!resource?.owner_id?._id) return;
+      if (resource.owner_id._id === user?._id) {
+        toast.error("You can't message yourself!");
+        return;
+      }
 
-    setMessageSending(true);
-    try {
-      // Send an intro message to kick off the conversation
-      await API.post('/message/send', {
-        receiver_id: resource.owner_id._id,
-        message: `Hi! I'm interested in your resource "${resource.title}".`,
-        message_type: 'text',
-      });
-      toast.success('Message sent! Redirecting to chat...');
-      navigate('/messages');
-    } catch (err) {
-      // If duplicate conversation exists, just navigate
-      navigate('/messages');
-    } finally {
-      setMessageSending(false);
-    }
+      setMessageSending(true);
+      try {
+        // Send an intro message to kick off the conversation
+        await API.post('/message/send', {
+          receiver_id: resource.owner_id._id,
+          message: `Hi! I'm interested in your resource "${resource.title}".`,
+          message_type: 'text',
+        });
+        toast.success('Message sent! Redirecting to chat...');
+        navigate('/messages');
+      } catch (err) {
+        if (err.response?.data?.profileIncomplete) {
+          toast.error('Complete your profile to unlock this feature 🔒');
+        } else {
+          // If duplicate conversation exists, just navigate
+          navigate('/messages');
+        }
+      } finally {
+        setMessageSending(false);
+      }
+    });
   };
 
   const isOwnerOnline = resource?.owner_id?._id && onlineUsers.has(resource.owner_id._id);

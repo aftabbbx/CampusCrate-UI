@@ -1,15 +1,17 @@
 import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../../api/axios';
+import useProfileGate from '../../hooks/useProfileGate';
 import {
   ArrowLeft, Upload, Package, FileText, Tag,
-  IndianRupee, MapPin, CheckCircle, Image as ImageIcon
+  IndianRupee, MapPin, CheckCircle, Image as ImageIcon, AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AddResource = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const { isProfileComplete, guardAction } = useProfileGate();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -50,55 +52,61 @@ const AddResource = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.category || !formData.description) {
-      toast.error('Please fill all required fields');
-      return;
-    }
-    
-    if (formData.type === 'Paid' && !formData.price) {
-      toast.error('Please enter a price');
-      return;
-    }
-
-    setIsLoading(true);
-    let imageUrl = '';
-
-    try {
-      // 1. Upload Image to Cloudinary if selected
-      if (image) {
-        const imageFormData = new FormData();
-        imageFormData.append('image', image);
-        
-        const uploadRes = await API.post('/resource/upload', imageFormData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        
-        if (uploadRes.data.success) {
-          imageUrl = uploadRes.data.image_url;
-        } else {
-          throw new Error('Image upload failed');
-        }
+    guardAction(async () => {
+      if (!formData.title || !formData.category || !formData.description) {
+        toast.error('Please fill all required fields');
+        return;
       }
-
-      // 2. Create Resource
-      const resourceData = {
-        ...formData,
-        price: formData.type === 'Paid' ? Number(formData.price) : 0,
-        image_url: imageUrl
-      };
-
-      const res = await API.post('/resource/create', resourceData);
       
-      if (res.data.success) {
-        toast.success('Resource added successfully! 🎉');
-        navigate('/dashboard');
+      if (formData.type === 'Paid' && !formData.price) {
+        toast.error('Please enter a price');
+        return;
       }
-    } catch (error) {
-      console.error('Error adding resource:', error);
-      toast.error(error.response?.data?.message || 'Failed to add resource');
-    } finally {
-      setIsLoading(false);
-    }
+
+      setIsLoading(true);
+      let imageUrl = '';
+
+      try {
+        // 1. Upload Image to Cloudinary if selected
+        if (image) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', image);
+          
+          const uploadRes = await API.post('/resource/upload', imageFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          
+          if (uploadRes.data.success) {
+            imageUrl = uploadRes.data.image_url;
+          } else {
+            throw new Error('Image upload failed');
+          }
+        }
+
+        // 2. Create Resource
+        const resourceData = {
+          ...formData,
+          price: formData.type === 'Paid' ? Number(formData.price) : 0,
+          image_url: imageUrl
+        };
+
+        const res = await API.post('/resource/create', resourceData);
+        
+        if (res.data.success) {
+          toast.success('Resource added successfully! 🎉');
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        if (error.response?.data?.profileIncomplete) {
+          toast.error('Complete your profile to unlock this feature 🔒');
+        } else {
+          console.error('Error adding resource:', error);
+          toast.error(error.response?.data?.message || 'Failed to add resource');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    });
   };
 
   return (
@@ -123,6 +131,30 @@ const AddResource = () => {
             </p>
           </div>
         </div>
+
+        {/* Profile Incomplete Banner */}
+        {!isProfileComplete && (
+          <div style={{
+            marginBottom: '1.25rem', padding: '1rem 1.25rem', borderRadius: '0.75rem',
+            background: 'linear-gradient(135deg, #fef3c7, #fde68a33)', border: '1px solid #fde68a',
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+          }}>
+            <AlertTriangle style={{ width: '20px', height: '20px', color: '#d97706', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: 600, fontSize: '0.85rem', color: '#92400e', marginBottom: '0.125rem' }}>
+                Profile Incomplete
+              </p>
+              <p style={{ fontSize: '0.75rem', color: '#a16207', lineHeight: 1.4 }}>
+                Complete your profile (roll number, course, batch, semester) before listing a resource.
+              </p>
+            </div>
+            <Link to="/profile" style={{
+              padding: '0.4rem 0.875rem', borderRadius: '0.5rem', fontSize: '0.75rem',
+              fontWeight: 600, background: '#d97706', color: 'white', textDecoration: 'none',
+              whiteSpace: 'nowrap', transition: 'opacity 0.2s',
+            }}>Complete Profile</Link>
+          </div>
+        )}
 
         <div className="card-lg" style={{ overflow: 'hidden' }}>
           <form onSubmit={handleSubmit}>
