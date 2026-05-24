@@ -36,29 +36,41 @@ const AdminLogin = () => {
 
   return (
     <div className="auth-bg">
-      <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 1 }}>
+      {/* Floating decorative elements */}
+      <div className="auth-floating-orb auth-orb-1" />
+      <div className="auth-floating-orb auth-orb-2" />
+      <div className="auth-floating-orb auth-orb-3" />
+
+      <div className="auth-page-wrapper">
         {/* ─── Branding ────────────────────────────────────────────── */}
-        <div className="anim-up" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <div className="anim-up" style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
           <div style={{
-            width: '48px', height: '48px', borderRadius: '14px', display: 'inline-flex',
-            alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem',
-            background: 'var(--color-brand)', boxShadow: '0 4px 12px rgba(79,70,229,0.2)',
+            width: '52px', height: '52px', borderRadius: '16px', display: 'inline-flex',
+            alignItems: 'center', justifyContent: 'center', marginBottom: '1rem',
+            background: 'linear-gradient(135deg, var(--color-brand), var(--color-brand-light))',
+            boxShadow: '0 8px 24px rgba(79,70,229,0.3)',
           }}>
-            <ShieldAlert style={{ width: '24px', height: '24px', color: 'white' }} />
+            <ShieldAlert style={{ width: '26px', height: '26px', color: 'white' }} />
           </div>
-          <h1 style={{ fontSize: '1.625rem', fontWeight: 700, color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}>
+          <h1 style={{
+            fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-display)',
+            color: 'var(--color-text)',
+            background: 'linear-gradient(135deg, var(--color-text), var(--color-brand))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>
             Admin Portal
           </h1>
-          <p style={{ color: 'var(--color-text-sub)', fontSize: '0.875rem', marginTop: '0.375rem' }}>
+          <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
             Secure access for CampusCrate administrators
           </p>
         </div>
 
-        {/* ─── Card ────────────────────────────────────────────────── */}
-        <div className="card-lg anim-up" style={{ padding: '1.75rem', animationDelay: '0.08s' }}>
-          <form onSubmit={handleSubmit}>
+        {/* ─── Auth Card ───────────────────────────────────────────── */}
+        <div className="auth-card anim-up" style={{ animationDelay: '0.08s' }}>
+          <form className="auth-form" onSubmit={handleSubmit} style={{ width: '100%', padding: 0 }}>
             {/* Email */}
-            <div style={{ marginBottom: '1rem' }}>
+            <div className="auth-field">
               <label htmlFor="login-email" className="form-label">Email</label>
               <div className="form-group" style={{ position: 'relative' }}>
                 <Mail className="form-icon" />
@@ -69,12 +81,13 @@ const AdminLogin = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@campuscrate.com"
                   className="form-input"
+                  required
                 />
               </div>
             </div>
 
             {/* Password */}
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div className="auth-field">
               <label htmlFor="login-password" className="form-label">Password</label>
               <div className="form-group" style={{ position: 'relative' }}>
                 <Lock className="form-icon" />
@@ -85,15 +98,12 @@ const AdminLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   className="form-input form-input-pad-right"
+                  required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: '2px',
-                    color: 'var(--color-text-muted)', display: 'flex',
-                  }}
+                  className="auth-pw-toggle"
                 >
                   {showPassword ? <EyeOff style={{ width: '18px', height: '18px' }} /> : <Eye style={{ width: '18px', height: '18px' }} />}
                 </button>
@@ -101,8 +111,11 @@ const AdminLogin = () => {
             </div>
 
             {/* Submit */}
-            <button type="submit" disabled={isLoading} className="btn btn-brand">
-              {isLoading ? <div className="spinner" /> : <>Sign In <ArrowRight style={{ width: '16px', height: '16px' }} /></>}
+            <button type="submit" disabled={isLoading} className="auth-submit-btn" style={{ marginTop: '0.5rem' }}>
+              <div className="auth-btn-layer" />
+              <span className="auth-btn-text">
+                {isLoading ? <div className="spinner" /> : <>Sign In <ArrowRight style={{ width: '16px', height: '16px' }} /></>}
+              </span>
             </button>
           </form>
         </div>
