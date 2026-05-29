@@ -175,6 +175,7 @@ export const SocketProvider = ({ children }) => {
     markConversationRead,
     clearNotificationCount,
     setUnreadNotifications,
+    setUnreadMessages,
   };
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;

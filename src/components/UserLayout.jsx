@@ -50,7 +50,7 @@ const UserLayout = ({ children }) => {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: CS.bg, fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: CS.bg, fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}>
 
       {/* ═══ NAVBAR — identical to Homepage ════════════════════════════ */}
       <nav style={{
@@ -66,9 +66,7 @@ const UserLayout = ({ children }) => {
           {/* Left: Logo + Nav Links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #5B5BD6, #4338CA)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BookOpen style={{ width: 16, height: 16, color: '#fff' }} />
-              </div>
+              <img src="/uploads/campuscrate-logo.png" alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
               <span style={{ fontWeight: 800, fontSize: 17, color: '#0F172A', letterSpacing: '-0.01em' }}>CampusCrate</span>
             </Link>
 

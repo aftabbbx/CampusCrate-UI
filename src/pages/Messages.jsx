@@ -12,7 +12,7 @@ import {
 
 const Messages = () => {
   const { user } = useAuth();
-  const { socket, onlineUsers, lastIncomingMessage, typingUsers, emitTyping, emitStopTyping, emitMessagesRead, markConversationRead } = useSocket();
+  const { socket, onlineUsers, lastIncomingMessage, typingUsers, emitTyping, emitStopTyping, emitMessagesRead, markConversationRead, setUnreadMessages } = useSocket();
   const { isProfileComplete, guardAction } = useProfileGate();
 
   // ─── State ────────────────────────────────────────────────────────
@@ -53,6 +53,12 @@ const Messages = () => {
       const res = await API.get('/message/conversations');
       if (res.data.success) {
         setConversations(res.data.conversations);
+        // Sync navbar badge with actual backend unread counts
+        const map = {};
+        (res.data.conversations || []).forEach((c) => {
+          if ((c.unreadCount || 0) > 0) map[c.user._id] = c.unreadCount;
+        });
+        setUnreadMessages(map);
       }
     } catch (err) {
       console.error('Failed to fetch conversations:', err);

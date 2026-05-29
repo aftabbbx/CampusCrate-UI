@@ -153,7 +153,7 @@ const Homepage = () => {
   ];
 
   return (
-    <div style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", background: '#F8FAFC', color: '#0F172A', minHeight: '100vh' }}>
+    <div style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", background: '#F8FAFC', color: '#0F172A', minHeight: '100vh' }}>
 
       {/* ═══ NAVBAR ════════════════════════════════════════════════════════ */}
       <nav style={{
@@ -169,9 +169,7 @@ const Homepage = () => {
           {/* Left: Logo + Nav Links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #5B5BD6, #4338CA)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BookOpen style={{ width: 16, height: 16, color: '#fff' }} />
-              </div>
+              <img src="/uploads/campuscrate-logo.png" alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
               <span style={{ fontWeight: 800, fontSize: 17, color: '#0F172A', letterSpacing: '-0.01em' }}>CampusCrate</span>
             </Link>
             <div style={{ display: 'flex', gap: '1.5rem' }} className="nav-desktop-links">
@@ -661,9 +659,7 @@ const Homepage = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem', paddingBottom: '2.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }} className="footer-grid">
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #5B5BD6, #C1C1FF)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BookOpen style={{ width: 14, height: 14, color: '#fff' }} />
-                </div>
+                <img src="/uploads/campuscrate-logo.png" alt="" style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
                 <span style={{ fontWeight: 800, fontSize: 17, color: '#fff' }}>CampusCrate</span>
               </div>
               <p style={{ fontSize: 14, lineHeight: 1.7, maxWidth: 340, marginBottom: '1.5rem' }}>
