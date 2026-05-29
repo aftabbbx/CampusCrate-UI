@@ -2,276 +2,243 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import {
-  BookOpen, LayoutDashboard, Package, MessageSquare, Bell, User,
-  LogOut, Search, Plus, Menu, X, CheckCheck, MessageCircle, Handshake, ShieldCheck,
+  BookOpen, MessageSquare, Bell, User,
+  LogOut, Search, Menu, X, LayoutDashboard,
 } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import API from '../api/axios';
+import { useNavigate, Link } from 'react-router-dom';
+
+const CS = {
+  primary: '#5B5BD6',
+  primaryHover: '#4338CA',
+  primaryPale: '#EEEEFF',
+  bg: '#F8FAFC',
+  border: 'rgba(199,196,214,0.3)',
+  text: '#0F172A',
+  textSub: '#64748B',
+  danger: '#BA1A1A',
+  dangerPale: '#FFDAD6',
+};
 
 const UserLayout = ({ children }) => {
   const { user, logout } = useAuth();
-  const { totalUnreadMessages, unreadNotifications, clearNotificationCount, setUnreadNotifications } = useSocket();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [notifLoading, setNotifLoading] = useState(false);
-  const notifRef = useRef(null);
+  const { totalUnreadMessages, unreadNotifications } = useSocket();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const userMenuRef = useRef(null);
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { id: 'resources', label: 'Resources', icon: Package, path: '/resources' },
-    { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages', badge: totalUnreadMessages },
-    { id: 'notifications', label: 'Notifications', icon: Bell, path: '/notifications', badge: unreadNotifications },
-    { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
-  ];
-
-  const isActive = (path) => location.pathname === path;
-
-  const handleNav = (path) => {
-    navigate(path);
-    setSidebarOpen(false);
-  };
-
-  // Fetch notifications for dropdown
-  const fetchNotifications = async () => {
-    setNotifLoading(true);
-    try {
-      const res = await API.get('/notification/all');
-      if (res.data.success) {
-        setNotifications(res.data.notifications.slice(0, 8));
-        const unreadRes = await API.get('/notification/unread-count');
-        if (unreadRes.data.success) {
-          setUnreadNotifications(unreadRes.data.unreadCount);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch notifications:', err);
-    } finally {
-      setNotifLoading(false);
-    }
-  };
-
-  // Toggle notification dropdown
-  const toggleNotifDropdown = () => {
-    if (!notifOpen) fetchNotifications();
-    setNotifOpen(!notifOpen);
-  };
-
-  // Mark all notifications as read
-  const markAllRead = async () => {
-    try {
-      await API.put('/notification/read-all');
-      clearNotificationCount();
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    } catch (err) {
-      console.error('Failed to mark all read:', err);
-    }
-  };
-
-  // Close dropdown on outside click
   useEffect(() => {
-    const handleOutside = (e) => {
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setNotifOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutside);
-    return () => document.removeEventListener('mousedown', handleOutside);
+    const fn = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  // Get notification icon and color
-  const getNotifStyle = (type) => {
-    switch (type) {
-      case 'message': return { bg: '#eef2ff', color: '#4f46e5', Icon: MessageCircle };
-      case 'request': return { bg: '#fef3c7', color: '#d97706', Icon: Handshake };
-      case 'deal': return { bg: '#d1fae5', color: '#059669', Icon: CheckCheck };
-      default: return { bg: '#f1f5f9', color: '#64748b', Icon: Bell };
-    }
-  };
+  useEffect(() => {
+    const fn = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', fn);
+    return () => document.removeEventListener('mousedown', fn);
+  }, []);
 
-  // Time ago helper
-  const timeAgo = (date) => {
-    const diff = (Date.now() - new Date(date).getTime()) / 1000;
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-  };
-
-  const SidebarContent = ({ isMobile = false }) => (
-    <>
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '2rem' }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-brand)' }}>
-          <BookOpen style={{ width: '18px', height: '18px', color: 'white' }} />
-        </div>
-        <span style={{ fontSize: '1.05rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>CampusCrate</span>
-        {isMobile && (
-          <button onClick={() => setSidebarOpen(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
-            <X style={{ width: '20px', height: '20px' }} />
-          </button>
-        )}
-      </div>
-
-      {/* Nav Links */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            className={`sidebar-link ${isActive(item.path) ? 'sidebar-link-active' : ''}`}
-            onClick={() => handleNav(item.path)}
-          >
-            <item.icon style={{ width: '18px', height: '18px' }} />
-            {item.label}
-            {item.badge > 0 && <span className="sidebar-badge">{item.badge > 99 ? '99+' : item.badge}</span>}
-          </button>
-        ))}
-      </nav>
-    </>
-  );
+  const navLinks = [
+    { to: '/resources', label: 'Browse' },
+    { to: '/add-resource', label: 'Sell' },
+    { to: '/dashboard', label: 'Dashboard' },
+  ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
-      {/* ─── Sidebar (Desktop) ─────────────────────────────────────── */}
-      <aside className="sidebar" style={{ position: 'fixed', top: 0, left: 0, flexShrink: 0, width: '260px', height: '100vh', background: 'var(--color-card)', borderRight: '1px solid var(--color-border)', zIndex: 30 }}>
-        <div style={{ padding: '1.25rem 1.25rem 2rem' }}>
-          <SidebarContent />
-        </div>
+    <div style={{ minHeight: '100vh', background: CS.bg, fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}>
 
-        {/* User + Logout */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.25rem', borderTop: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--color-brand-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-brand)' }}>
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-              </span>
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {user?.name || 'Student'}
+      {/* ═══ NAVBAR — identical to Homepage ════════════════════════════ */}
+      <nav style={{
+        position: 'fixed', top: 0, width: '100%', zIndex: 50,
+        background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.80)',
+        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${CS.border}`,
+        boxShadow: scrolled ? '0 4px 20px rgba(15,23,42,0.06)' : '0 1px 3px rgba(15,23,42,0.04)',
+        height: 64, transition: 'all 0.3s ease',
+      }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
+
+          {/* Left: Logo + Nav Links */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #5B5BD6, #4338CA)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <BookOpen style={{ width: 16, height: 16, color: '#fff' }} />
               </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {user?.email}
-              </div>
+              <span style={{ fontWeight: 800, fontSize: 17, color: '#0F172A', letterSpacing: '-0.01em' }}>CampusCrate</span>
+            </Link>
+
+            {/* Desktop nav links */}
+            <div style={{ display: 'flex', gap: '1.5rem' }} className="ul-desktop-links">
+              {navLinks.map(({ to, label }) => (
+                <Link key={to} to={to}
+                  style={{
+                    color: window.location.pathname === to ? '#5B5BD6' : '#64748B',
+                    fontWeight: window.location.pathname === to ? 700 : 500,
+                    fontSize: 15, textDecoration: 'none', transition: 'color 0.2s',
+                    borderBottom: window.location.pathname === to ? '2px solid #5B5BD6' : '2px solid transparent',
+                    paddingBottom: 2,
+                  }}
+                  onMouseEnter={e => { if (window.location.pathname !== to) e.currentTarget.style.color = '#5B5BD6'; }}
+                  onMouseLeave={e => { if (window.location.pathname !== to) e.currentTarget.style.color = '#64748B'; }}
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
-          <button onClick={logout} className="btn btn-danger" style={{ width: '100%', fontSize: '0.8rem' }}>
-            <LogOut style={{ width: '15px', height: '15px' }} /> Sign out
-          </button>
-        </div>
-      </aside>
 
-      {/* ─── Mobile Overlay ────────────────────────────────────────── */}
-      {sidebarOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 40, display: 'flex' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)' }} onClick={() => setSidebarOpen(false)} />
-          <div style={{ position: 'relative', width: '260px', background: 'var(--color-card)', borderRight: '1px solid var(--color-border)', padding: '1.25rem', zIndex: 41 }}>
-            <SidebarContent isMobile />
-            <button onClick={logout} className="btn btn-danger" style={{ width: '100%', fontSize: '0.8rem', marginTop: '1.5rem' }}>
-              <LogOut style={{ width: '15px', height: '15px' }} /> Sign out
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Main Content ──────────────────────────────────────────── */}
-      <main style={{ flex: 1, marginLeft: '260px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        {/* Top Bar */}
-        <header className="navbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 1.5rem', height: '60px', background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 20 }}>
+          {/* Right: Search + Icons + Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <button onClick={() => setSidebarOpen(true)} className="mobile-menu-btn" style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>
-              <Menu style={{ width: '22px', height: '22px' }} />
-            </button>
-            <div style={{ position: 'relative' }} className="topbar-search">
-              <Search style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: 'var(--color-text-muted)' }} />
-              <input placeholder="Search everywhere..." style={{
-                padding: '0.5rem 0.75rem 0.5rem 2.25rem', background: 'var(--color-input)',
-                border: '1px solid var(--color-border)', borderRadius: '0.5rem', fontSize: '0.8125rem',
-                outline: 'none', width: '280px', fontFamily: 'var(--font-body)', color: 'var(--color-text)',
-              }} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {/* Notification Bell */}
-            <div ref={notifRef} style={{ position: 'relative' }}>
-              <button onClick={toggleNotifDropdown} className="chat-action-btn" style={{ position: 'relative' }}>
-                <Bell style={{ width: '20px', height: '20px' }} />
-                {unreadNotifications > 0 && (
-                  <span className="notif-bell-badge">{unreadNotifications > 99 ? '99+' : unreadNotifications}</span>
-                )}
-              </button>
 
-              {/* Dropdown */}
-              {notifOpen && (
-                <div className="notif-dropdown">
-                  <div style={{ padding: '0.875rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)' }}>
-                    <span style={{ fontWeight: 700, fontFamily: 'var(--font-display)', fontSize: '0.9375rem' }}>Notifications</span>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      {unreadNotifications > 0 && (
-                        <button onClick={markAllRead} style={{ background: 'none', border: 'none', fontSize: '0.75rem', color: 'var(--color-brand)', fontWeight: 600, cursor: 'pointer' }}>
-                          Mark all read
-                        </button>
-                      )}
-                      <button onClick={() => { setNotifOpen(false); navigate('/notifications'); }} style={{ background: 'none', border: 'none', fontSize: '0.75rem', color: 'var(--color-text-sub)', fontWeight: 500, cursor: 'pointer' }}>
-                        View all
-                      </button>
-                    </div>
+            {/* Search bar */}
+            <div style={{ position: 'relative', display: 'flex' }} className="ul-search">
+              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                <Search style={{ width: 16, height: 16, color: '#777585' }} />
+              </span>
+              <input
+                type="text"
+                placeholder="Search campus items..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') navigate('/resources'); }}
+                style={{
+                  background: '#F5F2FD', border: '1px solid rgba(199,196,214,0.3)',
+                  borderRadius: 9999, paddingLeft: 38, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
+                  fontSize: 14, width: 240, outline: 'none', color: '#0F172A',
+                  transition: 'all 0.2s', fontFamily: 'inherit',
+                }}
+                onFocus={e => { e.target.style.border = '1px solid #5B5BD6'; e.target.style.boxShadow = '0 0 0 3px rgba(91,91,214,0.15)'; }}
+                onBlur={e => { e.target.style.border = '1px solid rgba(199,196,214,0.3)'; e.target.style.boxShadow = 'none'; }}
+              />
+            </div>
+
+            {/* Messages */}
+            <Link to="/messages"
+              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: '#64748B', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F0ECF7'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <MessageSquare style={{ width: 20, height: 20 }} />
+              {totalUnreadMessages > 0 && (
+                <span style={{
+                  position: 'absolute', top: -2, right: -2,
+                  minWidth: 20, height: 20, borderRadius: 9999,
+                  background: '#FF3040', color: '#fff',
+                  fontSize: 11, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 5px', border: '2.5px solid #fff',
+                  lineHeight: 1, fontFamily: 'inherit',
+                  boxShadow: '0 1px 4px rgba(255,48,64,0.4)',
+                }}>
+                  {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
+                </span>
+              )}
+            </Link>
+
+            {/* Notifications */}
+            <Link to="/notifications"
+              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: '#64748B', textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F0ECF7'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <Bell style={{ width: 20, height: 20 }} />
+              {unreadNotifications > 0 && (
+                <span style={{
+                  position: 'absolute', top: -2, right: -2,
+                  minWidth: 20, height: 20, borderRadius: 9999,
+                  background: '#FF3040', color: '#fff',
+                  fontSize: 11, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 5px', border: '2.5px solid #fff',
+                  lineHeight: 1, fontFamily: 'inherit',
+                  boxShadow: '0 1px 4px rgba(255,48,64,0.4)',
+                }}>
+                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                </span>
+              )}
+            </Link>
+
+            {/* Avatar dropdown */}
+            <div ref={userMenuRef} style={{ position: 'relative' }}>
+              <button onClick={() => setUserMenuOpen(!userMenuOpen)}
+                style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #5B5BD6, #4338CA)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14 }}>
+                {user?.profile_image
+                  ? <img src={user.profile_image} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+                  : user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </button>
+              {userMenuOpen && (
+                <div style={{ position: 'absolute', right: 0, top: 44, background: '#fff', border: '1px solid #E4E1EC', borderRadius: 16, boxShadow: '0 10px 40px rgba(15,23,42,0.12)', padding: '0.5rem', minWidth: 200, zIndex: 100 }}>
+                  <div style={{ padding: '0.75rem 1rem 0.5rem', borderBottom: '1px solid #E4E1EC', marginBottom: 4 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#0F172A' }}>{user?.name || 'Student'}</div>
+                    <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{user?.email}</div>
                   </div>
-                  <div style={{ overflowY: 'auto', maxHeight: '380px' }}>
-                    {notifLoading ? (
-                      <div style={{ padding: '2rem', textAlign: 'center' }}>
-                        <div className="spinner" style={{ borderColor: 'var(--color-border)', borderTopColor: 'var(--color-brand)', margin: '0 auto' }} />
-                      </div>
-                    ) : notifications.length === 0 ? (
-                      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
-                        No notifications yet
-                      </div>
-                    ) : (
-                      notifications.map((n) => {
-                        const { bg, color, Icon } = getNotifStyle(n.type);
-                        return (
-                          <div key={n._id} className={`notif-item ${!n.is_read ? 'notif-item-unread' : ''}`}>
-                            <div className="notif-icon" style={{ background: bg }}>
-                              <Icon style={{ width: '16px', height: '16px', color }} />
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)' }}>{n.title}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-sub)', marginTop: '0.125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.message}</div>
-                              <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>{timeAgo(n.createdAt)}</div>
-                            </div>
-                            {!n.is_read && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-brand)', flexShrink: 0, marginTop: '0.25rem' }} />}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
+                  {[
+                    { to: '/profile', label: 'My Profile', icon: User },
+                    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                  ].map(item => (
+                    <Link key={item.to} to={item.to} onClick={() => setUserMenuOpen(false)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: '#0F172A', fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#F5F2FD'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <item.icon style={{ width: 15, height: 15, color: '#64748B' }} />
+                      {item.label}
+                    </Link>
+                  ))}
+                  <button onClick={logout}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: '#BA1A1A', fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', width: '100%', transition: 'background 0.15s', fontFamily: 'inherit' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#FFDAD6'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <LogOut style={{ width: 15, height: 15 }} /> Sign Out
+                  </button>
                 </div>
               )}
             </div>
 
-            <button onClick={() => navigate('/add-resource')} className="btn btn-brand" style={{ width: 'auto', padding: '0.5rem 1rem', fontSize: '0.8125rem' }}>
-              <Plus style={{ width: '16px', height: '16px' }} /> Add Resource
+            {/* Mobile hamburger */}
+            <button className="ul-hamburger" onClick={() => setMobileOpen(!mobileOpen)}
+              style={{ display: 'none', padding: 8, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#0F172A' }}>
+              {mobileOpen ? <X style={{ width: 22, height: 22 }} /> : <Menu style={{ width: 22, height: 22 }} />}
             </button>
           </div>
-        </header>
-
-        {/* Page Content */}
-        <div style={{ flex: 1 }}>
-          {children}
         </div>
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div style={{ background: '#fff', borderTop: '1px solid #E4E1EC', padding: '1rem 1.5rem' }}>
+            {[
+              { to: '/resources', label: 'Browse' },
+              { to: '/add-resource', label: 'Sell' },
+              { to: '/dashboard', label: 'Dashboard' },
+              { to: '/messages', label: 'Messages' },
+              { to: '/notifications', label: 'Notifications' },
+              { to: '/profile', label: 'Profile' },
+            ].map(item => (
+              <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
+                style={{ display: 'block', padding: '0.75rem 0', color: '#0F172A', textDecoration: 'none', fontSize: 15, fontWeight: 500, borderBottom: '1px solid #F5F2FD' }}>
+                {item.label}
+              </Link>
+            ))}
+            <button onClick={logout}
+              style={{ display: 'block', padding: '0.75rem 0', color: '#BA1A1A', background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit', width: '100%', textAlign: 'left', marginTop: 4 }}>
+              Sign Out
+            </button>
+          </div>
+        )}
+      </nav>
+
+      {/* ═══ PAGE CONTENT ══════════════════════════════════════════════ */}
+      <main style={{ paddingTop: 64, minHeight: '100vh' }}>
+        {children}
       </main>
 
       <style>{`
         @media (max-width: 768px) {
-          .sidebar { display: none !important; }
-          main { margin-left: 0 !important; }
-          .mobile-menu-btn { display: flex !important; }
-          .topbar-search input { width: 200px !important; }
-        }
-        @media (max-width: 480px) {
-          .topbar-search { display: none !important; }
+          .ul-desktop-links { display: none !important; }
+          .ul-search { display: none !important; }
+          .ul-hamburger { display: flex !important; }
         }
       `}</style>
     </div>

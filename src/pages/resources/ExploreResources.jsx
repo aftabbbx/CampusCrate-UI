@@ -1,134 +1,158 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../../api/axios';
-import { Search, Filter, IndianRupee, MapPin } from 'lucide-react';
+import { Search, IndianRupee, MapPin, Package, Heart, SlidersHorizontal } from 'lucide-react';
 import UserLayout from '../../components/UserLayout';
 import toast from 'react-hot-toast';
+
+const CS = {
+  primary: '#5B5BD6', primaryPale: '#EEEEFF', primaryLight: '#C1C1FF',
+  bg: '#F8FAFC', card: '#FFFFFF', border: 'rgba(199,196,214,0.35)',
+  text: '#0F172A', textSub: '#64748B', textMuted: '#94A3B8',
+};
+
+const CATEGORIES = ['All', 'Book', 'Notes', 'Stationery', 'Project', 'Other'];
+const TYPES = ['All', 'Free', 'Paid', 'Exchange'];
 
 const ExploreResources = () => {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeType, setActiveType] = useState('All');
+  const [wishlist, setWishlist] = useState(new Set());
 
   useEffect(() => {
-    const fetchResources = async () => {
+    (async () => {
       try {
         const res = await API.get('/resource/all');
-        if (res.data.success) {
-          setResources(res.data.resources);
-        }
+        if (res.data.success) setResources(res.data.resources);
       } catch (error) {
-        console.error('Failed to fetch resources', error);
-        if (error.response) {
-          toast.error(`Failed to load resources: ${error.response.data?.message || error.response.status}`);
-        } else if (error.request) {
-          toast.error('Cannot connect to server. Is the backend running?');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchResources();
+        if (error.response) toast.error(`Failed to load: ${error.response.data?.message || error.response.status}`);
+        else if (error.request) toast.error('Cannot connect to server.');
+      } finally { setLoading(false); }
+    })();
   }, []);
 
-  const filteredResources = resources.filter(r => 
-    r.title.toLowerCase().includes(search.toLowerCase()) ||
-    r.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = resources.filter(r => {
+    const matchSearch = !search.trim() || r.title?.toLowerCase().includes(search.toLowerCase()) || r.category?.toLowerCase().includes(search.toLowerCase());
+    const matchCat = activeCategory === 'All' || r.category === activeCategory;
+    const matchType = activeType === 'All' || r.type === activeType;
+    return matchSearch && matchCat && matchType;
+  });
+
+  const toggleWishlist = (id, e) => {
+    e.preventDefault();
+    setWishlist(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  };
+
+  const typeStyle = (type) => ({
+    Free: { bg: '#D1FAE5', color: '#059669' },
+    Paid: { bg: CS.primaryPale, color: CS.primary },
+    Exchange: { bg: '#FEF3C7', color: '#D97706' },
+  }[type] || { bg: '#F1F5F9', color: CS.textSub });
 
   return (
     <UserLayout>
-      <div style={{ padding: '2rem 1.5rem' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
-          <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>
-              Explore Resources
-            </h1>
-            <p style={{ color: 'var(--color-text-sub)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-              Find books, notes, and equipment shared by your campus community.
-            </p>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2.5rem 1.5rem', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+
+        {/* ═══ HEADER ═══ */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: CS.text, letterSpacing: '-0.02em' }}>Explore Resources</h1>
+          <p style={{ color: CS.textSub, fontSize: 15, marginTop: 6 }}>
+            {loading ? 'Loading...' : `${filtered.length} resource${filtered.length !== 1 ? 's' : ''} found`}
+          </p>
+        </div>
+
+        {/* ═══ SEARCH + FILTERS ═══ */}
+        <div style={{ background: CS.card, borderRadius: 20, padding: '1.25rem 1.5rem', border: `1px solid ${CS.border}`, boxShadow: '0 2px 8px rgba(15,23,42,0.04)', marginBottom: '1.5rem' }}>
+          {/* Search */}
+          <div style={{ position: 'relative', marginBottom: '1rem' }}>
+            <Search style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: CS.textMuted, pointerEvents: 'none' }} />
+            <input
+              value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search by title or category..."
+              style={{ width: '100%', padding: '10px 16px 10px 42px', background: '#F5F2FD', border: `1px solid ${CS.border}`, borderRadius: 12, fontSize: 14, color: CS.text, outline: 'none', fontFamily: 'inherit', transition: 'all 0.2s', boxSizing: 'border-box' }}
+              onFocus={e => { e.target.style.border = `1.5px solid ${CS.primary}`; e.target.style.boxShadow = '0 0 0 3px rgba(91,91,214,0.12)'; }}
+              onBlur={e => { e.target.style.border = `1px solid ${CS.border}`; e.target.style.boxShadow = 'none'; }}
+            />
           </div>
-          
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <div style={{ position: 'relative' }}>
-              <Search style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: 'var(--color-text-muted)' }} />
-              <input 
-                value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search resources..." 
-                style={{
-                  padding: '0.5rem 0.75rem 0.5rem 2.25rem', background: 'var(--color-card)',
-                  border: '1px solid var(--color-border)', borderRadius: '0.5rem', fontSize: '0.8125rem',
-                  outline: 'none', width: '250px', color: 'var(--color-text)'
-                }} 
-              />
-            </div>
-            <button className="btn btn-ghost" style={{ width: 'auto', padding: '0.5rem 0.75rem' }}>
-              <Filter style={{ width: '16px', height: '16px' }} /> Filter
-            </button>
+
+          {/* Filter pills */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <SlidersHorizontal style={{ width: 15, height: 15, color: CS.textSub, flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: CS.textSub, fontWeight: 600, marginRight: 4 }}>Category:</span>
+            {CATEGORIES.map(cat => (
+              <button key={cat} onClick={() => setActiveCategory(cat)}
+                style={{ padding: '5px 14px', borderRadius: 9999, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s', background: activeCategory === cat ? CS.primary : CS.primaryPale, color: activeCategory === cat ? '#fff' : CS.primary }}>
+                {cat}
+              </button>
+            ))}
+            <span style={{ fontSize: 12, color: CS.textSub, fontWeight: 600, marginLeft: 8, marginRight: 4 }}>Type:</span>
+            {TYPES.map(t => (
+              <button key={t} onClick={() => setActiveType(t)}
+                style={{ padding: '5px 14px', borderRadius: 9999, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s', background: activeType === t ? '#0F172A' : '#F1F5F9', color: activeType === t ? '#fff' : CS.textSub }}>
+                {t}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Grid */}
+        {/* ═══ GRID ═══ */}
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>
-            <div className="spinner" />
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
+            <div style={{ width: 40, height: 40, border: `3px solid #E2DFFF`, borderTopColor: CS.primary, borderRadius: '50%', animation: 'erSpin 0.7s linear infinite' }} />
           </div>
-        ) : filteredResources.length === 0 ? (
-          <div className="card-lg" style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            No resources found. Try adjusting your search!
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '5rem 2rem', background: CS.card, borderRadius: 20, border: `1px solid ${CS.border}` }}>
+            <Package style={{ width: 48, height: 48, color: CS.primaryLight, margin: '0 auto 1rem', display: 'block' }} />
+            <p style={{ fontWeight: 700, fontSize: 16, color: CS.text, marginBottom: 6 }}>No resources found</p>
+            <p style={{ fontSize: 14, color: CS.textMuted }}>Try adjusting your filters or search term</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-            {filteredResources.map((r) => (
-              <Link key={r._id} to={`/resource/${r._id}`} style={{ textDecoration: 'none' }}>
-                <div className="card" style={{ padding: 0, overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s, box-shadow 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
-                >
-                  {/* Image */}
-                  <div style={{ height: '180px', background: 'var(--color-bg-alt)', position: 'relative' }}>
-                    {r.image_url ? (
-                      <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
-                        No Image
-                      </div>
-                    )}
-                    <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem' }}>
-                      <span style={{
-                        padding: '0.25rem 0.625rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600,
-                        background: r.type === 'Paid' ? '#eef2ff' : r.type === 'Exchange' ? '#fef3c7' : '#d1fae5',
-                        color: r.type === 'Paid' ? '#4f46e5' : r.type === 'Exchange' ? '#d97706' : '#059669',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                      }}>{r.type}</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem' }} className="er-grid">
+            {filtered.map((r) => {
+              const ts = typeStyle(r.type);
+              return (
+                <Link key={r._id} to={`/resource/${r._id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ background: CS.card, borderRadius: 20, overflow: 'hidden', border: `1px solid ${CS.border}`, boxShadow: '0 2px 8px rgba(15,23,42,0.04)', display: 'flex', flexDirection: 'column', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', height: '100%' }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(91,91,214,0.12)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.04)'; }}>
+                    {/* Image */}
+                    <div style={{ position: 'relative', aspectRatio: '4/3', background: CS.primaryPale, overflow: 'hidden' }}>
+                      {r.image_url
+                        ? <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package style={{ width: 32, height: 32, color: CS.primaryLight }} /></div>
+                      }
+                      <button onClick={e => toggleWishlist(r._id, e)}
+                        style={{ position: 'absolute', top: 10, right: 10, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(6px)' }}>
+                        <Heart style={{ width: 15, height: 15, color: wishlist.has(r._id) ? '#ef4444' : CS.textSub, fill: wishlist.has(r._id) ? '#ef4444' : 'none' }} />
+                      </button>
+                      <span style={{ position: 'absolute', bottom: 10, left: 10, padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700, background: ts.bg, color: ts.color }}>
+                        {r.type}
+                      </span>
                     </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-brand)', fontWeight: 600, marginBottom: '0.25rem' }}>
-                      {r.category}
-                    </div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.5rem', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {r.title}
-                    </h3>
-                    
-                    <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-border-light)' }}>
-                      <div style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text)', display: 'flex', alignItems: 'center' }}>
-                        {r.price > 0 ? <><IndianRupee style={{ width: '16px', height: '16px' }} />{r.price}</> : 'Free'}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--color-text-sub)' }}>
-                        <MapPin style={{ width: '12px', height: '12px' }} /> {r.location || 'Campus'}
+                    {/* Body */}
+                    <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: CS.primary, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>{r.category}</span>
+                      <h3 style={{ fontWeight: 700, fontSize: 14, color: CS.text, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 8 }}>{r.title}</h3>
+                      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${CS.border}` }}>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: CS.primary }}>
+                          {r.price > 0 ? <><IndianRupee style={{ width: 12, height: 12, display: 'inline', verticalAlign: 'middle' }} />{r.price}</> : 'Free'}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: CS.textMuted }}>
+                          <MapPin style={{ width: 11, height: 11 }} /> {r.location || 'Campus'}
+                        </span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
+      <style>{`@keyframes erSpin{to{transform:rotate(360deg);}} @media(max-width:1024px){.er-grid{grid-template-columns:repeat(3,1fr)!important;}} @media(max-width:768px){.er-grid{grid-template-columns:repeat(2,1fr)!important;}} @media(max-width:480px){.er-grid{grid-template-columns:1fr!important;}}`}</style>
     </UserLayout>
   );
 };

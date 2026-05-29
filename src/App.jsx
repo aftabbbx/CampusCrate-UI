@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AuthPage from './pages/auth/AuthPage';
 import VerifyOTP from './pages/auth/VerifyOTP';
 import Dashboard from './pages/Dashboard';
+import Homepage from './pages/Homepage';
 import ExploreResources from './pages/resources/ExploreResources';
 import AddResource from './pages/resources/AddResource';
 import ResourceDetail from './pages/resources/ResourceDetail';
@@ -35,9 +36,9 @@ function App() {
   return (
     <Routes>
       {/* Auth */}
-      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
-      <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
-      <Route path="/verify-otp" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <VerifyOTP />} />
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />} />
+      <Route path="/signup" element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />} />
+      <Route path="/verify-otp" element={isAuthenticated ? <Navigate to="/" replace /> : <VerifyOTP />} />
 
       {/* Admin */}
       <Route path="/admin/login" element={<AdminLogin />} />
@@ -55,8 +56,8 @@ function App() {
       <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
-      {/* Redirects */}
-      <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
+      {/* Homepage */}
+      <Route path="/" element={isAuthenticated ? <ProtectedRoute><Homepage /></ProtectedRoute> : <Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

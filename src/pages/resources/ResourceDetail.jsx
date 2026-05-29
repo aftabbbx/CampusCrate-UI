@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import API from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
@@ -7,231 +7,159 @@ import useProfileGate from '../../hooks/useProfileGate';
 import UserLayout from '../../components/UserLayout';
 import toast from 'react-hot-toast';
 import {
-  ArrowLeft, MapPin, ShieldCheck, Tag, Clock, Eye, Heart, Share2,
-  MessageSquare, User, Star, ChevronRight, Package, IndianRupee, Bookmark,
-  CheckCircle2, AlertTriangle,
+  ArrowLeft, MapPin, ShieldCheck, Tag, Clock, MessageSquare,
+  ChevronRight, Package, IndianRupee, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
+
+const CS = {
+  primary: '#5B5BD6', primaryHover: '#4338CA', primaryPale: '#EEEEFF',
+  bg: '#F8FAFC', card: '#FFFFFF', border: 'rgba(199,196,214,0.35)',
+  text: '#0F172A', textSub: '#64748B', textMuted: '#94A3B8',
+};
 
 const ResourceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { onlineUsers } = useSocket();
-  const { isProfileComplete, guardAction } = useProfileGate();
+  const { guardAction } = useProfileGate();
   const [resource, setResource] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [messageSending, setMessageSending] = useState(false);
 
   useEffect(() => {
-    const fetchResource = async () => {
+    (async () => {
       try {
         const res = await API.get(`/resource/${id}`);
-        if (res.data.success) {
-          setResource(res.data.resource);
-        }
-      } catch (error) {
-        console.error('Failed to fetch resource', error);
+        if (res.data.success) setResource(res.data.resource);
+      } catch {
         toast.error('Resource not found');
         navigate('/resources');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchResource();
+      } finally { setLoading(false); }
+    })();
   }, [id, navigate]);
 
-  // ─── Message Seller: create a conversation & redirect ─────────
   const handleMessageSeller = () => {
     guardAction(async () => {
       if (!resource?.owner_id?._id) return;
-      if (resource.owner_id._id === user?._id) {
-        toast.error("You can't message yourself!");
-        return;
-      }
-
+      if (resource.owner_id._id === user?._id) { toast.error("You can't message yourself!"); return; }
       setMessageSending(true);
       try {
-        // Send an intro message to kick off the conversation
         await API.post('/message/send', {
           receiver_id: resource.owner_id._id,
           message: `Hi! I'm interested in your resource "${resource.title}".`,
           message_type: 'text',
         });
-        toast.success('Message sent! Redirecting to chat...');
+        toast.success('Message sent! Redirecting...');
         navigate('/messages');
       } catch (err) {
-        if (err.response?.data?.profileIncomplete) {
-          toast.error('Complete your profile to unlock this feature 🔒');
-        } else {
-          // If duplicate conversation exists, just navigate
-          navigate('/messages');
-        }
-      } finally {
-        setMessageSending(false);
-      }
+        if (err.response?.data?.profileIncomplete) toast.error('Complete your profile first 🔒');
+        else navigate('/messages');
+      } finally { setMessageSending(false); }
     });
   };
 
-  const isOwnerOnline = resource?.owner_id?._id && onlineUsers.has(resource.owner_id._id);
-  const isOwnResource = resource?.owner_id?._id === user?._id;
-
-  // Helpers
-  const getTypeStyle = (type) => {
-    switch (type) {
-      case 'Free': return { bg: 'linear-gradient(135deg, #d1fae5, #a7f3d0)', color: '#059669', label: 'Free' };
-      case 'Paid': return { bg: 'linear-gradient(135deg, #eef2ff, #c7d2fe)', color: '#4f46e5', label: 'Paid' };
-      case 'Exchange': return { bg: 'linear-gradient(135deg, #fef3c7, #fde68a)', color: '#d97706', label: 'Exchange' };
-      default: return { bg: '#f1f5f9', color: '#64748b', label: type };
-    }
-  };
-
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'Available': return { bg: '#d1fae5', color: '#059669', icon: CheckCircle2 };
-      case 'Pending': return { bg: '#fef3c7', color: '#d97706', icon: Clock };
-      case 'Exchanged': return { bg: '#e2e8f0', color: '#64748b', icon: Package };
-      default: return { bg: '#f1f5f9', color: '#64748b', icon: Tag };
-    }
-  };
+  const typeStyle = (type) => ({
+    Free: { bg: '#D1FAE5', color: '#059669' },
+    Paid: { bg: CS.primaryPale, color: CS.primary },
+    Exchange: { bg: '#FEF3C7', color: '#D97706' },
+  }[type] || { bg: '#F1F5F9', color: CS.textSub });
 
   const timeAgo = (date) => {
     if (!date) return '';
-    const diff = (Date.now() - new Date(date).getTime()) / 1000;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
-    return new Date(date).toLocaleDateString();
+    const d = (Date.now() - new Date(date).getTime()) / 1000;
+    if (d < 3600) return `${Math.floor(d / 60)}m ago`;
+    if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+    return `${Math.floor(d / 86400)}d ago`;
   };
 
-  if (loading) {
-    return (
-      <UserLayout>
-        <div style={{ minHeight: 'calc(100vh - 60px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="spinner" style={{ borderColor: 'var(--color-border)', borderTopColor: 'var(--color-brand)' }} />
-        </div>
-      </UserLayout>
-    );
-  }
+  if (loading) return (
+    <UserLayout>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 64px)' }}>
+        <div style={{ width: 40, height: 40, border: `3px solid #E2DFFF`, borderTopColor: CS.primary, borderRadius: '50%', animation: 'rdSpin 0.7s linear infinite' }} />
+        <style>{`@keyframes rdSpin{to{transform:rotate(360deg);}}`}</style>
+      </div>
+    </UserLayout>
+  );
 
   if (!resource) return null;
-
-  const typeStyle = getTypeStyle(resource.type);
-  const statusStyle = getStatusStyle(resource.status);
-  const StatusIcon = statusStyle.icon;
+  const ts = typeStyle(resource.type);
+  const isOwner = resource?.owner_id?._id === user?._id;
+  const ownerOnline = resource?.owner_id?._id && onlineUsers?.has?.(resource.owner_id._id);
 
   return (
     <UserLayout>
-      <div style={{ padding: '1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.5rem', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
 
-        {/* ─── Breadcrumb Nav ─────────────────────────────────────── */}
-        <div className="anim-up" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          <button onClick={() => navigate(-1)} style={{
-            width: '36px', height: '36px', borderRadius: '50%', background: 'var(--color-card)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text)',
-            border: '1px solid var(--color-border)', cursor: 'pointer', transition: 'all 0.15s',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-brand-pale)'; e.currentTarget.style.color = 'var(--color-brand)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-card)'; e.currentTarget.style.color = 'var(--color-text)'; }}
-          >
-            <ArrowLeft style={{ width: '18px', height: '18px' }} />
+        {/* Breadcrumb */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1.5rem' }}>
+          <button onClick={() => navigate(-1)}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: CS.card, border: `1px solid ${CS.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: CS.text, transition: 'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = CS.primaryPale; e.currentTarget.style.color = CS.primary; }}
+            onMouseLeave={e => { e.currentTarget.style.background = CS.card; e.currentTarget.style.color = CS.text; }}>
+            <ArrowLeft style={{ width: 16, height: 16 }} />
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/resources')}>Resources</span>
-            <ChevronRight style={{ width: '14px', height: '14px' }} />
-            <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>{resource.title}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: CS.textMuted }}>
+            <span style={{ cursor: 'pointer', transition: 'color 0.15s' }} onClick={() => navigate('/resources')}
+              onMouseEnter={e => e.currentTarget.style.color = CS.primary}
+              onMouseLeave={e => e.currentTarget.style.color = CS.textMuted}>Resources</span>
+            <ChevronRight style={{ width: 13, height: 13 }} />
+            <span style={{ color: CS.text, fontWeight: 500 }}>{resource.title}</span>
           </div>
         </div>
 
-        {/* ─── Main Grid ─────────────────────────────────────────── */}
-        <div className="anim-up" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '1.5rem', animationDelay: '0.05s' }}>
+        {/* Main grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem', alignItems: 'start' }} className="rd-grid">
 
-          {/* ═══ Left Column ═══════════════════════════════════════ */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* ─── Left ─────────────────────────────────────────── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-            {/* Image Card */}
-            <div className="card-lg" style={{ overflow: 'hidden', position: 'relative', padding: 0 }}>
-              {/* Status Badge overlay */}
-              <div style={{
-                position: 'absolute', top: '1rem', left: '1rem', zIndex: 2,
-                display: 'flex', alignItems: 'center', gap: '0.375rem',
-                padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600,
-                background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)',
-                color: statusStyle.color, border: `1px solid ${statusStyle.color}20`,
-              }}>
-                <StatusIcon style={{ width: '14px', height: '14px' }} />
-                {resource.status}
+            {/* Image */}
+            <div style={{ background: CS.card, borderRadius: 24, border: `1px solid ${CS.border}`, overflow: 'hidden', position: 'relative', boxShadow: '0 2px 12px rgba(15,23,42,0.06)' }}>
+              <div style={{ display: 'flex', gap: 8, position: 'absolute', top: 14, left: 14, zIndex: 2 }}>
+                <span style={{ padding: '4px 12px', borderRadius: 9999, fontSize: 12, fontWeight: 700, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', color: resource.status === 'Available' ? '#059669' : '#D97706', border: `1px solid ${resource.status === 'Available' ? '#059669' : '#D97706'}30` }}>
+                  <CheckCircle2 style={{ width: 12, height: 12, display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />{resource.status}
+                </span>
               </div>
-
-              {/* Type Badge overlay */}
-              <div style={{
-                position: 'absolute', top: '1rem', right: '1rem', zIndex: 2,
-                padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700,
-                background: typeStyle.bg, color: typeStyle.color,
-              }}>
+              <span style={{ position: 'absolute', top: 14, right: 14, zIndex: 2, padding: '4px 12px', borderRadius: 9999, fontSize: 12, fontWeight: 700, background: ts.bg, color: ts.color }}>
                 {resource.type}
-              </div>
-
+              </span>
               {resource.image_url ? (
-                <div style={{ position: 'relative', paddingBottom: '65%', background: 'var(--color-bg-alt)' }}>
-                  <img
-                    src={resource.image_url}
-                    alt={resource.title}
-                    onLoad={() => setImageLoaded(true)}
-                    style={{
-                      position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                      objectFit: 'cover', transition: 'opacity 0.4s ease',
-                      opacity: imageLoaded ? 1 : 0,
-                    }}
-                  />
-                  {!imageLoaded && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div className="spinner" style={{ borderColor: 'var(--color-border)', borderTopColor: 'var(--color-brand)' }} />
-                    </div>
-                  )}
+                <div style={{ position: 'relative', paddingBottom: '60%', background: CS.primaryPale }}>
+                  {!imageLoaded && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 32, height: 32, border: `3px solid #E2DFFF`, borderTopColor: CS.primary, borderRadius: '50%', animation: 'rdSpin 0.7s linear infinite' }} /></div>}
+                  <img src={resource.image_url} alt={resource.title} onLoad={() => setImageLoaded(true)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.4s' }} />
                 </div>
               ) : (
-                <div style={{ paddingBottom: '65%', position: 'relative', background: 'linear-gradient(135deg, var(--color-bg-alt), var(--color-border-light))' }}>
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Package style={{ width: '56px', height: '56px', color: 'var(--color-text-muted)', opacity: 0.2 }} />
-                  </div>
+                <div style={{ paddingBottom: '60%', position: 'relative', background: `linear-gradient(135deg, ${CS.primaryPale}, #EEF2FF)` }}>
+                  <Package style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 56, height: 56, color: CS.primaryLight, opacity: 0.5 }} />
                 </div>
               )}
             </div>
 
-            {/* Description Card */}
-            <div className="card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)', marginBottom: '0.75rem' }}>
-                Description
-              </h3>
-              <p style={{ color: 'var(--color-text-sub)', fontSize: '0.9375rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                {resource.description}
-              </p>
+            {/* Description */}
+            <div style={{ background: CS.card, borderRadius: 20, padding: '1.5rem', border: `1px solid ${CS.border}`, boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: CS.text, marginBottom: '0.875rem' }}>Description</h3>
+              <p style={{ color: CS.textSub, fontSize: 15, lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>{resource.description}</p>
             </div>
 
-            {/* Details Grid Card */}
-            <div className="card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)', marginBottom: '1rem' }}>
-                Details
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            {/* Details grid */}
+            <div style={{ background: CS.card, borderRadius: 20, padding: '1.5rem', border: `1px solid ${CS.border}`, boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: CS.text, marginBottom: '1rem' }}>Details</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
                 {[
-                  { icon: Tag, label: 'Category', value: resource.category, color: '#4f46e5' },
-                  { icon: ShieldCheck, label: 'Condition', value: resource.condition, color: resource.condition === 'New' ? '#10b981' : '#f59e0b' },
-                  { icon: MapPin, label: 'Location', value: resource.location || 'Campus', color: '#3b82f6' },
-                  { icon: Clock, label: 'Posted', value: timeAgo(resource.createdAt), color: '#64748b' },
+                  { icon: Tag, label: 'Category', value: resource.category, color: CS.primary },
+                  { icon: ShieldCheck, label: 'Condition', value: resource.condition, color: resource.condition === 'New' ? '#059669' : '#D97706' },
+                  { icon: MapPin, label: 'Location', value: resource.location || 'Campus', color: '#3B82F6' },
+                  { icon: Clock, label: 'Posted', value: timeAgo(resource.createdAt), color: CS.textSub },
                 ].map((item, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: '0.75rem',
-                    padding: '0.875rem', borderRadius: '0.75rem', background: 'var(--color-bg)',
-                    border: '1px solid var(--color-border-light)',
-                  }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${item.color}10`, flexShrink: 0 }}>
-                      <item.icon style={{ width: '16px', height: '16px', color: item.color }} />
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.875rem', borderRadius: 14, background: CS.bg, border: `1px solid ${CS.border}` }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <item.icon style={{ width: 15, height: 15, color: item.color }} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, color: 'var(--color-text-muted)' }}>{item.label}</div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginTop: '0.125rem' }}>{item.value}</div>
+                      <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, color: CS.textMuted }}>{item.label}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: CS.text, marginTop: 2 }}>{item.value}</div>
                     </div>
                   </div>
                 ))}
@@ -239,132 +167,79 @@ const ResourceDetail = () => {
             </div>
           </div>
 
-          {/* ═══ Right Column (Sticky) ═════════════════════════════ */}
-          <div style={{ position: 'sticky', top: '76px', alignSelf: 'start', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* ─── Right (sticky) ────────────────────────────────── */}
+          <div style={{ position: 'sticky', top: 80, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-            {/* Price Card */}
-            <div className="card-lg" style={{ padding: '1.75rem', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.03), rgba(129, 140, 248, 0.05))', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '120px', height: '120px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-              <h2 style={{ fontSize: '1.375rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-text)', marginBottom: '0.25rem', lineHeight: 1.2 }}>
-                {resource.title}
-              </h2>
-
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '1rem', marginBottom: '1.25rem' }}>
-                <span style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-brand)', lineHeight: 1 }}>
-                  {resource.price > 0 ? `₹${resource.price}` : 'Free'}
+            {/* Price + CTA card */}
+            <div style={{ background: CS.card, borderRadius: 24, padding: '1.75rem', border: `1px solid ${CS.border}`, boxShadow: '0 4px 20px rgba(91,91,214,0.08)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: `radial-gradient(circle, ${CS.primaryPale}, transparent)`, pointerEvents: 'none' }} />
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: CS.text, lineHeight: 1.2, marginBottom: '1rem' }}>{resource.title}</h2>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: '1.25rem' }}>
+                <span style={{ fontSize: 36, fontWeight: 800, color: CS.primary, lineHeight: 1 }}>
+                  {resource.price > 0 ? <><IndianRupee style={{ width: 22, height: 22, display: 'inline', verticalAlign: 'middle' }} />{resource.price}</> : 'Free'}
                 </span>
-                {resource.type === 'Exchange' && (
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>or exchange</span>
-                )}
+                {resource.type === 'Exchange' && <span style={{ fontSize: 13, color: CS.textMuted }}>or exchange</span>}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: '1.25rem' }}>
+                {[resource.type, resource.category, resource.condition].map((v, i) => (
+                  <span key={i} style={{ padding: '4px 12px', borderRadius: 9999, fontSize: 12, fontWeight: 600, background: CS.primaryPale, color: CS.primary }}>{v}</span>
+                ))}
               </div>
 
-              {/* Quick info pills */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                <span style={{ padding: '0.3rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600, background: typeStyle.bg, color: typeStyle.color }}>
-                  {resource.type}
-                </span>
-                <span style={{ padding: '0.3rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 500, background: 'var(--color-bg)', border: '1px solid var(--color-border)', color: 'var(--color-text-sub)' }}>
-                  {resource.category}
-                </span>
-                <span style={{ padding: '0.3rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 500, background: resource.condition === 'New' ? '#d1fae5' : '#fef3c7', color: resource.condition === 'New' ? '#059669' : '#d97706' }}>
-                  {resource.condition}
-                </span>
-              </div>
-
-              {/* CTA Button */}
-              {!isOwnResource && resource.status === 'Available' && (
-                <button
-                  onClick={handleMessageSeller}
-                  disabled={messageSending}
-                  className="btn btn-brand"
-                  style={{ width: '100%', padding: '0.875rem', fontSize: '0.9375rem', borderRadius: '0.75rem', gap: '0.5rem' }}
-                >
-                  {messageSending ? (
-                    <><div className="spinner" style={{ width: '16px', height: '16px' }} /> Sending...</>
-                  ) : (
-                    <><MessageSquare style={{ width: '18px', height: '18px' }} /> Message Seller</>
-                  )}
+              {!isOwner && resource.status === 'Available' && (
+                <button onClick={handleMessageSeller} disabled={messageSending}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', background: `linear-gradient(135deg, ${CS.primary}, ${CS.primaryHover})`, color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', boxShadow: '0 4px 14px rgba(91,91,214,0.3)' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                  {messageSending
+                    ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.5)', borderTopColor: '#fff', borderRadius: '50%', animation: 'rdSpin 0.7s linear infinite' }} /> Sending...</>
+                    : <><MessageSquare style={{ width: 18, height: 18 }} /> Message Seller</>
+                  }
                 </button>
               )}
-              {isOwnResource && (
-                <div style={{ textAlign: 'center', padding: '0.625rem', borderRadius: '0.75rem', background: 'var(--color-bg)', fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                  This is your listing
-                </div>
-              )}
-              {!isOwnResource && resource.status !== 'Available' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem', borderRadius: '0.75rem', background: '#fef3c7', fontSize: '0.8125rem', color: '#d97706', fontWeight: 500 }}>
-                  <AlertTriangle style={{ width: '16px', height: '16px' }} />
-                  This resource is no longer available
+              {isOwner && <div style={{ textAlign: 'center', padding: '10px', borderRadius: 12, background: CS.bg, fontSize: 13, color: CS.textSub, fontWeight: 500 }}>This is your listing</div>}
+              {!isOwner && resource.status !== 'Available' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, background: '#FEF3C7', fontSize: 13, color: '#D97706', fontWeight: 500 }}>
+                  <AlertTriangle style={{ width: 15, height: 15 }} /> No longer available
                 </div>
               )}
             </div>
 
-            {/* Seller Card */}
-            <div className="card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
-                Listed By
-              </h3>
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', cursor: 'pointer', padding: '0.75rem', borderRadius: '0.75rem', transition: 'background 0.15s' }}
+            {/* Seller card */}
+            <div style={{ background: CS.card, borderRadius: 20, padding: '1.25rem', border: `1px solid ${CS.border}`, boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: CS.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.875rem' }}>Listed By</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.75rem', borderRadius: 14, cursor: 'pointer', transition: 'background 0.15s' }}
                 onClick={() => resource.owner_id?.roll_number && navigate(`/profile/${resource.owner_id.roll_number}`)}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-bg)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
+                onMouseEnter={e => e.currentTarget.style.background = CS.bg}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <div style={{ position: 'relative' }}>
-                  <div style={{
-                    width: '48px', height: '48px', borderRadius: '50%',
-                    background: 'linear-gradient(135deg, var(--color-brand), var(--color-brand-light))',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-                  }}>
-                    {resource.owner_id?.profile_image ? (
-                      <img src={resource.owner_id.profile_image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'white' }}>
-                        {resource.owner_id?.name?.charAt(0)?.toUpperCase() || 'U'}
-                      </span>
-                    )}
+                  <div style={{ width: 46, height: 46, borderRadius: '50%', background: `linear-gradient(135deg, ${CS.primary}, #818CF8)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {resource.owner_id?.profile_image
+                      ? <img src={resource.owner_id.profile_image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{resource.owner_id?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+                    }
                   </div>
-                  {isOwnerOnline && <div className="online-dot online-dot-pulse" style={{ border: '2.5px solid var(--color-card)' }} />}
+                  {ownerOnline && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 11, height: 11, borderRadius: '50%', background: '#22C55E', border: '2px solid #fff' }} />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.9375rem' }}>{resource.owner_id?.name || 'User'}</div>
-                  <div style={{ fontSize: '0.75rem', color: isOwnerOnline ? '#10b981' : 'var(--color-text-muted)', fontWeight: 500 }}>
-                    {isOwnerOnline ? '● Online now' : resource.owner_id?.semester ? `Semester ${resource.owner_id.semester}` : 'Student'}
+                  <div style={{ fontWeight: 700, color: CS.text, fontSize: 15 }}>{resource.owner_id?.name || 'User'}</div>
+                  <div style={{ fontSize: 12, color: ownerOnline ? '#059669' : CS.textMuted, fontWeight: 500 }}>
+                    {ownerOnline ? '● Online' : resource.owner_id?.semester ? `Sem ${resource.owner_id.semester}` : 'Student'}
                   </div>
                 </div>
-                <ChevronRight style={{ width: '18px', height: '18px', color: 'var(--color-text-muted)' }} />
+                <ChevronRight style={{ width: 16, height: 16, color: CS.textMuted }} />
               </div>
-
-              {resource.owner_id?.bio && (
-                <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-sub)', marginTop: '0.75rem', padding: '0 0.75rem', lineHeight: 1.5 }}>
-                  "{resource.owner_id.bio}"
-                </p>
-              )}
             </div>
 
-            {/* Safety Notice */}
-            <div style={{
-              padding: '1rem 1.25rem', borderRadius: '0.75rem', fontSize: '0.75rem',
-              background: 'var(--color-bg)', border: '1px solid var(--color-border-light)',
-              color: 'var(--color-text-muted)', lineHeight: 1.5,
-              display: 'flex', alignItems: 'flex-start', gap: '0.625rem',
-            }}>
-              <ShieldCheck style={{ width: '16px', height: '16px', color: 'var(--color-brand)', flexShrink: 0, marginTop: '1px' }} />
-              <span>Always meet in a safe campus location. Verify items before completing the exchange.</span>
+            {/* Safety notice */}
+            <div style={{ display: 'flex', gap: 10, padding: '1rem 1.25rem', borderRadius: 14, background: CS.primaryPale, fontSize: 12, color: CS.textSub, lineHeight: 1.5 }}>
+              <ShieldCheck style={{ width: 15, height: 15, color: CS.primary, flexShrink: 0, marginTop: 1 }} />
+              Always meet in a safe campus location. Verify items before completing any exchange.
             </div>
           </div>
         </div>
       </div>
-
-      {/* Responsive override for single column on mobile */}
-      <style>{`
-        @media (max-width: 840px) {
-          div[style*="gridTemplateColumns: 1fr 400px"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
+      <style>{`@keyframes rdSpin{to{transform:rotate(360deg);}} @media(max-width:860px){.rd-grid{grid-template-columns:1fr!important;}}`}</style>
     </UserLayout>
   );
 };

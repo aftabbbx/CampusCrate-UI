@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Bell, MessageCircle, Handshake, CheckCheck, Check, Trash2 } from 'lucide-react';
+import { Bell, MessageCircle, Handshake, CheckCheck, Trash2 } from 'lucide-react';
 import API from '../api/axios';
 import UserLayout from '../components/UserLayout';
 import { useSocket } from '../context/SocketContext';
 import toast from 'react-hot-toast';
+
+const CS = {
+  primary: '#5B5BD6', primaryPale: '#EEEEFF',
+  bg: '#F8FAFC', card: '#FFFFFF', border: 'rgba(199,196,214,0.35)',
+  text: '#0F172A', textSub: '#64748B', textMuted: '#94A3B8',
+};
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -12,131 +18,114 @@ const Notifications = () => {
 
   useEffect(() => {
     fetchNotifications();
+    // Mark all as read on backend immediately when page opens
+    API.put('/notification/read-all').catch(() => {});
+    // Clear badge immediately
+    clearNotificationCount();
   }, []);
 
   const fetchNotifications = async () => {
     try {
       const res = await API.get('/notification/all');
-      if (res.data.success) {
-        setNotifications(res.data.notifications);
-      }
-    } catch (err) {
-      toast.error('Failed to load notifications');
-    } finally {
-      setLoading(false);
-    }
+      if (res.data.success) setNotifications(res.data.notifications.map(n => ({ ...n, is_read: true })));
+    } catch { toast.error('Failed to load notifications'); }
+    finally { setLoading(false); }
   };
 
   const markAsRead = async (id) => {
     try {
       await API.put(`/notification/${id}/read`);
-      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, is_read: true } : n));
-    } catch (err) {
-      console.error('Failed to mark as read:', err);
-    }
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, is_read: true } : n));
+    } catch (err) { console.error(err); }
   };
 
   const markAllRead = async () => {
     try {
       await API.put('/notification/read-all');
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       clearNotificationCount();
-      toast.success('All notifications marked as read');
-    } catch (err) {
-      toast.error('Failed to mark all as read');
-    }
+      toast.success('All marked as read');
+    } catch { toast.error('Failed'); }
   };
 
-  const getNotifStyle = (type) => {
-    switch (type) {
-      case 'message': return { bg: '#eef2ff', color: '#4f46e5', Icon: MessageCircle };
-      case 'request': return { bg: '#fef3c7', color: '#d97706', Icon: Handshake };
-      case 'deal': return { bg: '#d1fae5', color: '#059669', Icon: CheckCheck };
-      default: return { bg: '#f1f5f9', color: '#64748b', Icon: Bell };
-    }
-  };
+  const getStyle = (type) => ({
+    message: { bg: CS.primaryPale, color: CS.primary, Icon: MessageCircle },
+    request: { bg: '#FEF3C7', color: '#D97706', Icon: Handshake },
+    deal:    { bg: '#D1FAE5', color: '#059669', Icon: CheckCheck },
+  }[type] || { bg: '#F1F5F9', color: CS.textSub, Icon: Bell });
 
   const timeAgo = (date) => {
-    const diff = (Date.now() - new Date(date).getTime()) / 1000;
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-    return new Date(date).toLocaleDateString();
+    const d = (Date.now() - new Date(date).getTime()) / 1000;
+    if (d < 60) return 'Just now';
+    if (d < 3600) return `${Math.floor(d / 60)}m ago`;
+    if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+    return `${Math.floor(d / 86400)}d ago`;
   };
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unread = notifications.filter(n => !n.is_read).length;
 
   return (
     <UserLayout>
-      <div style={{ padding: '2rem 1.5rem', maxWidth: '720px', margin: '0 auto' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '2.5rem 1.5rem', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+
         {/* Header */}
-        <div className="anim-up" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>
-              Notifications
-            </h1>
-            <p style={{ color: 'var(--color-text-sub)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-              {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: CS.text, letterSpacing: '-0.02em' }}>Notifications</h1>
+            <p style={{ fontSize: 14, color: CS.textSub, marginTop: 6 }}>
+              {unread > 0 ? `${unread} unread notification${unread > 1 ? 's' : ''}` : 'All caught up! 🎉'}
             </p>
           </div>
-          {unreadCount > 0 && (
-            <button onClick={markAllRead} className="btn btn-ghost" style={{ fontSize: '0.8125rem', gap: '0.375rem' }}>
-              <CheckCheck style={{ width: '15px', height: '15px' }} /> Mark all read
+          {unread > 0 && (
+            <button onClick={markAllRead}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', border: `1px solid ${CS.border}`, borderRadius: 12, background: CS.card, fontSize: 13, fontWeight: 600, color: CS.textSub, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = CS.primaryPale; e.currentTarget.style.color = CS.primary; e.currentTarget.style.borderColor = CS.primary; }}
+              onMouseLeave={e => { e.currentTarget.style.background = CS.card; e.currentTarget.style.color = CS.textSub; e.currentTarget.style.borderColor = CS.border; }}>
+              <CheckCheck style={{ width: 14, height: 14 }} /> Mark all read
             </button>
           )}
         </div>
 
-        {/* Notification List */}
-        <div className="card anim-up" style={{ animationDelay: '0.08s', overflow: 'hidden' }}>
+        {/* List */}
+        <div style={{ background: CS.card, borderRadius: 24, border: `1px solid ${CS.border}`, boxShadow: '0 4px 20px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
           {loading ? (
-            <div style={{ padding: '3rem', textAlign: 'center' }}>
-              <div className="spinner" style={{ borderColor: 'var(--color-border)', borderTopColor: 'var(--color-brand)', margin: '0 auto 0.75rem' }} />
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>Loading notifications...</p>
+            <div style={{ padding: '4rem', textAlign: 'center' }}>
+              <div style={{ width: 36, height: 36, border: `3px solid #E2DFFF`, borderTopColor: CS.primary, borderRadius: '50%', animation: 'nfSpin 0.7s linear infinite', margin: '0 auto 12px' }} />
+              <p style={{ color: CS.textMuted, fontSize: 13 }}>Loading notifications...</p>
             </div>
           ) : notifications.length === 0 ? (
-            <div style={{ padding: '3rem', textAlign: 'center' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '1rem', background: 'var(--color-brand-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                <Bell style={{ width: '28px', height: '28px', color: 'var(--color-brand)' }} />
+            <div style={{ padding: '4rem', textAlign: 'center' }}>
+              <div style={{ width: 64, height: 64, borderRadius: 20, background: CS.primaryPale, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                <Bell style={{ width: 28, height: 28, color: CS.primary }} />
               </div>
-              <p style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '0.9375rem' }}>No notifications yet</p>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>When someone interacts with your resources, you'll see it here</p>
+              <p style={{ fontWeight: 700, fontSize: 16, color: CS.text, marginBottom: 6 }}>No notifications yet</p>
+              <p style={{ fontSize: 13, color: CS.textMuted }}>When someone interacts with your resources, you'll see it here</p>
             </div>
-          ) : (
-            notifications.map((n) => {
-              const { bg, color, Icon } = getNotifStyle(n.type);
-              return (
-                <div
-                  key={n._id}
-                  onClick={() => !n.is_read && markAsRead(n._id)}
-                  style={{
-                    display: 'flex', alignItems: 'flex-start', gap: '0.875rem',
-                    padding: '1rem 1.25rem',
-                    borderBottom: '1px solid var(--color-border-light)',
-                    background: n.is_read ? 'transparent' : 'var(--color-brand-pale)',
-                    cursor: n.is_read ? 'default' : 'pointer',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={(e) => { if (n.is_read) e.currentTarget.style.background = 'var(--color-bg)'; }}
-                  onMouseLeave={(e) => { if (n.is_read) e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <div className="notif-icon" style={{ background: bg }}>
-                    <Icon style={{ width: '16px', height: '16px', color }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)' }}>{n.title}</span>
-                      {!n.is_read && <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--color-brand)', flexShrink: 0 }} />}
-                    </div>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-sub)', marginTop: '0.125rem', lineHeight: 1.4 }}>{n.message}</p>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.375rem', display: 'inline-block' }}>{timeAgo(n.createdAt)}</span>
-                  </div>
+          ) : notifications.map((n, idx) => {
+            const { bg, color, Icon } = getStyle(n.type);
+            return (
+              <div key={n._id}
+                onClick={() => !n.is_read && markAsRead(n._id)}
+                style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '1rem 1.5rem', borderBottom: idx < notifications.length - 1 ? `1px solid ${CS.border}` : 'none', background: n.is_read ? 'transparent' : '#F8F7FF', cursor: n.is_read ? 'default' : 'pointer', transition: 'background 0.15s' }}
+                onMouseEnter={e => { if (n.is_read) e.currentTarget.style.background = CS.bg; }}
+                onMouseLeave={e => { e.currentTarget.style.background = n.is_read ? 'transparent' : '#F8F7FF'; }}>
+                <div style={{ width: 42, height: 42, borderRadius: 14, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon style={{ width: 18, height: 18, color }} />
                 </div>
-              );
-            })
-          )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: CS.text }}>{n.title}</span>
+                    {!n.is_read && <div style={{ width: 7, height: 7, borderRadius: '50%', background: CS.primary, flexShrink: 0 }} />}
+                  </div>
+                  <p style={{ fontSize: 13, color: CS.textSub, marginTop: 3, lineHeight: 1.5 }}>{n.message}</p>
+                  <span style={{ fontSize: 11, color: CS.textMuted, marginTop: 5, display: 'inline-block' }}>{timeAgo(n.createdAt)}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
+      <style>{`@keyframes nfSpin{to{transform:rotate(360deg);}}`}</style>
     </UserLayout>
   );
 };
