@@ -252,8 +252,10 @@ const Homepage = () => {
             {/* Avatar Dropdown */}
             <div ref={userMenuRef} style={{ position: 'relative' }}>
               <button onClick={() => setUserMenuOpen(!userMenuOpen)}
-                style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #5B5BD6, #4338CA)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14 }}>
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #5B5BD6, #4338CA)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14, overflow: 'hidden', padding: 0 }}>
+                {user?.profile_image
+                  ? <img src={user.profile_image} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+                  : user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </button>
               {userMenuOpen && (
                 <div style={{ position: 'absolute', right: 0, top: 44, background: '#fff', border: '1px solid #E4E1EC', borderRadius: 16, boxShadow: '0 10px 40px rgba(15,23,42,0.12)', padding: '0.5rem', minWidth: 200, zIndex: 100 }}>
