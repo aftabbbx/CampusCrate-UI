@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import {
-  BookOpen, MessageSquare, Bell, User,
+  BookOpen, MessageSquare, Bell, User, Heart,
   LogOut, Search, Menu, X, LayoutDashboard,
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -176,6 +176,7 @@ const UserLayout = ({ children }) => {
                   {[
                     { to: '/profile', label: 'My Profile', icon: User },
                     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                    { to: '/wishlist', label: 'Wishlist', icon: Heart },
                   ].map(item => (
                     <Link key={item.to} to={item.to} onClick={() => setUserMenuOpen(false)}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: '#0F172A', fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}

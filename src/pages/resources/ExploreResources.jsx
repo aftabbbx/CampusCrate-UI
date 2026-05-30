@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import API from '../../api/axios';
 import { Search, IndianRupee, MapPin, Package, Heart, SlidersHorizontal } from 'lucide-react';
 import UserLayout from '../../components/UserLayout';
+import { useWishlist } from '../../context/WishlistContext';
 import toast from 'react-hot-toast';
 
 const CS = {
@@ -20,7 +21,7 @@ const ExploreResources = () => {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeType, setActiveType] = useState('All');
-  const [wishlist, setWishlist] = useState(new Set());
+  const { isWishlisted, toggleWishlist: ctxToggle } = useWishlist();
 
   useEffect(() => {
     (async () => {
@@ -43,7 +44,8 @@ const ExploreResources = () => {
 
   const toggleWishlist = (id, e) => {
     e.preventDefault();
-    setWishlist(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+    e.stopPropagation();
+    ctxToggle(id);
   };
 
   const typeStyle = (type) => ({
@@ -126,7 +128,7 @@ const ExploreResources = () => {
                       }
                       <button onClick={e => toggleWishlist(r._id, e)}
                         style={{ position: 'absolute', top: 10, right: 10, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(6px)' }}>
-                        <Heart style={{ width: 15, height: 15, color: wishlist.has(r._id) ? '#ef4444' : CS.textSub, fill: wishlist.has(r._id) ? '#ef4444' : 'none' }} />
+                        <Heart style={{ width: 15, height: 15, color: isWishlisted(r._id) ? '#ef4444' : CS.textSub, fill: isWishlisted(r._id) ? '#ef4444' : 'none' }} />
                       </button>
                       <span style={{ position: 'absolute', bottom: 10, left: 10, padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700, background: ts.bg, color: ts.color }}>
                         {r.type}

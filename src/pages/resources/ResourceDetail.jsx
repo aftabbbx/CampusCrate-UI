@@ -5,16 +5,41 @@ import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import useProfileGate from '../../hooks/useProfileGate';
 import UserLayout from '../../components/UserLayout';
+import { useWishlist } from '../../context/WishlistContext';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft, MapPin, ShieldCheck, Tag, Clock, MessageSquare,
-  ChevronRight, Package, IndianRupee, CheckCircle2, AlertTriangle,
+  ChevronRight, Package, IndianRupee, CheckCircle2, AlertTriangle, Heart,
 } from 'lucide-react';
 
 const CS = {
   primary: '#5B5BD6', primaryHover: '#4338CA', primaryPale: '#EEEEFF',
   bg: '#F8FAFC', card: '#FFFFFF', border: 'rgba(199,196,214,0.35)',
   text: '#0F172A', textSub: '#64748B', textMuted: '#94A3B8',
+};
+
+// ─── Wishlist Button Component ───────────────────────────────────────
+const WishlistButton = ({ resourceId }) => {
+  const { isWishlisted, toggleWishlist } = useWishlist();
+  const wishlisted = isWishlisted(resourceId);
+
+  return (
+    <button onClick={() => toggleWishlist(resourceId)}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        padding: '13px', border: `2px solid ${wishlisted ? '#ef4444' : CS.border}`,
+        borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer',
+        fontFamily: 'inherit', transition: 'all 0.2s',
+        background: wishlisted ? '#FEF2F2' : CS.card,
+        color: wishlisted ? '#ef4444' : CS.textSub,
+      }}
+      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+      onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+    >
+      <Heart style={{ width: 18, height: 18, fill: wishlisted ? '#ef4444' : 'none' }} />
+      {wishlisted ? 'Saved to Wishlist' : 'Save to Wishlist'}
+    </button>
+  );
 };
 
 const ResourceDetail = () => {
@@ -187,6 +212,8 @@ const ResourceDetail = () => {
               </div>
 
               {!isOwner && resource.status === 'Available' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <WishlistButton resourceId={resource._id} />
                 <button onClick={handleMessageSeller} disabled={messageSending}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', background: `linear-gradient(135deg, ${CS.primary}, ${CS.primaryHover})`, color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', boxShadow: '0 4px 14px rgba(91,91,214,0.3)' }}
                   onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
@@ -196,6 +223,7 @@ const ResourceDetail = () => {
                     : <><MessageSquare style={{ width: 18, height: 18 }} /> Message Seller</>
                   }
                 </button>
+                </div>
               )}
               {isOwner && <div style={{ textAlign: 'center', padding: '10px', borderRadius: 12, background: CS.bg, fontSize: 13, color: CS.textSub, fontWeight: 500 }}>This is your listing</div>}
               {!isOwner && resource.status !== 'Available' && (

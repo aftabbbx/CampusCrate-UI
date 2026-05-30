@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { useWishlist } from '../context/WishlistContext';
 import {
   BookOpen, Search, Plus, ArrowRight, Users, Shield, Zap,
   Package, MessageSquare, Bell, TrendingUp, Handshake,
@@ -75,7 +76,7 @@ const Homepage = () => {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [wishlist, setWishlist] = useState(new Set());
+  const { isWishlisted, toggleWishlist: ctxToggle } = useWishlist();
   const userMenuRef = useRef(null);
 
   /* scroll shadow */
@@ -110,11 +111,11 @@ const Homepage = () => {
   const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
 
   const categories = [
-    { name: 'Book',       icon: '📚', color: '#5B5BD6' },
-    { name: 'Notes',      icon: '📝', color: '#5B5BD6' },
+    { name: 'Book', icon: '📚', color: '#5B5BD6' },
+    { name: 'Notes', icon: '📝', color: '#5B5BD6' },
     { name: 'Stationery', icon: '✏️', color: '#5B5BD6' },
-    { name: 'Project',    icon: '🗂️', color: '#5B5BD6' },
-    { name: 'Other',      icon: '📦', color: '#5B5BD6' },
+    { name: 'Project', icon: '🗂️', color: '#5B5BD6' },
+    { name: 'Other', icon: '📦', color: '#5B5BD6' },
   ];
 
   const filtered = (() => {
@@ -131,25 +132,22 @@ const Homepage = () => {
 
   const toggleWishlist = (id, e) => {
     e.preventDefault();
-    setWishlist(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+    e.stopPropagation();
+    ctxToggle(id);
   };
 
   const trustFeatures = [
-    { icon: 'verified_user', title: 'Verified Users',  desc: 'Trade with confidence. All members are verified using university credentials.', bg: '#FFDCC3', color: '#804300' },
-    { icon: 'forum',         title: 'Secure Chat',     desc: 'Communicate safely through our integrated, encrypted messaging system.',        bg: '#E2DFFF', color: '#3533B0' },
-    { icon: 'bolt',          title: 'Fast Deals',      desc: 'Find local items and meet on campus for instant, hassle-free exchanges.',        bg: '#DAE2FD', color: '#3F465C' },
-    { icon: 'groups',        title: 'Trusted Circle',  desc: 'Join a supportive ecosystem designed specifically for student needs.',            bg: '#E4E1EC', color: '#5B5BD6' },
+    { icon: 'verified_user', title: 'Verified Users', desc: 'Trade with confidence. All members are verified using university credentials.', bg: '#FFDCC3', color: '#804300' },
+    { icon: 'forum', title: 'Secure Chat', desc: 'Communicate safely through our integrated, encrypted messaging system.', bg: '#E2DFFF', color: '#3533B0' },
+    { icon: 'bolt', title: 'Fast Deals', desc: 'Find local items and meet on campus for instant, hassle-free exchanges.', bg: '#DAE2FD', color: '#3F465C' },
+    { icon: 'groups', title: 'Trusted Circle', desc: 'Join a supportive ecosystem designed specifically for student needs.', bg: '#E4E1EC', color: '#5B5BD6' },
   ];
 
   const stats = [
-    { label: 'Active Students',   value: 2400,                          suffix: '+', icon: GraduationCap },
-    { label: 'Resources Listed',  value: allResources.length || 850,    suffix: '+', icon: Package },
-    { label: 'Successful Trades', value: 1200,                          suffix: '+', icon: Handshake },
-    { label: 'Campuses',          value: 15,                            suffix: '+', icon: Globe },
+    { label: 'Active Students', value: 2400, suffix: '+', icon: GraduationCap },
+    { label: 'Resources Listed', value: allResources.length || 850, suffix: '+', icon: Package },
+    { label: 'Successful Trades', value: 1200, suffix: '+', icon: Handshake },
+    { label: 'Campuses', value: 15, suffix: '+', icon: Globe },
   ];
 
   return (
@@ -266,7 +264,7 @@ const Homepage = () => {
                   {[
                     { to: '/profile', label: 'My Profile', icon: User },
                     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                    { to: '/messages', label: 'Messages', icon: MessageSquare },
+                    { to: '/wishlist', label: 'Wishlist', icon: Heart },
                   ].map(item => (
                     <Link key={item.to} to={item.to} onClick={() => setUserMenuOpen(false)}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: '#0F172A', fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}
@@ -301,6 +299,7 @@ const Homepage = () => {
               { to: '/resources', label: 'Browse' },
               { to: '/add-resource', label: 'Sell' },
               { to: '/dashboard', label: 'Dashboard' },
+              { to: '/wishlist', label: 'Wishlist' },
               { to: '/messages', label: 'Messages' },
               { to: '/notifications', label: 'Notifications' },
               { to: '/profile', label: 'Profile' },
@@ -460,9 +459,11 @@ const Homepage = () => {
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
                 {['All', ...categories.map(c => c.name)].map(cat => (
                   <button key={cat} onClick={() => setActiveCategory(cat)}
-                    style={{ padding: '6px 16px', borderRadius: 9999, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', border: 'none',
+                    style={{
+                      padding: '6px 16px', borderRadius: 9999, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', border: 'none',
                       background: activeCategory === cat ? '#5B5BD6' : '#F0ECF7',
-                      color: activeCategory === cat ? '#fff' : '#64748B' }}
+                      color: activeCategory === cat ? '#fff' : '#64748B'
+                    }}
                     onMouseEnter={e => { if (activeCategory !== cat) { e.currentTarget.style.background = '#E2DFFF'; e.currentTarget.style.color = '#5B5BD6'; } }}
                     onMouseLeave={e => { if (activeCategory !== cat) { e.currentTarget.style.background = '#F0ECF7'; e.currentTarget.style.color = '#64748B'; } }}>
                     {cat}
@@ -506,7 +507,7 @@ const Homepage = () => {
                             {/* Wishlist button */}
                             <button onClick={e => toggleWishlist(r._id, e)}
                               style={{ position: 'absolute', top: 10, right: 10, width: 36, height: 36, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(6px)', borderRadius: '50%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
-                              <Heart style={{ width: 16, height: 16, color: wishlist.has(r._id) ? '#ef4444' : '#64748B', fill: wishlist.has(r._id) ? '#ef4444' : 'none' }} />
+                              <Heart style={{ width: 16, height: 16, color: isWishlisted(r._id) ? '#ef4444' : '#64748B', fill: isWishlisted(r._id) ? '#ef4444' : 'none' }} />
                             </button>
                             {/* Type badge */}
                             <span style={{ position: 'absolute', bottom: 10, left: 10, padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 600, background: 'rgba(91,91,214,0.9)', color: '#fff', backdropFilter: 'blur(4px)' }}>
@@ -697,7 +698,7 @@ const Homepage = () => {
             <div>
               <h5 style={{ color: '#fff', fontWeight: 700, fontSize: 14, marginBottom: '1.25rem', letterSpacing: '0.02em' }}>Account</h5>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                {[{ to: '/profile', label: 'Profile' }, { to: '/dashboard', label: 'Dashboard' }, { to: '/messages', label: 'Messages' }, { to: '/notifications', label: 'Notifications' }].map(item => (
+                {[{ to: '/profile', label: 'Profile' }, { to: '/dashboard', label: 'Dashboard' }, { to: '/wishlist', label: 'Wishlist' }, { to: '/notifications', label: 'Notifications' }].map(item => (
                   <li key={item.label}>
                     <Link to={item.to} style={{ color: '#A0A0BC', fontSize: 14, textDecoration: 'none', transition: 'color 0.2s' }}
                       onMouseEnter={e => e.target.style.color = '#fff'}
@@ -712,7 +713,7 @@ const Homepage = () => {
 
           <div style={{ paddingTop: '1.75rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
             <p style={{ fontSize: 13, opacity: 0.5 }}>© {new Date().getFullYear()} CampusCrate. Built for the academic community.</p>
-            <p style={{ fontSize: 13, opacity: 0.5 }}>Made with ❤️ for students, by students.</p>
+            <p style={{ fontSize: 13, opacity: 0.5 }}>Made with ❤️ for students, by StrawHats.</p>
           </div>
         </div>
       </footer>

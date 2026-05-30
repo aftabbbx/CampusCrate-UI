@@ -14,6 +14,7 @@ import Messages from './pages/Messages';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
+import Wishlist from './pages/Wishlist';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
@@ -55,6 +56,7 @@ function App() {
       <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
       <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
 
       {/* Homepage */}
       <Route path="/" element={isAuthenticated ? <ProtectedRoute><Homepage /></ProtectedRoute> : <Navigate to="/login" replace />} />
