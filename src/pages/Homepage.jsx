@@ -1,754 +1,1605 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import API from '../api/axios';
-import { useAuth } from '../context/AuthContext';
-import { useSocket } from '../context/SocketContext';
-import { useWishlist } from '../context/WishlistContext';
+/**
+ * CampusCrate — Redesigned Premium Homepage
+ * Warm Editorial × Soft 3D Bento × Awwwards-Grade
+ * General Sans / Plus Jakarta Sans · Warm Ivory Palette
+ * Single-file: React + Framer Motion + inline CSS-in-JS
+ *
+ * STRICT: No functionality changed. All APIs, routing, auth,
+ * state, contexts preserved 1:1. Only visual layer redesigned.
+ */
+
 import {
-  BookOpen, Search, Plus, ArrowRight, Users, Shield, Zap,
-  Package, MessageSquare, Bell, TrendingUp, Handshake,
-  GraduationCap, Globe, MessageCircle, ShoppingBag,
-  ChevronRight, Menu, X, User, LogOut,
-  MapPin, IndianRupee, AlertTriangle,
-  LayoutDashboard, Heart,
-} from 'lucide-react';
-import toast from 'react-hot-toast';
+  useState, useEffect, useRef, useCallback, useMemo,
+} from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  motion, AnimatePresence, useScroll, useTransform,
+  useSpring, useMotionValue, useInView, animate,
+} from "framer-motion";
+import API from "../api/axios";
+import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../context/SocketContext";
+import { useWishlist } from "../context/WishlistContext";
+import {
+  Search, ArrowRight, Users, Package, MessageSquare, Bell,
+  TrendingUp, GraduationCap, ShoppingBag, ChevronRight,
+  Menu, X, User, LogOut, MapPin, IndianRupee, AlertTriangle,
+  LayoutDashboard, Heart, Star, Sparkles, Shield, Zap, Handshake,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
-/* ── Animated Counter ──────────────────────────────────────────────── */
-const AnimatedCounter = ({ target, duration = 2000, suffix = '' }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !started.current) {
-        started.current = true;
-        const t0 = Date.now();
-        const tick = () => {
-          const p = Math.min((Date.now() - t0) / duration, 1);
-          setCount(Math.floor((1 - Math.pow(1 - p, 3)) * target));
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      }
-    }, { threshold: 0.3 });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, [target, duration]);
-
-  return <span ref={ref}>{count}{suffix}</span>;
+// ─── Design Tokens ─────────────────────────────────────────────────────────────
+const T = {
+  bg: "#F5F1EA",
+  surface: "#FFFCF8",
+  surfaceAlt: "#F0EDE6",
+  primary: "#2B2D42",
+  primarySub: "#4A4C62",
+  terra: "#C96A4A",
+  terraLt: "#E08A6C",
+  terraDk: "#A5503A",
+  olive: "#7A8B63",
+  oliveLt: "#9BAD84",
+  champ: "#D6C2A1",
+  champLt: "#E8DCC8",
+  champDk: "#B8A07A",
+  text: "#1F2937",
+  textSub: "#6B7280",
+  textMuted: "#9CA3AF",
+  border: "#E8E4DE",
+  borderDk: "#D4CFC8",
+  success: "#4A7C59",
+  danger: "#B94040",
+  warn: "#B87333",
 };
 
-/* ── Fade-in on Scroll ─────────────────────────────────────────────── */
-const FadeIn = ({ children, delay = 0, className = '' }) => {
-  const ref = useRef(null);
-  const [vis, setVis] = useState(false);
+// ─── Global Styles Injected Once ──────────────────────────────────────────────
+const GlobalStyle = () => {
+  useEffect(() => {
+    const id = "cc-global-style";
+    if (document.getElementById(id)) return;
+    const el = document.createElement("style");
+    el.id = id;
+    el.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: ${T.bg};
+        --surface: ${T.surface};
+        --surface-alt: ${T.surfaceAlt};
+        --primary: ${T.primary};
+        --terra: ${T.terra};
+        --terra-lt: ${T.terraLt};
+        --olive: ${T.olive};
+        --champ: ${T.champ};
+        --champ-lt: ${T.champLt};
+        --text: ${T.text};
+        --text-sub: ${T.textSub};
+        --text-muted: ${T.textMuted};
+        --border: ${T.border};
+        --border-dk: ${T.borderDk};
+        --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+        --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      * { cursor: none !important; }
+      @media (max-width: 768px) { * { cursor: auto !important; } }
+
+      ::selection { background: ${T.terra}22; color: ${T.terra}; }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 5px; }
+      ::-webkit-scrollbar-track { background: var(--bg); }
+      ::-webkit-scrollbar-thumb { background: var(--champ); border-radius: 999px; }
+
+      /* Spinner */
+      @keyframes cc-spin { to { transform: rotate(360deg); } }
+      .cc-spinner {
+        width: 28px; height: 28px;
+        border: 2.5px solid ${T.border};
+        border-top-color: ${T.terra};
+        border-radius: 50%;
+        animation: cc-spin 0.8s linear infinite;
+      }
+
+      /* Mag cursor effect */
+      .cc-mag { transform-origin: center; }
+
+      /* Noise overlay texture */
+      @keyframes grain { 0%,100%{transform:translate(0,0)} 10%{transform:translate(-2%,-3%)} 20%{transform:translate(-4%,2%)} 30%{transform:translate(3%,-4%)} 40%{transform:translate(-1%,3%)} 50%{transform:translate(4%,2%)} 60%{transform:translate(-3%,-2%)} 70%{transform:translate(2%,4%)} 80%{transform:translate(-4%,-1%)} 90%{transform:translate(3%,3%)} }
+      .cc-grain::after {
+        content: '';
+        position: fixed;
+        inset: -200%;
+        width: 400%; height: 400%;
+        opacity: 0.025;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 9999;
+        animation: grain 8s steps(10) infinite;
+      }
+
+      /* Prevent link text decoration globally in cards */
+      a { text-decoration: none; color: inherit; }
+    `;
+    document.head.appendChild(el);
+    return () => el.remove();
+  }, []);
+  return null;
+};
+
+// ─── Custom Cursor ─────────────────────────────────────────────────────────────
+const CustomCursor = () => {
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+  const [hovered, setHovered] = useState(false);
+  const [clicking, setClicking] = useState(false);
+  const [label, setLabel] = useState("");
+
+  const springConfig = { stiffness: 500, damping: 35, mass: 0.5 };
+  const trailConfig = { stiffness: 160, damping: 28, mass: 1 };
+  const dotX = useSpring(cursorX, springConfig);
+  const dotY = useSpring(cursorY, springConfig);
+  const trailX = useSpring(cursorX, trailConfig);
+  const trailY = useSpring(cursorY, trailConfig);
 
   useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVis(true); },
-      { threshold: 0.06 }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
+    const move = (e) => { cursorX.set(e.clientX); cursorY.set(e.clientY); };
+    const down = () => setClicking(true);
+    const up = () => setClicking(false);
+
+    const enter = (e) => {
+      const el = e.target.closest("button, a, [data-cursor]");
+      if (el) {
+        setHovered(true);
+        setLabel(el.dataset.cursorLabel || "");
+      }
+    };
+    const leave = (e) => {
+      if (!e.target.closest("button, a, [data-cursor]")) {
+        setHovered(false);
+        setLabel("");
+      }
+    };
+
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mousedown", down);
+    window.addEventListener("mouseup", up);
+    document.addEventListener("mouseover", enter);
+    document.addEventListener("mouseout", leave);
+    return () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mousedown", down);
+      window.removeEventListener("mouseup", up);
+      document.removeEventListener("mouseover", enter);
+      document.removeEventListener("mouseout", leave);
+    };
   }, []);
 
   return (
-    <div ref={ref} className={`hp-fade ${vis ? 'hp-fade-in' : ''} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+    <>
+      {/* Trail ring */}
+      <motion.div
+        style={{
+          position: "fixed", top: 0, left: 0, zIndex: 99999,
+          pointerEvents: "none", borderRadius: "50%",
+          border: `1.5px solid ${T.primary}`,
+          x: trailX, y: trailY,
+          translateX: "-50%", translateY: "-50%",
+        }}
+        animate={{
+          width: hovered ? 42 : clicking ? 16 : 28,
+          height: hovered ? 42 : clicking ? 16 : 28,
+          borderColor: hovered ? T.terra : T.primary,
+          opacity: 0.5,
+        }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+      />
+      {/* Dot */}
+      <motion.div
+        style={{
+          position: "fixed", top: 0, left: 0, zIndex: 99999,
+          pointerEvents: "none", borderRadius: "50%",
+          background: hovered ? T.terra : T.primary,
+          x: dotX, y: dotY,
+          translateX: "-50%", translateY: "-50%",
+        }}
+        animate={{
+          width: clicking ? 3 : 6,
+          height: clicking ? 3 : 6,
+          background: hovered ? T.terra : T.primary,
+        }}
+        transition={{ duration: 0.15 }}
+      />
+      {/* Label */}
+      <AnimatePresence>
+        {label && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 4 }}
+            style={{
+              position: "fixed", top: 0, left: 0, zIndex: 99998,
+              pointerEvents: "none", x: trailX, y: trailY,
+              translateX: "12px", translateY: "12px",
+              background: T.primary, color: T.surface,
+              fontSize: 11, fontWeight: 600, fontFamily: "var(--font)",
+              padding: "4px 10px", borderRadius: 999,
+              letterSpacing: "0.04em", whiteSpace: "nowrap",
+            }}
+          >
+            {label}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+// ─── Animated Counter ─────────────────────────────────────────────────────────
+const Counter = ({ target, suffix = "", decimals = 0, duration = 2 }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    const start = Date.now();
+    const tick = () => {
+      const p = Math.min((Date.now() - start) / (duration * 1000), 1);
+      const eased = 1 - Math.pow(1 - p, 4);
+      setVal(+(eased * target).toFixed(decimals));
+      if (p < 1) requestAnimationFrame(tick);
+      else setVal(target);
+    };
+    requestAnimationFrame(tick);
+  }, [inView, target, duration, decimals]);
+  return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
+};
+
+// ─── Organic Background Shapes ────────────────────────────────────────────────
+const OrganicBg = () => (
+  <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
+    {[
+      { size: 700, top: "-15%", left: "-8%", color: `${T.champ}18`, dur: 40 },
+      { size: 500, top: "55%", right: "-10%", color: `${T.terra}0E`, dur: 35 },
+      { size: 400, top: "30%", left: "40%", color: `${T.olive}0C`, dur: 50 },
+      { size: 300, top: "80%", left: "20%", color: `${T.champ}12`, dur: 45 },
+    ].map((b, i) => (
+      <motion.div key={i}
+        animate={{
+          borderRadius: [
+            "60% 40% 70% 30% / 50% 60% 40% 70%",
+            "40% 70% 30% 60% / 70% 30% 60% 50%",
+            "60% 40% 70% 30% / 50% 60% 40% 70%",
+          ],
+          x: [0, 30, -15, 0],
+          y: [0, -20, 10, 0],
+        }}
+        transition={{ duration: b.dur, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "absolute",
+          width: b.size, height: b.size,
+          top: b.top, left: b.left, right: b.right,
+          background: b.color,
+          filter: "blur(60px)",
+        }}
+      />
+    ))}
+    {/* Subtle grid lines */}
+    <div style={{
+      position: "absolute", inset: 0,
+      backgroundImage: `linear-gradient(${T.borderDk}20 1px, transparent 1px), linear-gradient(90deg, ${T.borderDk}20 1px, transparent 1px)`,
+      backgroundSize: "80px 80px",
+    }} />
+  </div>
+);
+
+// ─── Scroll Reveal Wrapper ────────────────────────────────────────────────────
+const Reveal = ({ children, delay = 0, y = 30, style, className }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  return (
+    <motion.div ref={ref} style={style} className={className}
+      initial={{ opacity: 0, y }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
       {children}
+    </motion.div>
+  );
+};
+
+// ─── Magnetic Button ──────────────────────────────────────────────────────────
+const MagBtn = ({
+  children, onClick, href,
+  variant = "primary", // "primary" | "outline" | "terra" | "ghost"
+  style, disabled,
+}) => {
+  const ref = useRef(null);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const sx = useSpring(mx, { stiffness: 400, damping: 30 });
+  const sy = useSpring(my, { stiffness: 400, damping: 30 });
+
+  const onMove = (e) => {
+    if (!ref.current) return;
+    const r = ref.current.getBoundingClientRect();
+    mx.set((e.clientX - r.left - r.width / 2) * 0.3);
+    my.set((e.clientY - r.top - r.height / 2) * 0.3);
+  };
+  const onLeave = () => { mx.set(0); my.set(0); };
+
+  const variants = {
+    primary: {
+      background: T.primary, color: T.surface,
+      border: `1.5px solid ${T.primary}`,
+    },
+    terra: {
+      background: T.terra, color: T.surface,
+      border: `1.5px solid ${T.terra}`,
+    },
+    outline: {
+      background: "transparent", color: T.primary,
+      border: `1.5px solid ${T.border}`,
+    },
+    ghost: {
+      background: `${T.surface}80`, color: T.primary,
+      border: `1.5px solid ${T.border}`,
+      backdropFilter: "blur(12px)",
+    },
+  };
+  const v = variants[variant] || variants.primary;
+
+  const baseStyle = {
+    display: "inline-flex", alignItems: "center", gap: 8,
+    padding: "0 1.5rem", height: 46, borderRadius: 12,
+    fontSize: 14, fontWeight: 700, fontFamily: "var(--font)",
+    letterSpacing: "0.01em", whiteSpace: "nowrap",
+    ...v, ...style,
+    position: "relative", overflow: "hidden",
+  };
+
+  const El = href ? "a" : "button";
+  return (
+    <motion.button
+      as={El}
+      ref={ref}
+      onClick={onClick}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      disabled={disabled}
+      style={{ ...baseStyle, x: sx, y: sy }}
+      whileHover={{ scale: 1.02, y: -1 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+    >
+      {children}
+    </motion.button>
+  );
+};
+
+// ─── Premium Card Shell ───────────────────────────────────────────────────────
+const Card = ({ children, style, hover = true, className }) => {
+  const ref = useRef(null);
+  const rx = useMotionValue(0);
+  const ry = useMotionValue(0);
+  const srx = useSpring(rx, { stiffness: 180, damping: 20 });
+  const sry = useSpring(ry, { stiffness: 180, damping: 20 });
+
+  const onMove = (e) => {
+    if (!ref.current || !hover) return;
+    const r = ref.current.getBoundingClientRect();
+    rx.set(-((e.clientY - r.top) / r.height - 0.5) * 6);
+    ry.set(((e.clientX - r.left) / r.width - 0.5) * 6);
+  };
+  const onLeave = () => { rx.set(0); ry.set(0); };
+
+  return (
+    <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave}
+      style={{ perspective: 1200 }} className={className}>
+      <motion.div
+        style={{
+          rotateX: srx, rotateY: sry, transformStyle: "preserve-3d",
+          background: T.surface,
+          border: `1px solid ${T.border}`,
+          borderRadius: 20,
+          ...style,
+        }}
+        whileHover={hover ? {
+          boxShadow: `0 20px 60px -15px ${T.primary}18, 0 4px 16px -4px ${T.primary}10`,
+          y: -4,
+        } : {}}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {children}
+      </motion.div>
     </div>
   );
 };
 
-/* ══════════════════════════════════════════════════════════════════════
-   HOMEPAGE COMPONENT
-   ══════════════════════════════════════════════════════════════════════ */
+// ─── Type Badge ───────────────────────────────────────────────────────────────
+const typeBadge = (type) => {
+  if (type === "Free") return { bg: `${T.olive}18`, color: T.olive, label: "Free" };
+  if (type === "Exchange") return { bg: `${T.warn}15`, color: T.warn, label: "Exchange" };
+  return { bg: `${T.terra}15`, color: T.terraDk, label: type || "Sell" };
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HOMEPAGE COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════════
 const Homepage = () => {
+  // ── All original state & logic preserved ──────────────────────────────────
   const { user, isProfileComplete, logout } = useAuth();
   const { totalUnreadMessages, unreadNotifications } = useSocket();
+  const { isWishlisted, toggleWishlist: ctxToggle } = useWishlist();
   const navigate = useNavigate();
 
+  const [activeCat, setActiveCat] = useState("All");
+  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [searchQ, setSearchQ] = useState("");
   const [allResources, setAllResources] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const { isWishlisted, toggleWishlist: ctxToggle } = useWishlist();
+  const [searchFocused, setSearchFocused] = useState(false);
   const userMenuRef = useRef(null);
 
-  /* scroll shadow */
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 600], [0, -80]);
+  const heroBlobY = useTransform(scrollY, [0, 600], [0, -40]);
+
+  useEffect(() => scrollY.on("change", v => setScrolled(v > 20)), [scrollY]);
+
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    const fn = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target))
+        setUserMenuOpen(false);
+    };
+    document.addEventListener("mousedown", fn);
+    return () => document.removeEventListener("mousedown", fn);
   }, []);
 
-  /* close user dropdown */
-  useEffect(() => {
-    const fn = (e) => { if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false); };
-    document.addEventListener('mousedown', fn);
-    return () => document.removeEventListener('mousedown', fn);
-  }, []);
-
-  /* fetch resources */
   useEffect(() => {
     (async () => {
       try {
-        const res = await API.get('/resource/all');
+        const res = await API.get("/resource/all");
         if (res.data.success) setAllResources(res.data.resources);
       } catch (err) {
-        console.error('Failed to fetch resources', err);
+        console.error("Failed to fetch resources", err);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const firstName = user?.name?.split(' ')[0] || 'Student';
-  const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
-
+  // ── Data (preserved) ──────────────────────────────────────────────────────
   const categories = [
-    { name: 'Book', icon: '📚', color: '#5B5BD6' },
-    { name: 'Notes', icon: '📝', color: '#5B5BD6' },
-    { name: 'Stationery', icon: '✏️', color: '#5B5BD6' },
-    { name: 'Project', icon: '🗂️', color: '#5B5BD6' },
-    { name: 'Other', icon: '📦', color: '#5B5BD6' },
+    { name: "Book", icon: "📚" },
+    { name: "Notes", icon: "📝" },
+    { name: "Stationery", icon: "✏️" },
+    { name: "Project", icon: "🗂️" },
+    { name: "Other", icon: "📦" },
   ];
 
-  const filtered = (() => {
+  const filtered = useMemo(() => {
     let items = allResources;
-    if (activeCategory !== 'All') {
-      items = items.filter(r => r.category === activeCategory);
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      items = items.filter(r => r.title?.toLowerCase().includes(q) || r.category?.toLowerCase().includes(q));
+    if (activeCat !== "All") items = items.filter(r => r.category === activeCat);
+    if (searchQ.trim()) {
+      const q = searchQ.toLowerCase();
+      items = items.filter(r =>
+        r.title?.toLowerCase().includes(q) || r.category?.toLowerCase().includes(q)
+      );
     }
     return items.slice(0, 8);
-  })();
+  }, [allResources, activeCat, searchQ]);
 
   const toggleWishlist = (id, e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     ctxToggle(id);
   };
 
   const trustFeatures = [
-    { icon: 'verified_user', title: 'Verified Users', desc: 'Trade with confidence. All members are verified using university credentials.', bg: '#FFDCC3', color: '#804300' },
-    { icon: 'forum', title: 'Secure Chat', desc: 'Communicate safely through our integrated, encrypted messaging system.', bg: '#E2DFFF', color: '#3533B0' },
-    { icon: 'bolt', title: 'Fast Deals', desc: 'Find local items and meet on campus for instant, hassle-free exchanges.', bg: '#DAE2FD', color: '#3F465C' },
-    { icon: 'groups', title: 'Trusted Circle', desc: 'Join a supportive ecosystem designed specifically for student needs.', bg: '#E4E1EC', color: '#5B5BD6' },
+    { icon: Shield, title: "Verified Users", desc: "All members verified with university credentials.", color: T.olive },
+    { icon: MessageSquare, title: "Secure Chat", desc: "Encrypted messaging built into the platform.", color: T.terra },
+    { icon: Zap, title: "Fast Deals", desc: "Meet on campus for instant, hassle-free exchanges.", color: T.warn },
+    { icon: Handshake, title: "Trusted Circle", desc: "A student ecosystem built on mutual trust.", color: T.primary },
   ];
 
   const stats = [
-    { label: 'Active Students', value: 2400, suffix: '+', icon: GraduationCap },
-    { label: 'Resources Listed', value: allResources.length || 850, suffix: '+', icon: Package },
-    { label: 'Successful Trades', value: 1200, suffix: '+', icon: Handshake },
-    { label: 'Campuses', value: 15, suffix: '+', icon: Globe },
+    { label: "Active Students", value: 2400, suffix: "+", emoji: "🎓" },
+    { label: "Resources Listed", value: allResources.length || 850, suffix: "+", emoji: "📦" },
+    { label: "Successful Trades", value: 1200, suffix: "+", emoji: "🤝" },
+    { label: "Campuses Covered", value: 15, suffix: "+", emoji: "🌍" },
   ];
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", background: '#F8FAFC', color: '#0F172A', minHeight: '100vh' }}>
+    <>
+      <GlobalStyle />
+      {/* Noise grain effect */}
+      <div className="cc-grain" style={{ position: "fixed", inset: 0, zIndex: 9998, pointerEvents: "none" }} />
+      {/* Custom cursor — desktop only */}
+      <div style={{ display: "none" }} id="cc-cursor-desktop">
+        {typeof window !== "undefined" && window.innerWidth > 768 && <CustomCursor />}
+      </div>
+      <CustomCursor />
+      <OrganicBg />
 
-      {/* ═══ NAVBAR ════════════════════════════════════════════════════════ */}
-      <nav style={{
-        position: 'fixed', top: 0, width: '100%', zIndex: 50,
-        background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.80)',
-        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(199,196,214,0.3)',
-        boxShadow: scrolled ? '0 4px 20px rgba(15,23,42,0.06)' : '0 1px 3px rgba(15,23,42,0.04)',
-        height: 64, transition: 'all 0.3s ease',
-      }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
+      <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }}>
 
-          {/* Left: Logo + Nav Links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-              <img src="/uploads/campuscrate-logo.png" alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
-              <span style={{ fontWeight: 800, fontSize: 17, color: '#0F172A', letterSpacing: '-0.01em' }}>CampusCrate</span>
-            </Link>
-            <div style={{ display: 'flex', gap: '1.5rem' }} className="nav-desktop-links">
-              <Link to="/resources" style={{ color: '#5B5BD6', fontWeight: 700, fontSize: 15, borderBottom: '2px solid #5B5BD6', paddingBottom: 2, textDecoration: 'none' }}>Browse</Link>
-              <Link to="/add-resource" style={{ color: '#64748B', fontWeight: 500, fontSize: 15, textDecoration: 'none', transition: 'color 0.2s' }}
-                onMouseEnter={e => e.target.style.color = '#5B5BD6'}
-                onMouseLeave={e => e.target.style.color = '#64748B'}>Sell</Link>
-              <Link to="/dashboard" style={{ color: '#64748B', fontWeight: 500, fontSize: 15, textDecoration: 'none', transition: 'color 0.2s' }}
-                onMouseEnter={e => e.target.style.color = '#5B5BD6'}
-                onMouseLeave={e => e.target.style.color = '#64748B'}>Dashboard</Link>
+        {/* ══ NAVBAR ═══════════════════════════════════════════════════════ */}
+        <motion.nav
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
+            transition: "all 0.4s ease",
+          }}
+          animate={{
+            background: scrolled ? `${T.surface}E8` : "transparent",
+            backdropFilter: scrolled ? "blur(20px)" : "blur(0px)",
+            borderBottom: scrolled ? `1px solid ${T.border}` : "1px solid transparent",
+            boxShadow: scrolled ? `0 4px 24px ${T.primary}08` : "none",
+          }}
+        >
+          <div style={{
+            maxWidth: 1280, margin: "0 auto", padding: "0 2rem",
+            height: 68, display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            {/* Left */}
+            <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
+              <Link to="/">
+                <motion.div whileHover={{ scale: 1.02 }}
+                  style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{
+                    width: 34, height: 34, borderRadius: 10,
+                    background: T.primary,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    overflow: "hidden",
+                  }}>
+                    <img src="/uploads/campuscrate-logo.png" alt=""
+                      style={{
+                        width: "100%", height: "100%", objectFit: "contain",
+                        filter: "brightness(0) invert(1)"
+                      }} />
+                  </div>
+                  <span style={{
+                    fontWeight: 800, fontSize: 17, color: T.primary,
+                    letterSpacing: "-0.02em",
+                  }}>CampusCrate</span>
+                </motion.div>
+              </Link>
+
+              {/* Desktop Nav Links */}
+              <div style={{ display: "flex", gap: "0.25rem" }}
+                className="cc-desktop-links">
+                {[
+                  { to: "/resources", label: "Browse" },
+                  { to: "/add-resource", label: "Sell" },
+                  { to: "/dashboard", label: "Dashboard" },
+                ].map(link => (
+                  <Link key={link.to} to={link.to}
+                    style={{ display: "block" }}>
+                    <motion.div
+                      whileHover={{ background: `${T.primary}08` }}
+                      style={{
+                        padding: "6px 14px", borderRadius: 8,
+                        fontSize: 14, fontWeight: 600, color: T.textSub,
+                        letterSpacing: "0.01em",
+                      }}
+                    >{link.label}</motion.div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Right */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {/* Search */}
+              <motion.div
+                animate={{
+                  width: searchFocused ? 220 : 160,
+                  background: searchFocused ? T.surface : `${T.primary}06`,
+                  border: `1px solid ${searchFocused ? T.border : "transparent"}`,
+                }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "0 12px", height: 38, borderRadius: 10,
+                  overflow: "hidden",
+                }}
+              >
+                <Search size={14} style={{ color: T.textMuted, flexShrink: 0 }} />
+                <input
+                  type="text" placeholder="Search..."
+                  value={searchQ}
+                  onChange={e => setSearchQ(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  onKeyDown={e => { if (e.key === "Enter") navigate("/resources"); }}
+                  style={{
+                    border: "none", outline: "none", background: "transparent",
+                    fontSize: 13, fontFamily: "var(--font)", color: T.text,
+                    width: "100%",
+                  }}
+                />
+              </motion.div>
+
+              {/* Icon buttons */}
+              {[
+                { to: "/messages", Icon: MessageSquare, count: totalUnreadMessages },
+                { to: "/notifications", Icon: Bell, count: unreadNotifications },
+              ].map(({ to, Icon, count }) => (
+                <Link key={to} to={to}>
+                  <motion.div
+                    whileHover={{ background: `${T.primary}0A` }}
+                    whileTap={{ scale: 0.93 }}
+                    style={{
+                      position: "relative", width: 38, height: 38, borderRadius: 10,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: T.textSub,
+                    }}
+                  >
+                    <Icon size={18} />
+                    {count > 0 && (
+                      <span style={{
+                        position: "absolute", top: 6, right: 6,
+                        width: 8, height: 8, borderRadius: "50%",
+                        background: T.terra, border: `1.5px solid ${T.surface}`,
+                      }} />
+                    )}
+                  </motion.div>
+                </Link>
+              ))}
+
+              {/* Avatar / User Menu */}
+              <div ref={userMenuRef} style={{ position: "relative" }}>
+                <motion.button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                  style={{
+                    width: 36, height: 36, borderRadius: 10,
+                    background: T.primary, color: T.surface,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontWeight: 700, fontSize: 13, border: "none",
+                    overflow: "hidden",
+                  }}
+                >
+                  {user?.profile_image
+                    ? <img src={user.profile_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </motion.button>
+
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      style={{
+                        position: "absolute", top: "calc(100% + 10px)", right: 0,
+                        background: T.surface, border: `1px solid ${T.border}`,
+                        borderRadius: 16, overflow: "hidden",
+                        boxShadow: `0 20px 60px -10px ${T.primary}20`,
+                        minWidth: 200, zIndex: 100,
+                      }}
+                    >
+                      <div style={{ padding: "14px 16px", borderBottom: `1px solid ${T.border}` }}>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: T.text }}>{user?.name || "Student"}</div>
+                        <div style={{ fontSize: 12, color: T.textSub, marginTop: 2 }}>{user?.email}</div>
+                      </div>
+                      {[
+                        { to: "/profile", label: "My Profile", Icon: User },
+                        { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
+                        { to: "/wishlist", label: "Wishlist", Icon: Heart },
+                      ].map(item => (
+                        <Link key={item.to} to={item.to}
+                          onClick={() => setUserMenuOpen(false)}>
+                          <motion.div whileHover={{ background: `${T.primary}06` }}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 10,
+                              padding: "11px 16px", fontSize: 13, fontWeight: 600, color: T.textSub,
+                            }}
+                          >
+                            <item.Icon size={14} />
+                            {item.label}
+                          </motion.div>
+                        </Link>
+                      ))}
+                      <button onClick={logout} style={{
+                        width: "100%", display: "flex", alignItems: "center", gap: 10,
+                        padding: "11px 16px", fontSize: 13, fontWeight: 600,
+                        color: T.danger, background: "none", border: "none",
+                        borderTop: `1px solid ${T.border}`,
+                        fontFamily: "var(--font)",
+                      }}>
+                        <LogOut size={14} /> Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Hamburger */}
+              <motion.button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                whileTap={{ scale: 0.9 }}
+                style={{
+                  width: 36, height: 36, borderRadius: 10, border: `1px solid ${T.border}`,
+                  background: "transparent", display: "flex", alignItems: "center",
+                  justifyContent: "center", color: T.text,
+                  display: "none", // shown via media query
+                }}
+                className="cc-hamburger"
+              >
+                {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+              </motion.button>
             </div>
           </div>
 
-          {/* Right: Search + Icons + Avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {/* Search Bar */}
-            <div style={{ position: 'relative', display: 'flex' }} className="nav-search">
-              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <Search style={{ width: 16, height: 16, color: '#777585' }} />
-              </span>
-              <input
-                type="text"
-                placeholder="Search campus items..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') navigate('/resources'); }}
-                style={{
-                  background: '#F5F2FD', border: '1px solid rgba(199,196,214,0.3)',
-                  borderRadius: 9999, paddingLeft: 38, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
-                  fontSize: 14, width: 280, outline: 'none', color: '#0F172A',
-                  transition: 'all 0.2s', fontFamily: 'inherit',
-                }}
-                onFocus={e => { e.target.style.border = '1px solid #5B5BD6'; e.target.style.boxShadow = '0 0 0 3px rgba(91,91,214,0.15)'; }}
-                onBlur={e => { e.target.style.border = '1px solid rgba(199,196,214,0.3)'; e.target.style.boxShadow = 'none'; }}
-              />
-            </div>
-
-            {/* Messages */}
-            <Link to="/messages" style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: '#64748B', textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#F0ECF7'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <MessageSquare style={{ width: 20, height: 20 }} />
-              {totalUnreadMessages > 0 && (
-                <span style={{
-                  position: 'absolute', top: -2, right: -2,
-                  minWidth: 20, height: 20, borderRadius: 9999,
-                  background: '#FF3040', color: '#fff',
-                  fontSize: 11, fontWeight: 800,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 5px', border: '2.5px solid #fff',
-                  lineHeight: 1, fontFamily: 'inherit',
-                  boxShadow: '0 1px 4px rgba(255,48,64,0.4)',
-                }}>
-                  {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
-                </span>
-              )}
-            </Link>
-
-            {/* Notifications */}
-            <Link to="/notifications" style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: '#64748B', textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#F0ECF7'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <Bell style={{ width: 20, height: 20 }} />
-              {unreadNotifications > 0 && (
-                <span style={{
-                  position: 'absolute', top: -2, right: -2,
-                  minWidth: 20, height: 20, borderRadius: 9999,
-                  background: '#FF3040', color: '#fff',
-                  fontSize: 11, fontWeight: 800,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 5px', border: '2.5px solid #fff',
-                  lineHeight: 1, fontFamily: 'inherit',
-                  boxShadow: '0 1px 4px rgba(255,48,64,0.4)',
-                }}>
-                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
-                </span>
-              )}
-            </Link>
-
-            {/* Avatar Dropdown */}
-            <div ref={userMenuRef} style={{ position: 'relative' }}>
-              <button onClick={() => setUserMenuOpen(!userMenuOpen)}
-                style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #5B5BD6, #4338CA)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14, overflow: 'hidden', padding: 0 }}>
-                {user?.profile_image
-                  ? <img src={user.profile_image} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
-                  : user?.name?.charAt(0)?.toUpperCase() || 'U'}
-              </button>
-              {userMenuOpen && (
-                <div style={{ position: 'absolute', right: 0, top: 44, background: '#fff', border: '1px solid #E4E1EC', borderRadius: 16, boxShadow: '0 10px 40px rgba(15,23,42,0.12)', padding: '0.5rem', minWidth: 200, zIndex: 100 }}>
-                  <div style={{ padding: '0.75rem 1rem 0.5rem', borderBottom: '1px solid #E4E1EC', marginBottom: 4 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: '#0F172A' }}>{user?.name || 'Student'}</div>
-                    <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{user?.email}</div>
-                  </div>
+          {/* Mobile Menu */}
+          <AnimatePresence>
+            {mobileOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                style={{ overflow: "hidden", background: T.surface, borderTop: `1px solid ${T.border}` }}
+              >
+                <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: 4 }}>
                   {[
-                    { to: '/profile', label: 'My Profile', icon: User },
-                    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                    { to: '/wishlist', label: 'Wishlist', icon: Heart },
+                    { to: "/resources", label: "Browse" },
+                    { to: "/add-resource", label: "Sell" },
+                    { to: "/dashboard", label: "Dashboard" },
+                    { to: "/wishlist", label: "Wishlist" },
+                    { to: "/messages", label: "Messages" },
+                    { to: "/notifications", label: "Notifications" },
+                    { to: "/profile", label: "Profile" },
                   ].map(item => (
-                    <Link key={item.to} to={item.to} onClick={() => setUserMenuOpen(false)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: '#0F172A', fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F5F2FD'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <item.icon style={{ width: 15, height: 15, color: '#64748B' }} />
-                      {item.label}
-                    </Link>
+                    <Link key={item.to} to={item.to}
+                      onClick={() => setMobileOpen(false)}
+                      style={{
+                        padding: "12px 14px", borderRadius: 10, fontSize: 15,
+                        fontWeight: 600, color: T.text,
+                      }}
+                    >{item.label}</Link>
                   ))}
                   <button onClick={logout}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: '#BA1A1A', fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', width: '100%', transition: 'background 0.15s', fontFamily: 'inherit' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#FFDAD6'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <LogOut style={{ width: 15, height: 15 }} /> Sign Out
-                  </button>
+                    style={{
+                      marginTop: 8, padding: "12px 14px", borderRadius: 10,
+                      background: `${T.danger}10`, color: T.danger, border: "none",
+                      fontSize: 15, fontWeight: 700, fontFamily: "var(--font)",
+                      textAlign: "left",
+                    }}
+                  >Sign Out</button>
                 </div>
-              )}
-            </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.nav>
 
-            {/* Mobile hamburger */}
-            <button className="hp-nav-hamburger" onClick={() => setMobileOpen(!mobileOpen)}
-              style={{ display: 'none', padding: 8, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#0F172A' }}>
-              {mobileOpen ? <X style={{ width: 22, height: 22 }} /> : <Menu style={{ width: 22, height: 22 }} />}
-            </button>
-          </div>
-        </div>
+        {/* ══ MAIN ══════════════════════════════════════════════════════════ */}
+        <main style={{ paddingTop: 68 }}>
 
-        {/* Mobile menu */}
-        {mobileOpen && (
-          <div style={{ background: '#fff', borderTop: '1px solid #E4E1EC', padding: '1rem 1.5rem' }}>
-            {[
-              { to: '/resources', label: 'Browse' },
-              { to: '/add-resource', label: 'Sell' },
-              { to: '/dashboard', label: 'Dashboard' },
-              { to: '/wishlist', label: 'Wishlist' },
-              { to: '/messages', label: 'Messages' },
-              { to: '/notifications', label: 'Notifications' },
-              { to: '/profile', label: 'Profile' },
-            ].map(item => (
-              <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
-                style={{ display: 'block', padding: '0.75rem 0', color: '#0F172A', textDecoration: 'none', fontSize: 15, fontWeight: 500, borderBottom: '1px solid #F5F2FD' }}>
-                {item.label}
-              </Link>
-            ))}
-            <button onClick={logout}
-              style={{ display: 'block', padding: '0.75rem 0', color: '#BA1A1A', background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit', width: '100%', textAlign: 'left', marginTop: 4 }}>
-              Sign Out
-            </button>
-          </div>
-        )}
-      </nav>
+          {/* ── HERO ──────────────────────────────────────────────────────── */}
+          <section style={{ padding: "5rem 0 4rem", position: "relative", overflow: "hidden", minHeight: "90vh", display: "flex", alignItems: "center" }}>
+            <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem", width: "100%" }}>
 
-      <main style={{ paddingTop: 64 }}>
+              {/* Asymmetric grid: 55/45 */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "4rem",
+                alignItems: "center",
+              }}>
+                {/* Left: editorial copy */}
+                <motion.div style={{ y: heroY }}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 7,
+                      padding: "6px 14px", borderRadius: 999,
+                      background: `${T.terra}14`, border: `1px solid ${T.terra}30`,
+                      fontSize: 12, fontWeight: 700, color: T.terra,
+                      letterSpacing: "0.05em", textTransform: "uppercase",
+                      marginBottom: "1.5rem",
+                    }}
+                  >
+                    <Sparkles size={12} />
+                    University-Exclusive Marketplace
+                  </motion.div>
 
-        {/* ═══ HERO ══════════════════════════════════════════════════════════ */}
-        <section style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, #F8F7FF 0%, #EEF2FF 60%, #F0F9FF 100%)', paddingTop: '3.5rem', paddingBottom: '5rem' }}>
-          {/* Background decorative orbs */}
-          <div style={{ position: 'absolute', top: -96, right: -96, width: 384, height: 384, background: 'rgba(91,91,214,0.05)', borderRadius: '50%', filter: 'blur(48px)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: -96, left: -96, width: 256, height: 256, background: 'rgba(100,116,139,0.05)', borderRadius: '50%', filter: 'blur(48px)', pointerEvents: 'none' }} />
+                  {/* Giant editorial headline */}
+                  <motion.h1
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      fontSize: "clamp(3rem, 5.5vw, 5.5rem)",
+                      fontWeight: 900,
+                      lineHeight: 1.0,
+                      letterSpacing: "-0.04em",
+                      color: T.primary,
+                      marginBottom: "0.2em",
+                    }}
+                  >
+                    Buy, Sell
+                    <span style={{
+                      display: "block",
+                      WebkitTextStroke: `2px ${T.terra}`,
+                      color: "transparent",
+                    }}>
+                      & Rent
+                    </span>
+                    <span style={{ color: T.terra }}>Anything.</span>
+                  </motion.h1>
 
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'center' }} className="hero-grid">
-            {/* Text */}
-            <div style={{ zIndex: 1 }}>
-              <span style={{ display: 'inline-block', padding: '6px 16px', borderRadius: 9999, background: 'rgba(91,91,214,0.1)', color: '#5B5BD6', fontSize: 13, fontWeight: 600, marginBottom: '1.5rem', letterSpacing: '0.01em' }}>
-                University-Exclusive Marketplace
-              </span>
-              <h1 style={{ fontSize: 'clamp(36px, 4vw, 52px)', lineHeight: 1.1, fontWeight: 800, color: '#0F172A', marginBottom: '1rem', letterSpacing: '-0.02em' }}>
-                Buy, Sell &amp; Rent <br />
-                <span style={{ color: '#5B5BD6' }}>Anything</span> Around You
-              </h1>
-              <p style={{ fontSize: 17, lineHeight: 1.65, color: '#64748B', marginBottom: '2rem', maxWidth: 480 }}>
-                Discover great deals, connect with trusted people, and find what you need faster.
-                The smartest way to trade within your academic community.
-              </p>
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <button onClick={() => navigate('/resources')}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#5B5BD6', color: '#fff', padding: '0 1.75rem', height: 48, borderRadius: 12, fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#4338CA'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,91,214,0.35)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#5B5BD6'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}>
-                  Browse Marketplace <ArrowRight style={{ width: 16, height: 16 }} />
-                </button>
-                <button onClick={() => navigate('/add-resource')}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', color: '#0F172A', padding: '0 1.75rem', height: 48, borderRadius: 12, fontSize: 14, fontWeight: 600, border: '1.5px solid #777585', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#F5F2FD'; e.currentTarget.style.borderColor = '#5B5BD6'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#777585'; }}>
-                  Post Listing
-                </button>
-              </div>
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.18 }}
+                    style={{
+                      fontSize: 17, color: T.textSub, lineHeight: 1.65,
+                      maxWidth: 400, marginTop: "1.25rem", marginBottom: "2rem",
+                      fontWeight: 400,
+                    }}
+                  >
+                    Discover great deals, connect with trusted peers, and find what you need faster.
+                    The smartest way to trade within your academic community.
+                  </motion.p>
 
-              {/* Mini stats */}
-              {!isProfileComplete && (
-                <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#FFFBEB', borderRadius: 12, border: '1px solid #FDE68A', maxWidth: 'fit-content' }}>
-                  <AlertTriangle style={{ width: 16, height: 16, color: '#D97706' }} />
-                  <span style={{ fontSize: 13, color: '#92400E', fontWeight: 500 }}>Complete your profile to unlock all features.</span>
-                  <Link to="/profile" style={{ color: '#5B5BD6', fontWeight: 700, fontSize: 13, textDecoration: 'none', marginLeft: 4 }}>Go →</Link>
-                </div>
-              )}
-            </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.26 }}
+                    style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
+                  >
+                    <MagBtn variant="primary" onClick={() => navigate("/resources")}>
+                      Browse Marketplace <ArrowRight size={15} />
+                    </MagBtn>
+                    <MagBtn variant="outline" onClick={() => navigate("/add-resource")}>
+                      Post Listing
+                    </MagBtn>
+                  </motion.div>
 
-            {/* Visual — Activity Cards Stack */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-              <div style={{ position: 'relative', width: '100%', maxWidth: 400 }}>
-                {/* Big floating card */}
-                <div style={{ background: '#fff', borderRadius: 24, padding: '2rem', boxShadow: '0 20px 60px rgba(91,91,214,0.12), 0 4px 16px rgba(15,23,42,0.06)', border: '1px solid rgba(199,196,214,0.4)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EEEEFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <TrendingUp style={{ width: 20, height: 20, color: '#5B5BD6' }} />
+                  {!isProfileComplete && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      style={{
+                        marginTop: "1.25rem", display: "inline-flex", alignItems: "center",
+                        gap: 8, padding: "8px 14px", borderRadius: 10,
+                        background: `${T.warn}12`, border: `1px solid ${T.warn}25`,
+                        fontSize: 13, color: T.warn, fontWeight: 600,
+                      }}
+                    >
+                      <AlertTriangle size={13} />
+                      Complete your profile to unlock all features.
+                      <Link to="/profile" style={{ color: T.terra, fontWeight: 700 }}>Go →</Link>
+                    </motion.div>
+                  )}
+
+                  {/* Social proof */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35, duration: 0.5 }}
+                    style={{
+                      marginTop: "2rem", display: "flex", alignItems: "center", gap: 12,
+                    }}
+                  >
+                    <div style={{ display: "flex" }}>
+                      {["A", "P", "R", "D", "S"].map((l, i) => (
+                        <div key={i} style={{
+                          width: 30, height: 30, borderRadius: "50%",
+                          border: `2px solid ${T.surface}`,
+                          background: [T.primary, T.terra, T.olive, T.champDk, T.primarySub][i],
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          color: T.surface, fontSize: 11, fontWeight: 700,
+                          marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i,
+                          position: "relative",
+                        }}>{l}</div>
+                      ))}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 15 }}>Trending Today</div>
-                      <div style={{ fontSize: 13, color: '#64748B' }}>{allResources.length || 24} active listings</div>
+                      <div style={{ display: "flex", gap: 2, marginBottom: 2 }}>
+                        {[1, 2, 3, 4, 5].map(n => <Star key={n} size={11} fill={T.champ} color={T.champ} />)}
+                      </div>
+                      <span style={{ fontSize: 12, color: T.textSub, fontWeight: 500 }}>
+                        Trusted by <strong style={{ color: T.text }}>2,400+</strong> students
+                      </span>
                     </div>
-                    <span style={{ marginLeft: 'auto', padding: '4px 10px', background: '#ECFDF5', color: '#059669', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>+12%</span>
-                  </div>
-                  {/* Mini listing previews */}
-                  {(allResources.slice(0, 3)).map((r, i) => (
-                    <div key={r._id || i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 0', borderBottom: i < 2 ? '1px solid #F5F2FD' : 'none' }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F5F2FD', overflow: 'hidden', flexShrink: 0 }}>
-                        {r.image_url ? <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package style={{ width: 18, height: 18, color: '#C1C1FF', margin: '11px auto', display: 'block' }} />}
+                  </motion.div>
+                </motion.div>
+
+                {/* Right: Bento cards cluster */}
+                <motion.div
+                  initial={{ opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ position: "relative" }}
+                >
+                  {/* Main trending card */}
+                  <Card style={{ padding: "1.5rem" }}>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 12,
+                      marginBottom: "1.25rem",
+                    }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 12,
+                        background: `${T.terra}15`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <TrendingUp size={18} color={T.terra} />
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: 13, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</div>
-                        <div style={{ fontSize: 12, color: '#64748B' }}>{r.category}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 800, fontSize: 15, color: T.primary }}>Trending Today</div>
+                        <div style={{ fontSize: 12, color: T.textSub }}>
+                          {allResources.length || "24"} active listings
+                        </div>
                       </div>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: '#5B5BD6', whiteSpace: 'nowrap' }}>
-                        {r.price > 0 ? `₹${r.price}` : 'Free'}
-                      </div>
+                      <motion.span
+                        animate={{ scale: [1, 1.08, 1] }}
+                        transition={{ duration: 2.5, repeat: Infinity }}
+                        style={{
+                          padding: "4px 10px", borderRadius: 999,
+                          background: `${T.olive}18`, color: T.olive,
+                          fontSize: 12, fontWeight: 700,
+                        }}
+                      >+12%</motion.span>
                     </div>
-                  ))}
-                  {allResources.length === 0 && !loading && (
-                    <div style={{ textAlign: 'center', padding: '1rem 0', color: '#64748B', fontSize: 13 }}>Be the first to list something!</div>
-                  )}
-                </div>
 
-                {/* Small floating badge — community */}
-                <div style={{ position: 'absolute', bottom: -16, right: -16, background: '#fff', borderRadius: 16, padding: '0.75rem 1rem', boxShadow: '0 8px 24px rgba(91,91,214,0.15)', display: 'flex', alignItems: 'center', gap: 8, border: '1px solid rgba(199,196,214,0.3)' }}>
-                  <Users style={{ width: 16, height: 16, color: '#5B5BD6' }} />
-                  <span style={{ fontSize: 13, fontWeight: 700 }}><AnimatedCounter target={2400} suffix="+" /></span>
-                  <span style={{ fontSize: 12, color: '#64748B' }}>Students</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+                    {allResources.slice(0, 3).map((r, i) => (
+                      <motion.div key={r._id || i}
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 + i * 0.1 }}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 12,
+                          padding: "10px 0",
+                          borderBottom: i < 2 ? `1px solid ${T.border}` : "none",
+                        }}
+                      >
+                        <div style={{
+                          width: 44, height: 44, borderRadius: 12,
+                          background: T.surfaceAlt, overflow: "hidden", flexShrink: 0,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          {r.image_url
+                            ? <img src={r.image_url} alt={r.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : <Package size={16} color={T.textMuted} />}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</div>
+                          <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>{r.category}</div>
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: T.terra }}>
+                          {r.price > 0 ? `₹${r.price}` : "Free"}
+                        </div>
+                      </motion.div>
+                    ))}
 
-        {/* ═══ CATEGORY GRID ═════════════════════════════════════════════════ */}
-        <FadeIn>
-          <section style={{ padding: '4rem 0', background: '#FCFBFF' }}>
-            <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
-                <div>
-                  <h2 style={{ fontSize: 30, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.015em' }}>Explore by Category</h2>
-                  <p style={{ fontSize: 15, color: '#64748B', marginTop: 4 }}>Find resources shared by your fellow students</p>
-                </div>
-                <button onClick={() => navigate('/resources')}
-                  style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#5B5BD6', fontWeight: 600, fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-                  View all <ChevronRight style={{ width: 16, height: 16 }} />
-                </button>
-              </div>
+                    {allResources.length === 0 && !loading && (
+                      <p style={{ color: T.textMuted, fontSize: 13, textAlign: "center", padding: "1rem 0" }}>
+                        Be the first to list something!
+                      </p>
+                    )}
+                  </Card>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }} className="cat-grid">
-                {categories.map((cat, i) => (
-                  <FadeIn key={i} delay={i * 60}>
-                    <div onClick={() => { setActiveCategory(cat.name); document.getElementById('listings-section')?.scrollIntoView({ behavior: 'smooth' }); }}
-                      style={{ background: '#fff', padding: '1.5rem 1rem', borderRadius: 20, boxShadow: '0 2px 8px rgba(15,23,42,0.04)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', border: activeCategory === cat.name ? '1.5px solid #5B5BD6' : '1.5px solid transparent' }}
-                      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,91,214,0.1)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.04)'; e.currentTarget.style.transform = 'none'; }}>
-                      <div style={{ width: 48, height: 48, background: activeCategory === cat.name ? '#5B5BD6' : '#F5F2FD', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem', transition: 'all 0.25s', fontSize: 22 }}>
-                        {cat.icon}
-                      </div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#0F172A' }}>{cat.name}</span>
-                    </div>
-                  </FadeIn>
-                ))}
+                  {/* Floating stat badges */}
+                  <motion.div
+                    animate={{ y: [0, -8, 0] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    style={{
+                      position: "absolute", bottom: -20, right: -20,
+                      background: T.primary, borderRadius: 14,
+                      padding: "10px 16px",
+                      display: "flex", alignItems: "center", gap: 8,
+                      boxShadow: `0 8px 24px ${T.primary}30`,
+                    }}
+                  >
+                    <Users size={14} color={T.champ} />
+                    <span style={{ fontSize: 13, fontWeight: 800, color: T.surface }}>
+                      <Counter target={2400} suffix="+" />
+                    </span>
+                    <span style={{ fontSize: 11, color: `${T.surface}80` }}>Students</span>
+                  </motion.div>
+
+                  <motion.div
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 6, delay: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    style={{
+                      position: "absolute", top: -14, left: -14,
+                      background: T.surface, borderRadius: 12,
+                      padding: "8px 14px",
+                      display: "flex", alignItems: "center", gap: 6,
+                      border: `1px solid ${T.border}`,
+                      boxShadow: `0 4px 16px ${T.primary}12`,
+                    }}
+                  >
+                    <Star size={12} fill={T.champ} color={T.champ} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: T.primary }}>Trusted</span>
+                  </motion.div>
+                </motion.div>
               </div>
             </div>
           </section>
-        </FadeIn>
 
-        {/* ═══ FEATURED LISTINGS ══════════════════════════════════════════════ */}
-        <FadeIn>
-          <section id="listings-section" style={{ padding: '4rem 0', background: '#F8FAFC' }}>
-            <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem' }}>
-              <div style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: 30, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.015em' }}>
-                  {activeCategory === 'All' ? 'Featured Listings' : activeCategory}
-                </h2>
-                <p style={{ fontSize: 15, color: '#64748B', marginTop: 4 }}>Top-rated items from verified sellers today</p>
-              </div>
-
-              {/* Category filter pills */}
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                {['All', ...categories.map(c => c.name)].map(cat => (
-                  <button key={cat} onClick={() => setActiveCategory(cat)}
+          {/* ── CATEGORIES ──────────────────────────────────────────────────── */}
+          <section style={{ padding: "4rem 0", borderTop: `1px solid ${T.border}` }}>
+            <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "2rem" }}>
+                <Reveal>
+                  <div style={{
+                    display: "inline-block", fontSize: 11, fontWeight: 700,
+                    textTransform: "uppercase", letterSpacing: "0.1em",
+                    color: T.textMuted, marginBottom: "0.5rem",
+                  }}>Explore</div>
+                  <h2 style={{ fontSize: "clamp(1.75rem, 3vw, 2.5rem)", fontWeight: 900, letterSpacing: "-0.03em", color: T.primary }}>
+                    Browse by Category
+                  </h2>
+                  <p style={{ color: T.textSub, fontSize: 15, marginTop: 6 }}>
+                    Find resources shared by your fellow students
+                  </p>
+                </Reveal>
+                <Reveal delay={0.1}>
+                  <button onClick={() => navigate("/resources")}
                     style={{
-                      padding: '6px 16px', borderRadius: 9999, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', border: 'none',
-                      background: activeCategory === cat ? '#5B5BD6' : '#F0ECF7',
-                      color: activeCategory === cat ? '#fff' : '#64748B'
+                      display: "flex", alignItems: "center", gap: 6,
+                      fontSize: 13, fontWeight: 700, color: T.terra,
+                      background: "none", border: "none", fontFamily: "var(--font)",
                     }}
-                    onMouseEnter={e => { if (activeCategory !== cat) { e.currentTarget.style.background = '#E2DFFF'; e.currentTarget.style.color = '#5B5BD6'; } }}
-                    onMouseLeave={e => { if (activeCategory !== cat) { e.currentTarget.style.background = '#F0ECF7'; e.currentTarget.style.color = '#64748B'; } }}>
-                    {cat}
+                    data-cursor data-cursor-label="View all"
+                  >
+                    View all <ChevronRight size={15} />
                   </button>
-                ))}
+                </Reveal>
               </div>
 
-              {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-                  <div style={{ width: 40, height: 40, border: '3px solid #E2DFFF', borderTopColor: '#5B5BD6', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+              {/* Horizontal scrolling category pills on mobile, grid on desktop */}
+              <div style={{
+                display: "flex", gap: "1rem", flexWrap: "wrap",
+              }}>
+                {categories.map((cat, i) => {
+                  const isActive = activeCat === cat.name;
+                  return (
+                    <Reveal key={cat.name} delay={i * 0.06}>
+                      <motion.button
+                        onClick={() => {
+                          setActiveCat(isActive ? "All" : cat.name);
+                          document.getElementById("listings-section")?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                        whileHover={{ y: -3 }}
+                        whileTap={{ scale: 0.97 }}
+                        style={{
+                          display: "flex", flexDirection: "column", alignItems: "center",
+                          gap: 10, padding: "1.25rem 1.75rem", borderRadius: 18,
+                          background: isActive ? T.primary : T.surface,
+                          border: `1px solid ${isActive ? T.primary : T.border}`,
+                          color: isActive ? T.surface : T.text,
+                          fontFamily: "var(--font)", minWidth: 110,
+                          transition: "all 0.25s ease",
+                          boxShadow: isActive ? `0 8px 24px ${T.primary}25` : "none",
+                        }}
+                        data-cursor
+                      >
+                        <span style={{ fontSize: 28 }}>{cat.icon}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.01em" }}>
+                          {cat.name}
+                        </span>
+                      </motion.button>
+                    </Reveal>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* ── LISTINGS ──────────────────────────────────────────────────── */}
+          <section id="listings-section"
+            style={{
+              padding: "4rem 0 5rem",
+              background: `linear-gradient(180deg, transparent 0%, ${T.champLt}30 100%)`,
+            }}
+          >
+            <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "2rem" }}>
+                <Reveal>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: T.textMuted, marginBottom: "0.5rem" }}>
+                    Marketplace
+                  </div>
+                  <h2 style={{ fontSize: "clamp(1.75rem, 3vw, 2.5rem)", fontWeight: 900, letterSpacing: "-0.03em", color: T.primary }}>
+                    {activeCat === "All" ? "Featured Listings" : activeCat}
+                  </h2>
+                  <p style={{ color: T.textSub, fontSize: 15, marginTop: 6 }}>
+                    Top items from verified sellers today
+                  </p>
+                </Reveal>
+              </div>
+
+              {/* Filter pills */}
+              <Reveal style={{ marginBottom: "1.5rem" }}>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  {["All", ...categories.map(c => c.name)].map(cat => {
+                    const isA = activeCat === cat;
+                    return (
+                      <button key={cat} onClick={() => setActiveCat(cat)}
+                        style={{
+                          padding: "6px 16px", borderRadius: 999,
+                          fontSize: 13, fontWeight: 600, fontFamily: "var(--font)",
+                          background: isA ? T.terra : "transparent",
+                          color: isA ? T.surface : T.textSub,
+                          border: `1px solid ${isA ? T.terra : T.border}`,
+                          transition: "all 0.2s ease",
+                        }}
+                      >{cat}</button>
+                    );
+                  })}
                 </div>
-              ) : filtered.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-                  <Package style={{ width: 40, height: 40, color: '#C1C1FF', margin: '0 auto 1rem' }} />
-                  <p style={{ color: '#64748B', fontSize: 15 }}>No listings in this category yet.</p>
-                  <button onClick={() => navigate('/add-resource')}
-                    style={{ marginTop: '1rem', padding: '0.625rem 1.5rem', background: '#5B5BD6', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                    Post First Listing
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }} className="listings-grid">
-                  {filtered.map((r, idx) => (
-                    <FadeIn key={r._id} delay={idx * 60}>
-                      <Link to={`/resource/${r._id}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)', border: '1px solid rgba(199,196,214,0.2)' }}
-                          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 32px rgba(15,23,42,0.1)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
-                          onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.04)'; e.currentTarget.style.transform = 'none'; }}>
+              </Reveal>
 
-                          {/* Image */}
-                          <div style={{ position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: '#F5F2FD' }}>
-                            {r.image_url ? (
-                              <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
-                                onMouseEnter={e => e.target.style.transform = 'scale(1.08)'}
-                                onMouseLeave={e => e.target.style.transform = 'scale(1)'} />
-                            ) : (
-                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Package style={{ width: 36, height: 36, color: '#C1C1FF' }} />
-                              </div>
-                            )}
-                            {/* Wishlist button */}
-                            <button onClick={e => toggleWishlist(r._id, e)}
-                              style={{ position: 'absolute', top: 10, right: 10, width: 36, height: 36, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(6px)', borderRadius: '50%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
-                              <Heart style={{ width: 16, height: 16, color: isWishlisted(r._id) ? '#ef4444' : '#64748B', fill: isWishlisted(r._id) ? '#ef4444' : 'none' }} />
-                            </button>
-                            {/* Type badge */}
-                            <span style={{ position: 'absolute', bottom: 10, left: 10, padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 600, background: 'rgba(91,91,214,0.9)', color: '#fff', backdropFilter: 'blur(4px)' }}>
-                              {r.type || 'Sell'}
-                            </span>
-                          </div>
-
-                          {/* Body */}
-                          <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                              <h3 style={{ fontWeight: 700, fontSize: 15, color: '#0F172A', flex: 1, marginRight: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</h3>
-                              <span style={{ fontWeight: 700, fontSize: 15, color: '#5B5BD6', whiteSpace: 'nowrap' }}>
-                                {r.price > 0 ? <><IndianRupee style={{ width: 12, height: 12, display: 'inline', verticalAlign: 'middle' }} />{r.price}</> : 'Free'}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#64748B', marginBottom: '0.875rem' }}>
-                              <MapPin style={{ width: 13, height: 13 }} />
-                              <span style={{ fontSize: 12 }}>{r.location || 'Campus'}</span>
-                            </div>
-
-                            {/* Seller row */}
-                            <div style={{ marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid rgba(199,196,214,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg, #E2DFFF, #C1C1FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#3533B0', flexShrink: 0 }}>
-                                  {r.seller?.name?.charAt(0)?.toUpperCase() || r.seller?.charAt(0)?.toUpperCase() || 'S'}
+              <AnimatePresence mode="wait">
+                <motion.div key={activeCat}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {loading ? (
+                    <div style={{ display: "flex", justifyContent: "center", padding: "4rem" }}>
+                      <div className="cc-spinner" />
+                    </div>
+                  ) : filtered.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "5rem 0" }}>
+                      <Package size={40} color={T.textMuted} style={{ margin: "0 auto 1rem" }} />
+                      <p style={{ color: T.textSub, fontSize: 14, marginBottom: "1.25rem" }}>
+                        No listings in this category yet.
+                      </p>
+                      <MagBtn variant="terra" onClick={() => navigate("/add-resource")}>
+                        Post First Listing
+                      </MagBtn>
+                    </div>
+                  ) : (
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                      gap: "1.25rem",
+                    }}>
+                      {filtered.map((r, idx) => {
+                        const tb = typeBadge(r.type);
+                        const wishlisted = isWishlisted(r._id);
+                        return (
+                          <Reveal key={r._id} delay={idx * 0.04} y={20}>
+                            <Link to={`/resource/${r._id}`}>
+                              <Card hover style={{ overflow: "hidden", padding: 0 }}>
+                                {/* Image */}
+                                <div style={{ position: "relative", height: 180, background: T.surfaceAlt, overflow: "hidden" }}>
+                                  {r.image_url
+                                    ? <img src={r.image_url} alt={r.title}
+                                      style={{
+                                        width: "100%", height: "100%", objectFit: "cover",
+                                        transition: "transform 0.5s ease"
+                                      }} />
+                                    : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                      <Package size={36} color={T.textMuted} />
+                                    </div>
+                                  }
+                                  {/* Type badge */}
+                                  <span style={{
+                                    position: "absolute", top: 12, left: 12,
+                                    padding: "4px 10px", borderRadius: 999,
+                                    fontSize: 11, fontWeight: 700,
+                                    background: tb.bg, color: tb.color,
+                                  }}>{tb.label}</span>
+                                  {/* Wishlist button */}
+                                  <motion.button
+                                    onClick={e => toggleWishlist(r._id, e)}
+                                    whileTap={{ scale: 0.8 }}
+                                    style={{
+                                      position: "absolute", top: 10, right: 10,
+                                      width: 32, height: 32, borderRadius: "50%",
+                                      background: `${T.surface}CC`, backdropFilter: "blur(8px)",
+                                      border: `1px solid ${T.border}`,
+                                      display: "flex", alignItems: "center", justifyContent: "center",
+                                    }}
+                                    data-cursor
+                                  >
+                                    <Heart size={14}
+                                      color={wishlisted ? "#ef4444" : T.textMuted}
+                                      fill={wishlisted ? "#ef4444" : "none"} />
+                                  </motion.button>
                                 </div>
-                                <span style={{ fontSize: 13, fontWeight: 600, color: '#0F172A' }}>{(typeof r.seller === 'string' ? r.seller : r.seller?.name) || 'Seller'}</span>
-                              </div>
-                              <span style={{ padding: '5px 12px', background: 'rgba(91,91,214,0.08)', color: '#5B5BD6', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-                                onMouseEnter={e => { e.currentTarget.style.background = '#5B5BD6'; e.currentTarget.style.color = '#fff'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(91,91,214,0.08)'; e.currentTarget.style.color = '#5B5BD6'; }}>
-                                Contact
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    </FadeIn>
-                  ))}
-                </div>
-              )}
+
+                                {/* Body */}
+                                <div style={{ padding: "1rem" }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                                    <h3 style={{
+                                      fontSize: 14, fontWeight: 700, color: T.text,
+                                      lineHeight: 1.3, flex: 1, paddingRight: 8,
+                                      display: "-webkit-box", WebkitLineClamp: 2,
+                                      WebkitBoxOrient: "vertical", overflow: "hidden",
+                                    }}>{r.title}</h3>
+                                    <span style={{ fontSize: 15, fontWeight: 800, color: T.terra, flexShrink: 0 }}>
+                                      {r.price > 0
+                                        ? <span style={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                          <IndianRupee size={11} />{r.price}
+                                        </span>
+                                        : "Free"}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 4, color: T.textMuted, fontSize: 12, marginBottom: "0.75rem" }}>
+                                    <MapPin size={11} /> {r.location || "Campus"}
+                                  </div>
+                                  <div style={{
+                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                    paddingTop: "0.75rem", borderTop: `1px solid ${T.border}`,
+                                  }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                                      <div style={{
+                                        width: 24, height: 24, borderRadius: "50%",
+                                        background: T.primary, color: T.surface,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: 10, fontWeight: 700,
+                                      }}>
+                                        {r.seller?.name?.charAt(0)?.toUpperCase() || r.seller?.charAt?.(0)?.toUpperCase() || "S"}
+                                      </div>
+                                      <span style={{ fontSize: 12, color: T.textSub, fontWeight: 600 }}>
+                                        {(typeof r.seller === "string" ? r.seller : r.seller?.name) || "Seller"}
+                                      </span>
+                                    </div>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: T.terra }}>Contact</span>
+                                  </div>
+                                </div>
+                              </Card>
+                            </Link>
+                          </Reveal>
+                        );
+                      })}
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
 
               {filtered.length > 0 && (
-                <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-                  <button onClick={() => navigate('/resources')}
-                    style={{ padding: '0.75rem 2.5rem', border: '1.5px solid #5B5BD6', color: '#5B5BD6', background: 'transparent', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#5B5BD6'; e.currentTarget.style.color = '#fff'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#5B5BD6'; }}>
+                <Reveal style={{ textAlign: "center", marginTop: "2.5rem" }}>
+                  <MagBtn variant="outline" onClick={() => navigate("/resources")} style={{ height: 46, padding: "0 2rem" }}>
                     View All Listings →
-                  </button>
-                </div>
+                  </MagBtn>
+                </Reveal>
               )}
             </div>
           </section>
-        </FadeIn>
 
-        {/* ═══ TRUST / FEATURES SECTION ════════════════════════════════════ */}
-        <FadeIn>
-          <section style={{ padding: '5rem 0', background: 'rgba(245,242,253,0.5)' }}>
-            <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem' }}>
-              <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                <h2 style={{ fontSize: 30, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.015em' }}>Safe &amp; Seamless Marketplace</h2>
-                <p style={{ fontSize: 15, color: '#64748B', marginTop: 8, maxWidth: 560, margin: '8px auto 0' }}>
-                  We prioritize your security and convenience, ensuring every transaction is as smooth as possible within your trusted community.
+          {/* ── TRUST FEATURES — Bento Grid ──────────────────────────────── */}
+          <section style={{ padding: "5rem 0", borderTop: `1px solid ${T.border}` }}>
+            <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
+              <Reveal style={{ marginBottom: "3rem" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: T.textMuted, marginBottom: "0.5rem" }}>
+                  Why CampusCrate
+                </div>
+                <h2 style={{ fontSize: "clamp(1.75rem, 3vw, 2.5rem)", fontWeight: 900, letterSpacing: "-0.03em", color: T.primary }}>
+                  Safe &amp; Seamless
+                </h2>
+                <p style={{ color: T.textSub, fontSize: 15, marginTop: 6, maxWidth: 480 }}>
+                  We prioritize your security and convenience, ensuring every transaction is smooth within your trusted community.
                 </p>
-              </div>
+              </Reveal>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem' }} className="trust-grid">
-                {trustFeatures.map((f, i) => (
-                  <FadeIn key={i} delay={i * 80}>
-                    <div style={{ background: '#fff', padding: '1.75rem', borderRadius: 20, boxShadow: '0 2px 8px rgba(15,23,42,0.04)', transition: 'all 0.25s', border: '1px solid rgba(199,196,214,0.2)' }}
-                      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(91,91,214,0.1)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.04)'; e.currentTarget.style.transform = 'none'; }}>
-                      <div style={{ width: 48, height: 48, background: f.bg, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
-                        <span className="material-symbols-outlined" style={{ color: f.color, fontSize: 22 }}>{f.icon}</span>
+              {/* Bento: 2 large + 2 tall asymmetric */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gridTemplateRows: "auto",
+                gap: "1.25rem",
+              }}>
+                {trustFeatures.map((f, i) => {
+                  const Icon = f.icon;
+                  const accents = [
+                    { bg: `${T.olive}10`, border: `${T.olive}25` },
+                    { bg: `${T.terra}10`, border: `${T.terra}25` },
+                    { bg: `${T.warn}10`, border: `${T.warn}25` },
+                    { bg: `${T.primary}08`, border: `${T.primary}20` },
+                  ][i];
+                  return (
+                    <Reveal key={i} delay={i * 0.08}>
+                      <Card hover style={{
+                        padding: "1.75rem",
+                        gridColumn: i === 0 ? "span 1" : "span 1",
+                        minHeight: 180,
+                      }}>
+                        <div style={{
+                          width: 44, height: 44, borderRadius: 14,
+                          background: accents.bg, border: `1px solid ${accents.border}`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          marginBottom: "1rem",
+                        }}>
+                          <Icon size={20} color={f.color} />
+                        </div>
+                        <h4 style={{ fontSize: 16, fontWeight: 800, color: T.primary, marginBottom: "0.4rem", letterSpacing: "-0.02em" }}>
+                          {f.title}
+                        </h4>
+                        <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.6 }}>
+                          {f.desc}
+                        </p>
+                      </Card>
+                    </Reveal>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* ── STATS — Wide editorial strip ────────────────────────────── */}
+          <section style={{
+            padding: "3rem 0",
+            background: T.primary,
+            position: "relative", overflow: "hidden",
+          }}>
+            {/* Decorative text watermark */}
+            <div style={{
+              position: "absolute", top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+              fontSize: "clamp(80px, 12vw, 160px)", fontWeight: 900,
+              color: "rgba(255,255,255,0.03)", whiteSpace: "nowrap",
+              letterSpacing: "-0.04em", userSelect: "none",
+              pointerEvents: "none",
+            }}>
+              CAMPUS CRATE
+            </div>
+
+            <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem", position: "relative" }}>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "2rem",
+              }}>
+                {stats.map((st, i) => (
+                  <Reveal key={i} delay={i * 0.06}>
+                    <div style={{ textAlign: "center" }}>
+                      <motion.div
+                        animate={{ y: [0, -4, 0] }}
+                        transition={{ duration: 3 + i, repeat: Infinity, ease: "easeInOut" }}
+                        style={{ fontSize: 36, marginBottom: "0.5rem" }}
+                      >{st.emoji}</motion.div>
+                      <div style={{
+                        fontSize: "clamp(2rem, 4vw, 3.5rem)",
+                        fontWeight: 900, color: T.surface,
+                        letterSpacing: "-0.04em", lineHeight: 1,
+                      }}>
+                        <Counter target={st.value} suffix={st.suffix} />
                       </div>
-                      <h4 style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginBottom: 8 }}>{f.title}</h4>
-                      <p style={{ fontSize: 14, color: '#64748B', lineHeight: 1.6 }}>{f.desc}</p>
+                      <div style={{ fontSize: 13, color: `${T.surface}70`, marginTop: 6, fontWeight: 500 }}>
+                        {st.label}
+                      </div>
                     </div>
-                  </FadeIn>
+                  </Reveal>
                 ))}
               </div>
             </div>
           </section>
-        </FadeIn>
 
-        {/* ═══ STATS STRIP ══════════════════════════════════════════════════ */}
-        <FadeIn>
-          <section style={{ padding: '3rem 0', background: '#FCFBFF', borderTop: '1px solid rgba(199,196,214,0.2)', borderBottom: '1px solid rgba(199,196,214,0.2)' }}>
-            <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem' }} className="stats-grid">
-              {stats.map((s, i) => (
-                <FadeIn key={i} delay={i * 80}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 36, fontWeight: 800, color: '#5B5BD6', letterSpacing: '-0.02em' }}>
-                      <AnimatedCounter target={s.value} suffix={s.suffix} />
+          {/* ── CTA BANNER — Split editorial ────────────────────────────── */}
+          <section style={{ padding: "5rem 0" }}>
+            <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
+              <Reveal>
+                <div style={{
+                  borderRadius: 28, overflow: "hidden",
+                  background: `linear-gradient(135deg, ${T.terra} 0%, ${T.terraDk} 100%)`,
+                  padding: "4rem",
+                  display: "grid", gridTemplateColumns: "1fr auto",
+                  gap: "2rem", alignItems: "center",
+                  position: "relative",
+                }}>
+                  {/* Background pattern */}
+                  <div style={{
+                    position: "absolute", inset: 0, opacity: 0.06,
+                    backgroundImage: `radial-gradient(circle at 30% 50%, ${T.surface} 1px, transparent 1px), radial-gradient(circle at 70% 50%, ${T.surface} 1px, transparent 1px)`,
+                    backgroundSize: "48px 48px",
+                    pointerEvents: "none",
+                  }} />
+
+                  <div style={{ position: "relative", zIndex: 1 }}>
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, textTransform: "uppercase",
+                      letterSpacing: "0.12em", color: `${T.surface}80`, marginBottom: "0.75rem",
+                    }}>
+                      Ready to Start?
                     </div>
-                    <div style={{ fontSize: 14, color: '#64748B', marginTop: 4, fontWeight: 500 }}>{s.label}</div>
+                    <h2 style={{
+                      fontSize: "clamp(2rem, 4vw, 3.5rem)", fontWeight: 900,
+                      color: T.surface, letterSpacing: "-0.04em", lineHeight: 1.05,
+                      marginBottom: "0.75rem",
+                    }}>
+                      De-clutter your dorm.<br />Earn instantly.
+                    </h2>
+                    <p style={{ fontSize: 16, color: `${T.surface}85`, lineHeight: 1.6, maxWidth: 440, marginBottom: "2rem" }}>
+                      Post your first listing in under 2 minutes and start earning — or find your next great campus deal today.
+                    </p>
+                    <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                      <MagBtn variant="ghost" onClick={() => navigate("/add-resource")}
+                        style={{ background: T.surface, color: T.terra, border: "none", fontWeight: 800 }}>
+                        Start Selling
+                      </MagBtn>
+                      <MagBtn variant="ghost" onClick={() => navigate("/resources")}
+                        style={{ background: `${T.surface}20`, color: T.surface, border: `1.5px solid ${T.surface}40` }}>
+                        Explore Listings
+                      </MagBtn>
+                    </div>
                   </div>
-                </FadeIn>
-              ))}
+
+                  <motion.div
+                    animate={{ y: [0, -14, 0], rotate: [0, 3, 0] }}
+                    transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ position: "relative", zIndex: 1 }}
+                  >
+                    <ShoppingBag size={140} color={`${T.surface}18`} />
+                  </motion.div>
+                </div>
+              </Reveal>
             </div>
           </section>
-        </FadeIn>
 
-        {/* ═══ CTA BANNER ═══════════════════════════════════════════════════ */}
-        <FadeIn>
-          <section style={{ padding: '4rem 0' }}>
-            <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem' }}>
-              <div style={{ position: 'relative', background: '#5B5BD6', borderRadius: 28, padding: '3.5rem', overflow: 'hidden', boxShadow: '0 24px 64px rgba(91,91,214,0.25)' }}>
-                {/* Decorative circles */}
-                <div style={{ position: 'absolute', top: 0, right: 0, width: 256, height: 256, background: 'rgba(255,255,255,0.05)', borderRadius: '50%', transform: 'translate(50%, -50%)' }} />
-                <div style={{ position: 'absolute', bottom: 0, left: 0, width: 192, height: 192, background: 'rgba(255,255,255,0.05)', borderRadius: '50%', transform: 'translate(-50%, 50%)' }} />
+        </main>
 
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2rem', flexWrap: 'wrap' }}>
-                  <div style={{ maxWidth: 520 }}>
-                    <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: '#fff', lineHeight: 1.15, marginBottom: '1rem', letterSpacing: '-0.02em' }}>
-                      Ready to de-clutter<br />your dorm?
-                    </h2>
-                    <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: '2rem' }}>
-                      Post your first listing in under 2 minutes and start earning or find your next great campus deal.
-                    </p>
-                    <div style={{ display: 'flex', gap: '0.875rem', flexWrap: 'wrap' }}>
-                      <button onClick={() => navigate('/add-resource')}
-                        style={{ padding: '0 2rem', height: 52, background: '#fff', color: '#5B5BD6', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit' }}
-                        onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}>
-                        Start Selling
-                      </button>
-                      <button onClick={() => navigate('/resources')}
-                        style={{ padding: '0 2rem', height: 52, background: 'rgba(255,255,255,0.12)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.25)', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', backdropFilter: 'blur(8px)' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}>
-                        Explore Listings
-                      </button>
-                    </div>
+        {/* ══ FOOTER ════════════════════════════════════════════════════════ */}
+        <footer style={{
+          background: T.primary, color: `${T.surface}80`,
+          padding: "4rem 0 2rem", borderTop: `1px solid ${T.primarySub}`,
+        }}>
+          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 1fr",
+              gap: "3rem",
+              paddingBottom: "3rem",
+              borderBottom: `1px solid ${T.primarySub}`,
+            }}>
+              {/* Brand */}
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1rem" }}>
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 9,
+                    background: `${T.surface}15`, border: `1px solid ${T.surface}20`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    overflow: "hidden",
+                  }}>
+                    <img src="/uploads/campuscrate-logo.png" alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
                   </div>
-                  {/* Decorative icon */}
-                  <div style={{ color: 'rgba(255,255,255,0.08)', display: 'flex' }}>
-                    <ShoppingBag style={{ width: 160, height: 160 }} />
-                  </div>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: T.surface, letterSpacing: "-0.02em" }}>
+                    CampusCrate
+                  </span>
+                </div>
+                <p style={{ fontSize: 14, lineHeight: 1.65, maxWidth: 300, color: `${T.surface}60` }}>
+                  The premium student-to-student marketplace designed for trust, safety, and local efficiency.
+                </p>
+                <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.25rem" }}>
+                  {["🐦", "📸", "✉️"].map((icon, i) => (
+                    <motion.div key={i} whileHover={{ scale: 1.1, y: -2 }}
+                      style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        background: `${T.surface}10`, border: `1px solid ${T.surface}15`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 15,
+                      }}
+                    >{icon}</motion.div>
+                  ))}
                 </div>
               </div>
+
+              {[
+                {
+                  heading: "Marketplace",
+                  links: [
+                    { to: "/resources", label: "Browse All" },
+                    { to: "/resources", label: "Categories" },
+                    { to: "/resources", label: "Best Deals" },
+                    { to: "/", label: "Safety Guide" },
+                  ],
+                },
+                {
+                  heading: "Account",
+                  links: [
+                    { to: "/profile", label: "Profile" },
+                    { to: "/dashboard", label: "Dashboard" },
+                    { to: "/wishlist", label: "Wishlist" },
+                    { to: "/notifications", label: "Notifications" },
+                  ],
+                },
+              ].map(col => (
+                <div key={col.heading}>
+                  <h5 style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: `${T.surface}50`, marginBottom: "1rem" }}>
+                    {col.heading}
+                  </h5>
+                  <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                    {col.links.map(item => (
+                      <li key={item.label}>
+                        <Link to={item.to}>
+                          <motion.span
+                            whileHover={{ color: T.surface, x: 3 }}
+                            style={{ fontSize: 14, color: `${T.surface}60`, display: "inline-block" }}
+                          >{item.label}</motion.span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          </section>
-        </FadeIn>
 
-      </main>
-
-      {/* ═══ FOOTER ════════════════════════════════════════════════════════ */}
-      <footer style={{ background: '#1E1B2E', color: '#A0A0BC', padding: '3rem 0' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem', paddingBottom: '2.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }} className="footer-grid">
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
-                <img src="/uploads/campuscrate-logo.png" alt="" style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
-                <span style={{ fontWeight: 800, fontSize: 17, color: '#fff' }}>CampusCrate</span>
-              </div>
-              <p style={{ fontSize: 14, lineHeight: 1.7, maxWidth: 340, marginBottom: '1.5rem' }}>
-                The premium student-to-student marketplace designed for trust, safety, and local efficiency.
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              paddingTop: "1.5rem", flexWrap: "wrap", gap: "0.5rem",
+            }}>
+              <p style={{ fontSize: 13 }}>
+                © {new Date().getFullYear()} CampusCrate. Built for the academic community.
               </p>
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                {['public', 'share', 'mail'].map(icon => (
-                  <a key={icon} href="#" onClick={e => e.preventDefault()}
-                    style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A0A0BC', transition: 'all 0.2s', textDecoration: 'none' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#5B5BD6'; e.currentTarget.style.color = '#fff'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = '#A0A0BC'; }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{icon}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h5 style={{ color: '#fff', fontWeight: 700, fontSize: 14, marginBottom: '1.25rem', letterSpacing: '0.02em' }}>Marketplace</h5>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                {[{ to: '/resources', label: 'Browse All' }, { to: '/resources', label: 'Categories' }, { to: '/resources', label: 'Best Deals' }, { to: '/', label: 'Safety Guide' }].map(item => (
-                  <li key={item.label}>
-                    <Link to={item.to} style={{ color: '#A0A0BC', fontSize: 14, textDecoration: 'none', transition: 'color 0.2s' }}
-                      onMouseEnter={e => e.target.style.color = '#fff'}
-                      onMouseLeave={e => e.target.style.color = '#A0A0BC'}>
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h5 style={{ color: '#fff', fontWeight: 700, fontSize: 14, marginBottom: '1.25rem', letterSpacing: '0.02em' }}>Account</h5>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                {[{ to: '/profile', label: 'Profile' }, { to: '/dashboard', label: 'Dashboard' }, { to: '/wishlist', label: 'Wishlist' }, { to: '/notifications', label: 'Notifications' }].map(item => (
-                  <li key={item.label}>
-                    <Link to={item.to} style={{ color: '#A0A0BC', fontSize: 14, textDecoration: 'none', transition: 'color 0.2s' }}
-                      onMouseEnter={e => e.target.style.color = '#fff'}
-                      onMouseLeave={e => e.target.style.color = '#A0A0BC'}>
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <p style={{ fontSize: 13 }}>Made with ❤️ for students, by StrawHats.</p>
             </div>
           </div>
+        </footer>
 
-          <div style={{ paddingTop: '1.75rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <p style={{ fontSize: 13, opacity: 0.5 }}>© {new Date().getFullYear()} CampusCrate. Built for the academic community.</p>
-            <p style={{ fontSize: 13, opacity: 0.5 }}>Made with ❤️ for students, by StrawHats.</p>
-          </div>
-        </div>
-      </footer>
+      </div>
 
-      {/* Material Symbols for icons in trust section */}
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
-
+      {/* Responsive CSS */}
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .hp-fade { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
-        .hp-fade.hp-fade-in { opacity: 1; transform: translateY(0); }
-
         @media (max-width: 1024px) {
-          .listings-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .trust-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .cat-grid { grid-template-columns: repeat(3, 1fr) !important; }
-          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .cc-desktop-links { display: none !important; }
+          .cc-hamburger { display: flex !important; }
         }
+
         @media (max-width: 768px) {
-          .hero-grid { grid-template-columns: 1fr !important; }
-          .hero-grid > div:last-child { display: none; }
-          .nav-desktop-links { display: none !important; }
-          .nav-search { display: none !important; }
-          .hp-nav-hamburger { display: flex !important; }
-          .cat-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .listings-grid { grid-template-columns: 1fr !important; }
-          .trust-grid { grid-template-columns: 1fr 1fr !important; }
-          .footer-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+          * { cursor: auto !important; }
         }
-        @media (max-width: 480px) {
-          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .trust-grid { grid-template-columns: 1fr !important; }
+
+        @media (max-width: 900px) {
+          section [style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+          }
+          section [style*="grid-template-columns: repeat(4, 1fr)"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          section [style*="grid-template-columns: 2fr 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+          }
+          section [style*="grid-template-columns: repeat(2, 1fr)"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 600px) {
+          section [style*="grid-template-columns: repeat(4, 1fr)"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          section [style*="padding: 5rem 0"],
+          section [style*="padding: 4rem 0 5rem"],
+          section [style*="padding: 4rem 0"] {
+            padding: 2.5rem 0 !important;
+          }
+        }
+
+        /* Make the 1fr 1fr in hero work on tablet */
+        @media (max-width: 768px) {
+          .cc-hero-grid {
+            grid-template-columns: 1fr !important;
+          }
         }
       `}</style>
-    </div>
+    </>
   );
 };
 

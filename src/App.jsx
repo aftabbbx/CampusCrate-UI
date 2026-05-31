@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import CustomCursor, { CursorTrail } from './components/CustomCursor';
 
 // Pages
 import AuthPage from './pages/auth/AuthPage';
@@ -35,7 +36,10 @@ function App() {
   }
 
   return (
-    <Routes>
+    <>
+      <CustomCursor />
+      <CursorTrail />
+      <Routes>
       {/* Auth */}
       <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />} />
       <Route path="/signup" element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />} />
@@ -61,7 +65,8 @@ function App() {
       {/* Homepage */}
       <Route path="/" element={isAuthenticated ? <ProtectedRoute><Homepage /></ProtectedRoute> : <Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
 
