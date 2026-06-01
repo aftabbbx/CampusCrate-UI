@@ -30,24 +30,24 @@ import toast from "react-hot-toast";
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────────
 const T = {
-  bg: "#F5F1EA",
-  surface: "#FFFCF8",
-  surfaceAlt: "#F0EDE6",
-  primary: "#2B2D42",
+  bg: "#F6F7FB",
+  surface: "#FFFFFF",
+  surfaceAlt: "#EEF1F6",
+  primary: "#242B3D",
   primarySub: "#4A4C62",
-  terra: "#C96A4A",
-  terraLt: "#E08A6C",
-  terraDk: "#A5503A",
+  terra: "#FF5C5C",
+  terraLt: "#FF7A7A",
+  terraDk: "#E04848",
   olive: "#7A8B63",
   oliveLt: "#9BAD84",
   champ: "#D6C2A1",
   champLt: "#E8DCC8",
   champDk: "#B8A07A",
-  text: "#1F2937",
+  text: "#242B3D",
   textSub: "#6B7280",
   textMuted: "#9CA3AF",
-  border: "#E8E4DE",
-  borderDk: "#D4CFC8",
+  border: "#E6E9EF",
+  borderDk: "#D4D9E2",
   success: "#4A7C59",
   danger: "#B94040",
   warn: "#B87333",
@@ -80,7 +80,7 @@ const GlobalStyle = () => {
         --text-muted: ${T.textMuted};
         --border: ${T.border};
         --border-dk: ${T.borderDk};
-        --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+        --font: 'Poppins', 'Plus Jakarta Sans', system-ui, sans-serif;
         --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
       }
 
@@ -546,10 +546,10 @@ const Homepage = () => {
             transition: "all 0.4s ease",
           }}
           animate={{
-            background: scrolled ? `${T.surface}E8` : "transparent",
-            backdropFilter: scrolled ? "blur(20px)" : "blur(0px)",
-            borderBottom: scrolled ? `1px solid ${T.border}` : "1px solid transparent",
-            boxShadow: scrolled ? `0 4px 24px ${T.primary}08` : "none",
+            background: scrolled ? `${T.surface}F2` : `${T.surface}CC`,
+            backdropFilter: "blur(16px)",
+            borderBottom: `1px solid ${scrolled ? T.border : T.border}`,
+            boxShadow: scrolled ? `0 4px 24px ${T.primary}08` : `0 1px 0 ${T.border}`,
           }}
         >
           <div style={{
@@ -570,7 +570,6 @@ const Homepage = () => {
                     <img src="/uploads/campuscrate-logo.png" alt=""
                       style={{
                         width: "100%", height: "100%", objectFit: "contain",
-                        filter: "brightness(0) invert(1)"
                       }} />
                   </div>
                   <span style={{
@@ -594,7 +593,7 @@ const Homepage = () => {
                       whileHover={{ background: `${T.primary}08` }}
                       style={{
                         padding: "6px 14px", borderRadius: 8,
-                        fontSize: 14, fontWeight: 600, color: T.textSub,
+                        fontSize: 14, fontWeight: 600, color: T.text,
                         letterSpacing: "0.01em",
                       }}
                     >{link.label}</motion.div>
@@ -793,7 +792,7 @@ const Homepage = () => {
         <main style={{ paddingTop: 68 }}>
 
           {/* ── HERO ──────────────────────────────────────────────────────── */}
-          <section style={{ padding: "5rem 0 4rem", position: "relative", overflow: "hidden", minHeight: "90vh", display: "flex", alignItems: "center" }}>
+          <section style={{ padding: "3rem 0 2.5rem", position: "relative", overflow: "hidden", minHeight: "65vh", display: "flex", alignItems: "center" }}>
             <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem", width: "100%" }}>
 
               {/* Asymmetric grid: 55/45 */}
@@ -828,7 +827,7 @@ const Homepage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
                     style={{
-                      fontSize: "clamp(3rem, 5.5vw, 5.5rem)",
+                      fontSize: "clamp(2.4rem, 4vw, 4rem)",
                       fontWeight: 900,
                       lineHeight: 1.0,
                       letterSpacing: "-0.04em",
@@ -1040,7 +1039,7 @@ const Homepage = () => {
           </section>
 
           {/* ── CATEGORIES ──────────────────────────────────────────────────── */}
-          <section style={{ padding: "4rem 0", borderTop: `1px solid ${T.border}` }}>
+          <section style={{ padding: "2.5rem 0", borderTop: `1px solid ${T.border}` }}>
             <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "2rem" }}>
                 <Reveal>
@@ -1087,7 +1086,7 @@ const Homepage = () => {
                         whileTap={{ scale: 0.97 }}
                         style={{
                           display: "flex", flexDirection: "column", alignItems: "center",
-                          gap: 10, padding: "1.25rem 1.75rem", borderRadius: 18,
+                          gap: 8, padding: "0.9rem 1.25rem", borderRadius: 14,
                           background: isActive ? T.primary : T.surface,
                           border: `1px solid ${isActive ? T.primary : T.border}`,
                           color: isActive ? T.surface : T.text,
@@ -1112,8 +1111,8 @@ const Homepage = () => {
           {/* ── LISTINGS ──────────────────────────────────────────────────── */}
           <section id="listings-section"
             style={{
-              padding: "4rem 0 5rem",
-              background: `linear-gradient(180deg, transparent 0%, ${T.champLt}30 100%)`,
+              padding: "2.5rem 0 3rem",
+              background: `linear-gradient(180deg, transparent 0%, ${T.champLt}20 100%)`,
             }}
           >
             <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
@@ -1285,9 +1284,9 @@ const Homepage = () => {
           </section>
 
           {/* ── TRUST FEATURES — Bento Grid ──────────────────────────────── */}
-          <section style={{ padding: "5rem 0", borderTop: `1px solid ${T.border}` }}>
+          <section style={{ padding: "3rem 0", borderTop: `1px solid ${T.border}` }}>
             <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
-              <Reveal style={{ marginBottom: "3rem" }}>
+              <Reveal style={{ marginBottom: "1.5rem" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: T.textMuted, marginBottom: "0.5rem" }}>
                   Why CampusCrate
                 </div>

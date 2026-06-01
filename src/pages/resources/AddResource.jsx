@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import API from '../../api/axios';
 import useProfileGate from '../../hooks/useProfileGate';
 import UserLayout from '../../components/UserLayout';
@@ -10,9 +10,9 @@ import {
 import toast from 'react-hot-toast';
 
 const CS = {
-  primary: '#5B5BD6', primaryHover: '#4338CA', primaryPale: '#EEEEFF',
-  bg: '#F8FAFC', card: '#FFFFFF', border: 'rgba(199,196,214,0.35)',
-  text: '#0F172A', textSub: '#64748B', textMuted: '#94A3B8',
+  primary: '#FF5C5C', primaryHover: '#FF4242', primaryPale: '#FFECEC',
+  bg: '#F6F7FB', card: '#FFFFFF', border: 'rgba(36,43,61,0.07)',
+  text: '#242B3D', textSub: '#8A94A6', textMuted: '#AEB6C4',
 };
 
 const Label = ({ children }) => (
@@ -50,6 +50,9 @@ const Select = ({ children, ...props }) => (
 
 const AddResource = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditMode = !!editId;
   const fileInputRef = useRef(null);
   const { isProfileComplete, guardAction } = useProfileGate();
 
@@ -59,6 +62,21 @@ const AddResource = () => {
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load existing resource if edit mode
+  useEffect(() => {
+    if (!editId) return;
+    (async () => {
+      try {
+        const res = await API.get(`/resource/${editId}`);
+        if (res.data.success) {
+          const r = res.data.resource;
+          setFormData({ title: r.title || '', description: r.description || '', category: r.category || '', type: r.type || 'Paid', price: r.price || '', condition: r.condition || 'Used', location: r.location || '' });
+          if (r.image_url) setImagePreview(r.image_url);
+        }
+      } catch { toast.error('Failed to load resource'); }
+    })();
+  }, [editId]);
 
   const categories = ['Book', 'Notes', 'Stationery', 'Project', 'Other'];
   const types = ['Free', 'Paid', 'Exchange'];
@@ -82,7 +100,7 @@ const AddResource = () => {
       if (!formData.title || !formData.category || !formData.description) { toast.error('Please fill all required fields'); return; }
       if (formData.type === 'Paid' && !formData.price) { toast.error('Please enter a price'); return; }
       setIsLoading(true);
-      let imageUrl = '';
+      let imageUrl = imagePreview && !image ? imagePreview : '';
       try {
         if (image) {
           const imgForm = new FormData();
@@ -91,11 +109,17 @@ const AddResource = () => {
           if (uploadRes.data.success) imageUrl = uploadRes.data.image_url;
           else throw new Error('Image upload failed');
         }
-        const res = await API.post('/resource/create', { ...formData, price: formData.type === 'Paid' ? Number(formData.price) : 0, image_url: imageUrl });
-        if (res.data.success) { toast.success('Resource listed! 🎉'); navigate('/dashboard'); }
+        const payload = { ...formData, price: formData.type === 'Paid' ? Number(formData.price) : 0, image_url: imageUrl };
+        if (isEditMode) {
+          const res = await API.put(`/resource/update/${editId}`, payload);
+          if (res.data.success) { toast.success('Resource updated! ✅'); navigate('/dashboard'); }
+        } else {
+          const res = await API.post('/resource/create', payload);
+          if (res.data.success) { toast.success('Resource listed! 🎉'); navigate('/dashboard'); }
+        }
       } catch (error) {
         if (error.response?.data?.profileIncomplete) toast.error('Complete your profile first 🔒');
-        else toast.error(error.response?.data?.message || 'Failed to add resource');
+        else toast.error(error.response?.data?.message || (isEditMode ? 'Failed to update' : 'Failed to add resource'));
       } finally { setIsLoading(false); }
     });
   };
@@ -113,8 +137,8 @@ const AddResource = () => {
             <ArrowLeft style={{ width: 18, height: 18 }} />
           </button>
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: CS.text, letterSpacing: '-0.02em' }}>List a Resource</h1>
-            <p style={{ fontSize: 14, color: CS.textSub, marginTop: 4 }}>Share books, notes, or items with your campus community.</p>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: CS.text, letterSpacing: '-0.02em' }}>{isEditMode ? 'Edit Resource' : 'List a Resource'}</h1>
+            <p style={{ fontSize: 14, color: CS.textSub, marginTop: 4 }}>{isEditMode ? 'Update your listing details below.' : 'Share books, notes, or items with your campus community.'}</p>
           </div>
         </div>
 
@@ -243,7 +267,7 @@ const AddResource = () => {
                 onMouseLeave={e => { e.currentTarget.style.background = isLoading ? '#A5A5FF' : CS.primary; e.currentTarget.style.boxShadow = 'none'; }}>
                 {isLoading
                   ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.5)', borderTopColor: '#fff', borderRadius: '50%', animation: 'arSpin 0.7s linear infinite' }} /> Publishing...</>
-                  : <><CheckCircle style={{ width: 16, height: 16 }} /> List Resource</>
+                  : <><CheckCircle style={{ width: 16, height: 16 }} /> {isEditMode ? 'Update Resource' : 'List Resource'}</>
                 }
               </button>
             </div>

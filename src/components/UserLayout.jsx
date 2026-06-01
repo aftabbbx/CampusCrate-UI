@@ -8,13 +8,15 @@ import {
 import { useNavigate, Link } from 'react-router-dom';
 
 const CS = {
-  primary: '#5B5BD6',
-  primaryHover: '#4338CA',
-  primaryPale: '#EEEEFF',
-  bg: '#F8FAFC',
-  border: 'rgba(199,196,214,0.3)',
-  text: '#0F172A',
-  textSub: '#64748B',
+  primary: '#FF5C5C',
+  primaryHover: '#FF4242',
+  primaryPale: '#FFECEC',
+  dark: '#242B3D',
+  darkHover: '#1A2030',
+  bg: '#F6F7FB',
+  border: 'rgba(36,43,61,0.07)',
+  text: '#242B3D',
+  textSub: '#8A94A6',
   danger: '#BA1A1A',
   dangerPale: '#FFDAD6',
 };
@@ -50,7 +52,7 @@ const UserLayout = ({ children }) => {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: CS.bg, fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: CS.bg, fontFamily: "'Poppins', system-ui, sans-serif" }}>
 
       {/* ═══ NAVBAR — identical to Homepage ════════════════════════════ */}
       <nav style={{
@@ -67,7 +69,7 @@ const UserLayout = ({ children }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
               <img src="/uploads/campuscrate-logo.png" alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
-              <span style={{ fontWeight: 800, fontSize: 17, color: '#0F172A', letterSpacing: '-0.01em' }}>CampusCrate</span>
+              <span style={{ fontWeight: 800, fontSize: 17, color: CS.text, letterSpacing: '-0.01em' }}>CampusCrate</span>
             </Link>
 
             {/* Desktop nav links */}
@@ -75,14 +77,14 @@ const UserLayout = ({ children }) => {
               {navLinks.map(({ to, label }) => (
                 <Link key={to} to={to}
                   style={{
-                    color: window.location.pathname === to ? '#5B5BD6' : '#64748B',
+                    color: window.location.pathname === to ? CS.primary : CS.textSub,
                     fontWeight: window.location.pathname === to ? 700 : 500,
                     fontSize: 15, textDecoration: 'none', transition: 'color 0.2s',
-                    borderBottom: window.location.pathname === to ? '2px solid #5B5BD6' : '2px solid transparent',
+                    borderBottom: window.location.pathname === to ? `2px solid ${CS.primary}` : '2px solid transparent',
                     paddingBottom: 2,
                   }}
-                  onMouseEnter={e => { if (window.location.pathname !== to) e.currentTarget.style.color = '#5B5BD6'; }}
-                  onMouseLeave={e => { if (window.location.pathname !== to) e.currentTarget.style.color = '#64748B'; }}
+                  onMouseEnter={e => { if (window.location.pathname !== to) e.currentTarget.style.color = CS.primary; }}
+                  onMouseLeave={e => { if (window.location.pathname !== to) e.currentTarget.style.color = CS.textSub; }}
                 >
                   {label}
                 </Link>
@@ -105,20 +107,20 @@ const UserLayout = ({ children }) => {
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') navigate('/resources'); }}
                 style={{
-                  background: '#F5F2FD', border: '1px solid rgba(199,196,214,0.3)',
+                  background: CS.bg, border: `1px solid ${CS.border}`,
                   borderRadius: 9999, paddingLeft: 38, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
-                  fontSize: 14, width: 240, outline: 'none', color: '#0F172A',
+                  fontSize: 14, width: 240, outline: 'none', color: CS.text,
                   transition: 'all 0.2s', fontFamily: 'inherit',
                 }}
-                onFocus={e => { e.target.style.border = '1px solid #5B5BD6'; e.target.style.boxShadow = '0 0 0 3px rgba(91,91,214,0.15)'; }}
-                onBlur={e => { e.target.style.border = '1px solid rgba(199,196,214,0.3)'; e.target.style.boxShadow = 'none'; }}
+                onFocus={e => { e.target.style.border = `1px solid ${CS.primary}`; e.target.style.boxShadow = `0 0 0 3px ${CS.primaryPale}`; }}
+                onBlur={e => { e.target.style.border = `1px solid ${CS.border}`; e.target.style.boxShadow = 'none'; }}
               />
             </div>
 
             {/* Messages */}
             <Link to="/messages"
-              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: '#64748B', textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#F0ECF7'}
+              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: CS.textSub, textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.background = CS.primaryPale}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <MessageSquare style={{ width: 20, height: 20 }} />
               {totalUnreadMessages > 0 && (
@@ -139,8 +141,8 @@ const UserLayout = ({ children }) => {
 
             {/* Notifications */}
             <Link to="/notifications"
-              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: '#64748B', textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#F0ECF7'}
+              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: CS.textSub, textDecoration: 'none' }}
+              onMouseEnter={e => e.currentTarget.style.background = CS.primaryPale}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <Bell style={{ width: 20, height: 20 }} />
               {unreadNotifications > 0 && (
@@ -162,7 +164,7 @@ const UserLayout = ({ children }) => {
             {/* Avatar dropdown */}
             <div ref={userMenuRef} style={{ position: 'relative' }}>
               <button onClick={() => setUserMenuOpen(!userMenuOpen)}
-                style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #5B5BD6, #4338CA)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14 }}>
+                style={{ width: 36, height: 36, borderRadius: '50%', background: CS.dark, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14 }}>
                 {user?.profile_image
                   ? <img src={user.profile_image} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
                   : user?.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -170,8 +172,8 @@ const UserLayout = ({ children }) => {
               {userMenuOpen && (
                 <div style={{ position: 'absolute', right: 0, top: 44, background: '#fff', border: '1px solid #E4E1EC', borderRadius: 16, boxShadow: '0 10px 40px rgba(15,23,42,0.12)', padding: '0.5rem', minWidth: 200, zIndex: 100 }}>
                   <div style={{ padding: '0.75rem 1rem 0.5rem', borderBottom: '1px solid #E4E1EC', marginBottom: 4 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: '#0F172A' }}>{user?.name || 'Student'}</div>
-                    <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{user?.email}</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: CS.text }}>{user?.name || 'Student'}</div>
+                    <div style={{ fontSize: 12, color: CS.textSub, marginTop: 2 }}>{user?.email}</div>
                   </div>
                   {[
                     { to: '/profile', label: 'My Profile', icon: User },
@@ -179,10 +181,10 @@ const UserLayout = ({ children }) => {
                     { to: '/wishlist', label: 'Wishlist', icon: Heart },
                   ].map(item => (
                     <Link key={item.to} to={item.to} onClick={() => setUserMenuOpen(false)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: '#0F172A', fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F5F2FD'}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: CS.text, fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = CS.primaryPale}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <item.icon style={{ width: 15, height: 15, color: '#64748B' }} />
+                      <item.icon style={{ width: 15, height: 15, color: CS.textSub }} />
                       {item.label}
                     </Link>
                   ))}
@@ -198,7 +200,7 @@ const UserLayout = ({ children }) => {
 
             {/* Mobile hamburger */}
             <button className="ul-hamburger" onClick={() => setMobileOpen(!mobileOpen)}
-              style={{ display: 'none', padding: 8, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#0F172A' }}>
+              style={{ display: 'none', padding: 8, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: CS.text }}>
               {mobileOpen ? <X style={{ width: 22, height: 22 }} /> : <Menu style={{ width: 22, height: 22 }} />}
             </button>
           </div>
@@ -216,7 +218,7 @@ const UserLayout = ({ children }) => {
               { to: '/profile', label: 'Profile' },
             ].map(item => (
               <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
-                style={{ display: 'block', padding: '0.75rem 0', color: '#0F172A', textDecoration: 'none', fontSize: 15, fontWeight: 500, borderBottom: '1px solid #F5F2FD' }}>
+                style={{ display: 'block', padding: '0.75rem 0', color: CS.text, textDecoration: 'none', fontSize: 15, fontWeight: 500, borderBottom: '1px solid #F5F2FD' }}>
                 {item.label}
               </Link>
             ))}
