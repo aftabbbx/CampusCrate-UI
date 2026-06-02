@@ -5,11 +5,13 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --color-brand: #5B5BD6;
-  --color-brand-hover: #4338ca;
-  --color-brand-light: #818cf8;
-  --color-brand-pale: #EEEEFF;
-  --color-brand-ghost: #C1C1FF;
+  --color-brand: #FF5C5C;
+  --color-brand-hover: #FF4242;
+  --color-brand-light: #FF8A8A;
+  --color-brand-pale: #FFECEC;
+  --color-brand-ghost: #FFB3B3;
+  --color-dark: #242B3D;
+  --color-dark-hover: #1A2030;
 
   --color-accent: #f59e0b;
   --color-success: #10b981;
@@ -20,21 +22,21 @@
   --color-warning-pale: #fef3c7;
   --color-info: #3b82f6;
 
-  --color-bg: #F8FAFC;
-  --color-bg-alt: #FCFBFF;
+  --color-bg: #F6F7FB;
+  --color-bg-alt: #F6F7FB;
   --color-card: #ffffff;
-  --color-input: #F5F2FD;
-  --color-input-hover: #E2DFFF;
-  --color-border: rgba(199,196,214,0.35);
-  --color-border-light: rgba(199,196,214,0.2);
+  --color-input: #F6F7FB;
+  --color-input-hover: #FFECEC;
+  --color-border: rgba(36,43,61,0.07);
+  --color-border-light: rgba(36,43,61,0.04);
 
-  --color-text: #0F172A;
-  --color-text-sub: #64748B;
-  --color-text-muted: #94A3B8;
+  --color-text: #242B3D;
+  --color-text-sub: #8A94A6;
+  --color-text-muted: #AEB6C4;
   --color-text-inverse: #ffffff;
 
-  --font-display: 'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
-  --font-body: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-display: 'Poppins', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Poppins', 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 /* ─── Reset ────────────────────────────────────────────────────────── */

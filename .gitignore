@@ -24,3 +24,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.BACKUP.jsx
+*.BACKUP.css
+src/components/UserLayout.BROKEN.jsx

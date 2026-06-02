@@ -2,21 +2,20 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Package, MessageSquare, TrendingUp, Handshake, ChevronRight, AlertTriangle, CheckCircle, Plus, ArrowRight, Eye } from 'lucide-react';
+import { Package, MessageSquare, TrendingUp, Handshake, AlertTriangle, CheckCircle, Plus, ArrowRight, Eye, Pencil, Trash2 } from 'lucide-react';
 import UserLayout from '../components/UserLayout';
 import toast from 'react-hot-toast';
 
+// ─── Theme: Furniture-app ZIP reference (Coral accent + Navy actions) ─
 const CS = {
-  primary: '#5B5BD6', primaryHover: '#4338CA', primaryPale: '#EEEEFF',
-  bg: '#F8FAFC', card: '#FFFFFF', border: 'rgba(199,196,214,0.35)',
-  text: '#0F172A', textSub: '#64748B', textMuted: '#94A3B8',
+  primary: '#FF5C5C', primaryHover: '#FF4242', primaryPale: '#FFECEC',
+  dark: '#242B3D', darkHover: '#1A2030',
+  bg: '#F6F7FB', card: '#FFFFFF', border: 'rgba(36,43,61,0.07)',
+  text: '#242B3D', textSub: '#8A94A6', textMuted: '#AEB6C4',
 };
-
-const Badge = ({ children, color, bg }) => (
-  <span style={{ padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 600, background: bg, color, display: 'inline-flex', alignItems: 'center' }}>
-    {children}
-  </span>
-);
+const FONT = "'Poppins', system-ui, sans-serif";
+const SHADOW = '0 8px 24px rgba(36,43,61,0.06)';
+const SHADOW_HOVER = '0 14px 34px rgba(36,43,61,0.12)';
 
 const Dashboard = () => {
   const { user, isProfileComplete } = useAuth();
@@ -24,6 +23,8 @@ const Dashboard = () => {
   const [recentResources, setRecentResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [allCount, setAllCount] = useState(0);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, title: '' });
 
   const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
 
@@ -42,48 +43,68 @@ const Dashboard = () => {
     })();
   }, []);
 
+  // ─── Delete (soft) with confirmation modal ───────────────────────
+  const handleDelete = (id, title, e) => {
+    e.stopPropagation();
+    setDeleteModal({ open: true, id, title });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteModal.id;
+    setDeleteModal({ open: false, id: null, title: '' });
+    setDeletingId(id);
+    try {
+      const res = await API.delete(`/resource/delete/${id}`);
+      if (res.data.success) {
+        toast.success('Resource deleted!');
+        setRecentResources(prev => prev.filter(r => r._id !== id));
+        setAllCount(prev => prev - 1);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Delete failed');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const stats = [
-    { label: 'My Listings', value: allCount, icon: Package, color: CS.primary, bg: CS.primaryPale, path: '/resources' },
-    { label: 'Active', value: recentResources.filter(r => r.status === 'Available').length, icon: TrendingUp, color: '#059669', bg: '#D1FAE5', path: '/resources' },
-    { label: 'Exchanges', value: recentResources.filter(r => r.type === 'Exchange').length, icon: Handshake, color: '#D97706', bg: '#FEF3C7', path: '/resources' },
-    { label: 'Messages', value: '—', icon: MessageSquare, color: '#3B82F6', bg: '#DBEAFE', path: '/messages' },
+    { label: 'My Listings', value: allCount, icon: Package, path: '/resources' },
+    { label: 'Active', value: recentResources.filter(r => r.status === 'Available').length, icon: TrendingUp, path: '/resources' },
+    { label: 'Exchanges', value: recentResources.filter(r => r.type === 'Exchange').length, icon: Handshake, path: '/resources' },
+    { label: 'Messages', value: '—', icon: MessageSquare, path: '/messages' },
   ];
 
-  const typeStyle = (type) => ({
-    Paid: { bg: CS.primaryPale, color: CS.primary },
-    Free: { bg: '#D1FAE5', color: '#059669' },
-    Exchange: { bg: '#FEF3C7', color: '#D97706' },
-  }[type] || { bg: '#F1F5F9', color: CS.textSub });
-
+  // Type → coral price line; status → calm pill
   const statusStyle = (s) => ({
-    Available: { bg: '#D1FAE5', color: '#059669' },
-    Pending: { bg: '#FEF3C7', color: '#D97706' },
-  }[s] || { bg: '#F1F5F9', color: CS.textSub });
+    Available: { bg: '#E7F8F0', color: '#0E9F6E' },
+    Pending: { bg: '#FFF4E5', color: '#D97706' },
+    Exchanged: { bg: '#EEF1F6', color: CS.textSub },
+  }[s] || { bg: '#EEF1F6', color: CS.textSub });
 
   return (
     <UserLayout>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2.5rem 1.5rem', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '2.5rem 1.5rem', fontFamily: FONT }}>
 
         {/* ═══ HEADER ═══ */}
         <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: CS.text, letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: CS.text, letterSpacing: '-0.02em' }}>
               Good {greeting}, {user?.name?.split(' ')[0] || 'Student'} 👋
             </h1>
-            <p style={{ color: CS.textSub, fontSize: 15, marginTop: 6 }}>Here's an overview of your campus activity today.</p>
+            <p style={{ color: CS.textSub, fontSize: 14, marginTop: 6 }}>Here's an overview of your campus activity.</p>
           </div>
           <button onClick={() => navigate('/add-resource')}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: CS.primary, color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.background = CS.primaryHover; e.currentTarget.style.boxShadow = '0 4px 16px rgba(91,91,214,0.3)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = CS.primary; e.currentTarget.style.boxShadow = 'none'; }}>
-            <Plus style={{ width: 16, height: 16 }} /> Add Resource
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: CS.dark, color: '#fff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = CS.darkHover; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = CS.dark; e.currentTarget.style.transform = 'none'; }}>
+            <Plus style={{ width: 16, height: 16 }} /> Add Listing
           </button>
         </div>
 
         {/* ═══ PROFILE INCOMPLETE BANNER ═══ */}
         {!isProfileComplete && (
-          <div style={{ marginBottom: '1.5rem', padding: '1.25rem 1.5rem', borderRadius: 18, background: 'linear-gradient(135deg, rgba(91,91,214,0.06), rgba(193,193,255,0.1))', border: `1px solid rgba(91,91,214,0.15)`, display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: `linear-gradient(135deg, ${CS.primary}, #818CF8)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(91,91,214,0.25)' }}>
+          <div style={{ marginBottom: '1.5rem', padding: '1.25rem 1.5rem', borderRadius: 18, background: CS.primaryPale, border: `1px solid rgba(255,92,92,0.15)`, display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: CS.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <AlertTriangle style={{ width: 20, height: 20, color: '#fff' }} />
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
@@ -96,111 +117,167 @@ const Dashboard = () => {
                   { field: 'Batch', done: !!user?.batch },
                   { field: 'Semester', done: !!user?.semester },
                 ].map(item => (
-                  <span key={item.field} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 600, background: item.done ? '#D1FAE5' : '#FFE4E1', color: item.done ? '#059669' : '#DC2626' }}>
+                  <span key={item.field} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 600, background: item.done ? '#E7F8F0' : '#fff', color: item.done ? '#0E9F6E' : CS.primary }}>
                     {item.done ? <CheckCircle style={{ width: 10, height: 10 }} /> : <AlertTriangle style={{ width: 10, height: 10 }} />}
                     {item.field}
                   </span>
                 ))}
               </div>
             </div>
-            <Link to="/profile" style={{ padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 600, background: CS.primary, color: '#fff', textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>
+            <Link to="/profile" style={{ padding: '9px 18px', borderRadius: 12, fontSize: 13, fontWeight: 600, background: CS.dark, color: '#fff', textDecoration: 'none', whiteSpace: 'nowrap' }}>
               Complete Profile →
             </Link>
           </div>
         )}
 
-        {/* ═══ STATS GRID ═══ */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem' }} className="db-stats">
+        {/* ═══ STATS GRID (calm, coral icon chip) ═══ */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2.25rem' }} className="db-stats">
           {stats.map((s, i) => (
             <div key={i} onClick={() => navigate(s.path)}
-              style={{ background: CS.card, borderRadius: 18, padding: '1.25rem', border: `1px solid ${CS.border}`, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(15,23,42,0.04)' }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,91,214,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.04)'; e.currentTarget.style.transform = 'none'; }}>
+              style={{ background: CS.card, borderRadius: 18, padding: '1.25rem', border: `1px solid ${CS.border}`, cursor: 'pointer', transition: 'all 0.18s', boxShadow: SHADOW }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = SHADOW_HOVER; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = SHADOW; e.currentTarget.style.transform = 'none'; }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <s.icon style={{ width: 18, height: 18, color: s.color }} />
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: CS.primaryPale, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <s.icon style={{ width: 18, height: 18, color: CS.primary }} />
                 </div>
                 <ArrowRight style={{ width: 14, height: 14, color: CS.textMuted }} />
               </div>
-              <div style={{ fontSize: 28, fontWeight: 800, color: CS.text, lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: CS.text, lineHeight: 1 }}>{s.value}</div>
               <div style={{ fontSize: 13, color: CS.textSub, marginTop: 4 }}>{s.label}</div>
             </div>
           ))}
         </div>
 
-        {/* ═══ MY RESOURCES TABLE ═══ */}
-        <div style={{ background: CS.card, borderRadius: 20, border: `1px solid ${CS.border}`, boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
-          <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${CS.border}` }}>
-            <div>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: CS.text }}>My Resources</h3>
-              <p style={{ fontSize: 13, color: CS.textSub, marginTop: 2 }}>Your recent listings and their status</p>
-            </div>
-            <button onClick={() => navigate('/resources')}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', fontSize: 13, color: CS.primary, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-              View all <ChevronRight style={{ width: 14, height: 14 }} />
-            </button>
+        {/* ═══ MY LISTINGS (card grid) ═══ */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.1rem' }}>
+          <div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: CS.text }}>My Listings</h3>
+            <p style={{ fontSize: 13, color: CS.textSub, marginTop: 2 }}>Your recent listings and their status</p>
           </div>
-
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${CS.border}` }}>
-                  {['Resource', 'Category', 'Type', 'Price', 'Status', ''].map(h => (
-                    <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontWeight: 600, color: CS.textMuted, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan="6" style={{ padding: '3rem', textAlign: 'center', color: CS.textMuted }}>
-                    <div style={{ width: 32, height: 32, border: `3px solid #E2DFFF`, borderTopColor: CS.primary, borderRadius: '50%', animation: 'dbSpin 0.7s linear infinite', margin: '0 auto 8px' }} />
-                    Loading...
-                  </td></tr>
-                ) : recentResources.length === 0 ? (
-                  <tr><td colSpan="6" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <Package style={{ width: 36, height: 36, color: '#C1C1FF', margin: '0 auto 12px', display: 'block' }} />
-                    <p style={{ color: CS.textMuted, fontSize: 14 }}>No resources yet.</p>
-                    <button onClick={() => navigate('/add-resource')}
-                      style={{ marginTop: 12, padding: '8px 18px', background: CS.primary, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      Add First Resource
-                    </button>
-                  </td></tr>
-                ) : recentResources.map((r, i) => {
-                  const ts = typeStyle(r.type);
-                  const ss = statusStyle(r.status);
-                  return (
-                    <tr key={r._id || i}
-                      onClick={() => navigate(`/resource/${r._id}`)}
-                      style={{ borderBottom: i < recentResources.length - 1 ? `1px solid ${CS.border}` : 'none', cursor: 'pointer', transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F8F7FF'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <td style={{ padding: '12px 16px', fontWeight: 600, color: CS.text, maxWidth: 200 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{ width: 36, height: 36, borderRadius: 10, background: CS.primaryPale, overflow: 'hidden', flexShrink: 0 }}>
-                            {r.image_url ? <img src={r.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package style={{ width: 16, height: 16, color: CS.primary, margin: '10px auto', display: 'block' }} />}
-                          </div>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px 16px', color: CS.textSub }}>{r.category}</td>
-                      <td style={{ padding: '12px 16px' }}><Badge color={ts.color} bg={ts.bg}>{r.type}</Badge></td>
-                      <td style={{ padding: '12px 16px', color: CS.text, fontWeight: 600 }}>{r.price > 0 ? `₹${r.price}` : 'Free'}</td>
-                      <td style={{ padding: '12px 16px' }}><Badge color={ss.color} bg={ss.bg}>{r.status}</Badge></td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <button style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 8, background: CS.primaryPale, color: CS.primary, border: 'none', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                          <Eye style={{ width: 12, height: 12 }} /> View
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <button onClick={() => navigate('/resources')}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', fontSize: 13, color: CS.primary, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            View all <ArrowRight style={{ width: 14, height: 14 }} />
+          </button>
         </div>
 
+        {loading ? (
+          /* Skeleton cards */
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }} className="db-grid">
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{ background: CS.card, borderRadius: 20, border: `1px solid ${CS.border}`, overflow: 'hidden', boxShadow: SHADOW }}>
+                <div style={{ height: 160, background: '#EEF1F6', animation: 'dbPulse 1.2s ease-in-out infinite' }} />
+                <div style={{ padding: '1rem' }}>
+                  <div style={{ height: 14, width: '70%', background: '#EEF1F6', borderRadius: 6, marginBottom: 10, animation: 'dbPulse 1.2s ease-in-out infinite' }} />
+                  <div style={{ height: 12, width: '40%', background: '#EEF1F6', borderRadius: 6, animation: 'dbPulse 1.2s ease-in-out infinite' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : recentResources.length === 0 ? (
+          /* Empty state */
+          <div style={{ background: CS.card, borderRadius: 20, border: `1px solid ${CS.border}`, boxShadow: SHADOW, padding: '3.5rem 2rem', textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, borderRadius: 18, background: CS.primaryPale, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+              <Package style={{ width: 28, height: 28, color: CS.primary }} />
+            </div>
+            <p style={{ color: CS.text, fontSize: 16, fontWeight: 600 }}>No listings yet</p>
+            <p style={{ color: CS.textSub, fontSize: 13, marginTop: 4 }}>Start by adding your first resource to the campus marketplace.</p>
+            <button onClick={() => navigate('/add-resource')}
+              style={{ marginTop: 18, padding: '11px 22px', background: CS.dark, color: '#fff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Plus style={{ width: 16, height: 16 }} /> Add First Listing
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }} className="db-grid">
+            {recentResources.map((r, i) => {
+              const ss = statusStyle(r.status);
+              return (
+                <div key={r._id || i}
+                  onClick={() => navigate(`/resource/${r._id}`)}
+                  style={{ background: CS.card, borderRadius: 20, border: `1px solid ${CS.border}`, overflow: 'hidden', cursor: 'pointer', boxShadow: SHADOW, transition: 'all 0.18s', display: 'flex', flexDirection: 'column' }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = SHADOW_HOVER; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = SHADOW; e.currentTarget.style.transform = 'none'; }}>
+
+                  {/* Image */}
+                  <div style={{ position: 'relative', height: 160, background: CS.primaryPale }}>
+                    {r.image_url
+                      ? <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Package style={{ width: 32, height: 32, color: CS.primary, opacity: 0.6 }} /></div>}
+                    {/* Status pill on image */}
+                    <span style={{ position: 'absolute', top: 12, left: 12, padding: '4px 11px', borderRadius: 9999, fontSize: 11, fontWeight: 600, background: ss.bg, color: ss.color }}>
+                      {r.status}
+                    </span>
+                  </div>
+
+                  {/* Body */}
+                  <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <h4 style={{ fontSize: 15, fontWeight: 600, color: CS.text, marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                      <span style={{ fontSize: 17, fontWeight: 700, color: CS.primary }}>{r.price > 0 ? `₹${r.price}` : 'Free'}</span>
+                      <span style={{ fontSize: 12, color: CS.textMuted }}>·</span>
+                      <span style={{ fontSize: 12, color: CS.textSub }}>{r.category}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+                      <button onClick={(e) => { e.stopPropagation(); navigate(`/resource/${r._id}`); }}
+                        title="View"
+                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px', borderRadius: 10, background: CS.dark, color: '#fff', border: 'none', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        <Eye style={{ width: 13, height: 13 }} /> View
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); navigate(`/add-resource?edit=${r._id}`); }}
+                        title="Edit"
+                        style={{ width: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: 10, background: '#F6F7FB', color: CS.text, border: `1px solid ${CS.border}`, cursor: 'pointer' }}>
+                        <Pencil style={{ width: 14, height: 14 }} />
+                      </button>
+                      <button onClick={(e) => handleDelete(r._id, r.title, e)} disabled={deletingId === r._id}
+                        title="Delete"
+                        style={{ width: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: 10, background: CS.primaryPale, color: CS.primary, border: 'none', cursor: 'pointer', opacity: deletingId === r._id ? 0.5 : 1 }}>
+                        <Trash2 style={{ width: 14, height: 14 }} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
       </div>
-      <style>{`@keyframes dbSpin { to { transform: rotate(360deg); } } @media(max-width:900px){.db-stats{grid-template-columns:repeat(2,1fr)!important;}} @media(max-width:480px){.db-stats{grid-template-columns:1fr!important;}}`}</style>
+
+      <style>{`
+        @keyframes dbPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes modalIn { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
+        @media(max-width:900px){ .db-stats{grid-template-columns:repeat(2,1fr)!important;} .db-grid{grid-template-columns:repeat(2,1fr)!important;} }
+        @media(max-width:560px){ .db-stats{grid-template-columns:repeat(2,1fr)!important;} .db-grid{grid-template-columns:1fr!important;} }
+      `}</style>
+
+      {/* ═══ DELETE CONFIRMATION MODAL ═══ */}
+      {deleteModal.open && (
+        <div onClick={() => setDeleteModal({ open: false, id: null, title: '' })}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(36,43,61,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 20, padding: '2rem', maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(36,43,61,0.25)', animation: 'modalIn 0.2s ease', fontFamily: FONT }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: CS.primaryPale, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+              <Trash2 style={{ width: 24, height: 24, color: CS.primary }} />
+            </div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: CS.text, textAlign: 'center', marginBottom: 8 }}>Delete Listing?</h3>
+            <p style={{ fontSize: 14, color: CS.textSub, textAlign: 'center', lineHeight: 1.6 }}>
+              Are you sure you want to delete <strong style={{ color: CS.text }}>"{deleteModal.title}"</strong>? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 10, marginTop: '1.5rem' }}>
+              <button onClick={() => setDeleteModal({ open: false, id: null, title: '' })}
+                style={{ flex: 1, padding: '11px', borderRadius: 12, border: `1px solid ${CS.border}`, background: CS.bg, color: CS.textSub, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Cancel
+              </button>
+              <button onClick={confirmDelete}
+                style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: CS.primary, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </UserLayout>
   );
 };
