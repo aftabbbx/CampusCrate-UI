@@ -1264,10 +1264,10 @@ const Homepage = () => {
                                         display: "flex", alignItems: "center", justifyContent: "center",
                                         fontSize: 10, fontWeight: 700,
                                       }}>
-                                        {r.seller?.name?.charAt(0)?.toUpperCase() || r.seller?.charAt?.(0)?.toUpperCase() || "S"}
+                                        {r.owner_id?.name?.charAt(0)?.toUpperCase() || "S"}
                                       </div>
                                       <span style={{ fontSize: 12, color: T.textSub, fontWeight: 600 }}>
-                                        {(typeof r.seller === "string" ? r.seller : r.seller?.name) || "Seller"}
+                                        {r.owner_id?.name || "Seller"}
                                       </span>
                                     </div>
                                     <span style={{ fontSize: 11, fontWeight: 700, color: isSold ? "#991B1B" : T.terra }}>{isSold ? "Sold" : "Contact"}</span>
