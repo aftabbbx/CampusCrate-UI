@@ -126,16 +126,21 @@ const Wishlist = () => {
               if (!r) return null;
               const cat = categoryColors[r.category] || categoryColors.Other;
               const owner = r.owner_id;
+              const isSold = r.status === 'Sold';
 
               return (
-                <Link key={item.resource_id} to={`/resource/${r._id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                <div key={item.resource_id}
+                  onClick={() => !isSold && window.location.assign(`/resource/${r._id}`)}
+                  style={{ textDecoration: 'none', display: 'block', cursor: isSold ? 'not-allowed' : 'pointer' }}>
                 <div
                   style={{
-                    background: CS.card, borderRadius: 16, border: `1px solid ${CS.border}`,
+                    background: CS.card, borderRadius: 16, border: `1px solid ${isSold ? '#FECACA' : CS.border}`,
                     overflow: 'hidden', transition: 'all 0.25s ease',
-                    boxShadow: '0 1px 3px rgba(15,23,42,0.04)', cursor: 'pointer',
+                    boxShadow: '0 1px 3px rgba(15,23,42,0.04)',
+                    opacity: isSold ? 0.6 : 1,
+                    filter: isSold ? 'grayscale(40%)' : 'none',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(91,91,214,0.12)'; }}
+                  onMouseEnter={e => { if (!isSold) { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(91,91,214,0.12)'; } }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(15,23,42,0.04)'; }}
                 >
                   {/* Image */}
@@ -184,6 +189,12 @@ const Wishlist = () => {
                     }}>
                       {r.type}
                     </span>
+                    {/* Sold overlay */}
+                    {isSold && (
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(153,27,27,0.1)' }}>
+                        <span style={{ padding: '5px 18px', borderRadius: 9999, background: '#991B1B', color: '#fff', fontSize: 13, fontWeight: 800, letterSpacing: '0.05em' }}>SOLD</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}
@@ -226,7 +237,7 @@ const Wishlist = () => {
                     </div>
                   </div>
                 </div>
-                </Link>
+                </div>
               );
             })}
           </div>

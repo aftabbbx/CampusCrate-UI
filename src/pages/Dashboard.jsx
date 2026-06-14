@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Package, MessageSquare, TrendingUp, Handshake, AlertTriangle, CheckCircle, Plus, ArrowRight, Eye, Pencil, Trash2 } from 'lucide-react';
+import { Package, MessageSquare, TrendingUp, Handshake, AlertTriangle, CheckCircle, Plus, ArrowRight, Eye, Pencil, Trash2, BadgeCheck } from 'lucide-react';
 import UserLayout from '../components/UserLayout';
 import toast from 'react-hot-toast';
 
@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [allCount, setAllCount] = useState(0);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, title: '' });
+  const [markingSoldId, setMarkingSoldId] = useState(null);
 
   const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
 
@@ -42,6 +43,27 @@ const Dashboard = () => {
       } finally { setLoading(false); }
     })();
   }, []);
+
+  // ─── Mark as Sold toggle ─────────────────────────────────────────
+  const handleMarkSold = async (id, currentStatus, e) => {
+    e.stopPropagation();
+    if (currentStatus === 'Pending' || currentStatus === 'Exchanged') {
+      toast.error(`Cannot mark — resource is currently "${currentStatus}"`);
+      return;
+    }
+    setMarkingSoldId(id);
+    try {
+      const res = await API.patch(`/resource/${id}/mark-sold`);
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setRecentResources(prev => prev.map(r => r._id === id ? { ...r, status: res.data.resource.status } : r));
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update status');
+    } finally {
+      setMarkingSoldId(null);
+    }
+  };
 
   // ─── Delete (soft) with confirmation modal ───────────────────────
   const handleDelete = (id, title, e) => {
@@ -79,6 +101,7 @@ const Dashboard = () => {
     Available: { bg: '#E7F8F0', color: '#0E9F6E' },
     Pending: { bg: '#FFF4E5', color: '#D97706' },
     Exchanged: { bg: '#EEF1F6', color: CS.textSub },
+    Sold: { bg: '#FEE2E2', color: '#991B1B' },
   }[s] || { bg: '#EEF1F6', color: CS.textSub });
 
   return (
@@ -191,11 +214,18 @@ const Dashboard = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }} className="db-grid">
             {recentResources.map((r, i) => {
               const ss = statusStyle(r.status);
+              const isSold = r.status === 'Sold';
               return (
                 <div key={r._id || i}
                   onClick={() => navigate(`/resource/${r._id}`)}
-                  style={{ background: CS.card, borderRadius: 20, border: `1px solid ${CS.border}`, overflow: 'hidden', cursor: 'pointer', boxShadow: SHADOW, transition: 'all 0.18s', display: 'flex', flexDirection: 'column' }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = SHADOW_HOVER; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  style={{
+                    background: CS.card, borderRadius: 20, border: `1px solid ${isSold ? '#FECACA' : CS.border}`,
+                    overflow: 'hidden', cursor: 'pointer', boxShadow: SHADOW, transition: 'all 0.18s',
+                    display: 'flex', flexDirection: 'column',
+                    opacity: isSold ? 0.65 : 1,
+                    filter: isSold ? 'grayscale(40%)' : 'none',
+                  }}
+                  onMouseEnter={e => { if (!isSold) { e.currentTarget.style.boxShadow = SHADOW_HOVER; e.currentTarget.style.transform = 'translateY(-3px)'; } }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = SHADOW; e.currentTarget.style.transform = 'none'; }}>
 
                   {/* Image */}
@@ -204,16 +234,22 @@ const Dashboard = () => {
                       ? <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Package style={{ width: 32, height: 32, color: CS.primary, opacity: 0.6 }} /></div>}
                     {/* Status pill on image */}
-                    <span style={{ position: 'absolute', top: 12, left: 12, padding: '4px 11px', borderRadius: 9999, fontSize: 11, fontWeight: 600, background: ss.bg, color: ss.color }}>
+                    <span style={{ position: 'absolute', top: 12, left: 12, padding: '4px 11px', borderRadius: 9999, fontSize: 11, fontWeight: 700, background: ss.bg, color: ss.color }}>
                       {r.status}
                     </span>
+                    {/* Sold overlay banner */}
+                    {isSold && (
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(153,27,27,0.12)' }}>
+                        <span style={{ padding: '6px 20px', borderRadius: 9999, background: '#991B1B', color: '#fff', fontSize: 13, fontWeight: 800, letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(153,27,27,0.4)' }}>SOLD</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Body */}
                   <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
                     <h4 style={{ fontSize: 15, fontWeight: 600, color: CS.text, marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                      <span style={{ fontSize: 17, fontWeight: 700, color: CS.primary }}>{r.price > 0 ? `₹${r.price}` : 'Free'}</span>
+                      <span style={{ fontSize: 17, fontWeight: 700, color: isSold ? CS.textSub : CS.primary }}>{r.price > 0 ? `₹${r.price}` : 'Free'}</span>
                       <span style={{ fontSize: 12, color: CS.textMuted }}>·</span>
                       <span style={{ fontSize: 12, color: CS.textSub }}>{r.category}</span>
                     </div>
@@ -225,11 +261,20 @@ const Dashboard = () => {
                         style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '8px', borderRadius: 10, background: CS.dark, color: '#fff', border: 'none', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                         <Eye style={{ width: 13, height: 13 }} /> View
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); navigate(`/add-resource?edit=${r._id}`); }}
-                        title="Edit"
-                        style={{ width: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: 10, background: '#F6F7FB', color: CS.text, border: `1px solid ${CS.border}`, cursor: 'pointer' }}>
-                        <Pencil style={{ width: 14, height: 14 }} />
+                      {/* Mark Sold / Mark Available toggle */}
+                      <button onClick={(e) => handleMarkSold(r._id, r.status, e)}
+                        disabled={markingSoldId === r._id || r.status === 'Pending' || r.status === 'Exchanged'}
+                        title={isSold ? 'Mark as Available' : 'Mark as Sold'}
+                        style={{ width: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: 10, background: isSold ? '#FEE2E2' : '#E7F8F0', color: isSold ? '#991B1B' : '#0E9F6E', border: 'none', cursor: (r.status === 'Pending' || r.status === 'Exchanged') ? 'not-allowed' : 'pointer', opacity: markingSoldId === r._id ? 0.5 : 1, transition: 'all 0.18s' }}>
+                        <BadgeCheck style={{ width: 14, height: 14 }} />
                       </button>
+                      {!isSold && (
+                        <button onClick={(e) => { e.stopPropagation(); navigate(`/add-resource?edit=${r._id}`); }}
+                          title="Edit"
+                          style={{ width: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: 10, background: '#F6F7FB', color: CS.text, border: `1px solid ${CS.border}`, cursor: 'pointer' }}>
+                          <Pencil style={{ width: 14, height: 14 }} />
+                        </button>
+                      )}
                       <button onClick={(e) => handleDelete(r._id, r.title, e)} disabled={deletingId === r._id}
                         title="Delete"
                         style={{ width: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: 10, background: CS.primaryPale, color: CS.primary, border: 'none', cursor: 'pointer', opacity: deletingId === r._id ? 0.5 : 1 }}>
