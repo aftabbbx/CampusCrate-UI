@@ -115,10 +115,13 @@ const ExploreResources = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem' }} className="er-grid">
             {filtered.map((r) => {
               const ts = typeStyle(r.type);
+              const isSold = r.status === 'Sold';
               return (
-                <Link key={r._id} to={`/resource/${r._id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ background: CS.card, borderRadius: 20, overflow: 'hidden', border: `1px solid ${CS.border}`, boxShadow: '0 2px 8px rgba(15,23,42,0.04)', display: 'flex', flexDirection: 'column', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', height: '100%' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(91,91,214,0.12)'; }}
+                <div key={r._id}
+                  onClick={() => !isSold && (window.location.href = `/resource/${r._id}`)}
+                  style={{ textDecoration: 'none', cursor: isSold ? 'not-allowed' : 'pointer' }}>
+                  <div style={{ background: CS.card, borderRadius: 20, overflow: 'hidden', border: `1px solid ${isSold ? '#FECACA' : CS.border}`, boxShadow: '0 2px 8px rgba(15,23,42,0.04)', display: 'flex', flexDirection: 'column', transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)', height: '100%', opacity: isSold ? 0.65 : 1, filter: isSold ? 'grayscale(40%)' : 'none' }}
+                    onMouseEnter={e => { if (!isSold) { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(91,91,214,0.12)'; } }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.04)'; }}>
                     {/* Image */}
                     <div style={{ position: 'relative', aspectRatio: '4/3', background: CS.primaryPale, overflow: 'hidden' }}>
@@ -126,20 +129,28 @@ const ExploreResources = () => {
                         ? <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package style={{ width: 32, height: 32, color: CS.primaryLight }} /></div>
                       }
-                      <button onClick={e => toggleWishlist(r._id, e)}
-                        style={{ position: 'absolute', top: 10, right: 10, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(6px)' }}>
-                        <Heart style={{ width: 15, height: 15, color: isWishlisted(r._id) ? '#ef4444' : CS.textSub, fill: isWishlisted(r._id) ? '#ef4444' : 'none' }} />
-                      </button>
+                      {/* Sold overlay */}
+                      {isSold && (
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(153,27,27,0.12)' }}>
+                          <span style={{ padding: '6px 20px', borderRadius: 9999, background: '#991B1B', color: '#fff', fontSize: 13, fontWeight: 800, letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(153,27,27,0.4)' }}>SOLD</span>
+                        </div>
+                      )}
+                      {!isSold && (
+                        <button onClick={e => toggleWishlist(r._id, e)}
+                          style={{ position: 'absolute', top: 10, right: 10, width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(6px)' }}>
+                          <Heart style={{ width: 15, height: 15, color: isWishlisted(r._id) ? '#ef4444' : CS.textSub, fill: isWishlisted(r._id) ? '#ef4444' : 'none' }} />
+                        </button>
+                      )}
                       <span style={{ position: 'absolute', bottom: 10, left: 10, padding: '3px 10px', borderRadius: 9999, fontSize: 11, fontWeight: 700, background: ts.bg, color: ts.color }}>
                         {r.type}
                       </span>
                     </div>
                     {/* Body */}
                     <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: CS.primary, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>{r.category}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: isSold ? CS.textMuted : CS.primary, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>{r.category}</span>
                       <h3 style={{ fontWeight: 700, fontSize: 14, color: CS.text, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 8 }}>{r.title}</h3>
                       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${CS.border}` }}>
-                        <span style={{ fontWeight: 700, fontSize: 16, color: CS.primary }}>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: isSold ? CS.textSub : CS.primary }}>
                           {r.price > 0 ? <><IndianRupee style={{ width: 12, height: 12, display: 'inline', verticalAlign: 'middle' }} />{r.price}</> : 'Free'}
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: CS.textMuted }}>
@@ -148,7 +159,7 @@ const ExploreResources = () => {
                       </div>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
