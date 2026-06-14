@@ -352,12 +352,19 @@ const PublicProfile = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
               {resources.map((r) => {
                 const typeColor = getTypeColor(r.type);
+                const isSold = r.status === 'Sold';
                 return (
                   <div key={r._id}
-                    onClick={() => isAuthenticated ? navigate(`/resource/${r._id}`) : navigate('/login')}
+                    onClick={() => !isSold && (isAuthenticated ? navigate(`/resource/${r._id}`) : navigate('/login'))}
                     className="card"
-                    style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
+                    style={{
+                      padding: 0, overflow: 'hidden', cursor: isSold ? 'not-allowed' : 'pointer',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      opacity: isSold ? 0.6 : 1,
+                      filter: isSold ? 'grayscale(40%)' : 'none',
+                      border: isSold ? '1px solid #FECACA' : undefined,
+                    }}
+                    onMouseEnter={(e) => { if (!isSold) { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; } }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                   >
                     {/* Image */}
@@ -369,12 +376,18 @@ const PublicProfile = () => {
                           <Package style={{ width: '32px', height: '32px', color: 'var(--color-text-muted)', opacity: 0.2 }} />
                         </div>
                       )}
+                      {/* Sold overlay */}
+                      {isSold && (
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(153,27,27,0.1)' }}>
+                          <span style={{ padding: '4px 14px', borderRadius: 9999, background: '#991B1B', color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '0.05em' }}>SOLD</span>
+                        </div>
+                      )}
                       {/* Status badge */}
                       <div style={{
                         position: 'absolute', top: '0.5rem', right: '0.5rem',
                         padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.65rem', fontWeight: 600,
-                        background: r.status === 'Available' ? '#d1fae5' : '#e2e8f0',
-                        color: r.status === 'Available' ? '#059669' : '#64748b',
+                        background: r.status === 'Available' ? '#d1fae5' : isSold ? '#FEE2E2' : '#e2e8f0',
+                        color: r.status === 'Available' ? '#059669' : isSold ? '#991B1B' : '#64748b',
                       }}>{r.status}</div>
                       {/* Type badge */}
                       <div style={{
@@ -390,7 +403,7 @@ const PublicProfile = () => {
                         {r.title}
                       </h3>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-brand)', fontFamily: 'var(--font-display)' }}>
+                        <span style={{ fontSize: '1rem', fontWeight: 700, color: isSold ? '#64748b' : 'var(--color-brand)', fontFamily: 'var(--font-display)' }}>
                           {r.price > 0 ? `₹${r.price}` : 'Free'}
                         </span>
                         <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>

@@ -1181,10 +1181,12 @@ const Homepage = () => {
                       {filtered.map((r, idx) => {
                         const tb = typeBadge(r.type);
                         const wishlisted = isWishlisted(r._id);
+                        const isSold = r.status === "Sold";
                         return (
                           <Reveal key={r._id} delay={idx * 0.04} y={20}>
-                            <Link to={`/resource/${r._id}`}>
-                              <Card hover style={{ overflow: "hidden", padding: 0 }}>
+                            <div onClick={() => !isSold && navigate(`/resource/${r._id}`)}
+                              style={{ cursor: isSold ? "not-allowed" : "pointer", display: "block" }}>
+                              <Card hover={!isSold} style={{ overflow: "hidden", padding: 0, opacity: isSold ? 0.65 : 1, filter: isSold ? "grayscale(40%)" : "none", border: isSold ? `1px solid #FECACA` : undefined }}>
                                 {/* Image */}
                                 <div style={{ position: "relative", height: 180, background: T.surfaceAlt, overflow: "hidden" }}>
                                   {r.image_url
@@ -1197,6 +1199,12 @@ const Homepage = () => {
                                       <Package size={36} color={T.textMuted} />
                                     </div>
                                   }
+                                  {/* Sold overlay */}
+                                  {isSold && (
+                                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(153,27,27,0.12)" }}>
+                                      <span style={{ padding: "6px 20px", borderRadius: 9999, background: "#991B1B", color: "#fff", fontSize: 13, fontWeight: 800, letterSpacing: "0.05em", boxShadow: "0 2px 8px rgba(153,27,27,0.4)" }}>SOLD</span>
+                                    </div>
+                                  )}
                                   {/* Type badge */}
                                   <span style={{
                                     position: "absolute", top: 12, left: 12,
@@ -1204,23 +1212,25 @@ const Homepage = () => {
                                     fontSize: 11, fontWeight: 700,
                                     background: tb.bg, color: tb.color,
                                   }}>{tb.label}</span>
-                                  {/* Wishlist button */}
-                                  <motion.button
-                                    onClick={e => toggleWishlist(r._id, e)}
-                                    whileTap={{ scale: 0.8 }}
-                                    style={{
-                                      position: "absolute", top: 10, right: 10,
-                                      width: 32, height: 32, borderRadius: "50%",
-                                      background: `${T.surface}CC`, backdropFilter: "blur(8px)",
-                                      border: `1px solid ${T.border}`,
-                                      display: "flex", alignItems: "center", justifyContent: "center",
-                                    }}
-                                    data-cursor
-                                  >
-                                    <Heart size={14}
-                                      color={wishlisted ? "#ef4444" : T.textMuted}
-                                      fill={wishlisted ? "#ef4444" : "none"} />
-                                  </motion.button>
+                                  {/* Wishlist button — hide for sold */}
+                                  {!isSold && (
+                                    <motion.button
+                                      onClick={e => toggleWishlist(r._id, e)}
+                                      whileTap={{ scale: 0.8 }}
+                                      style={{
+                                        position: "absolute", top: 10, right: 10,
+                                        width: 32, height: 32, borderRadius: "50%",
+                                        background: `${T.surface}CC`, backdropFilter: "blur(8px)",
+                                        border: `1px solid ${T.border}`,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                      }}
+                                      data-cursor
+                                    >
+                                      <Heart size={14}
+                                        color={wishlisted ? "#ef4444" : T.textMuted}
+                                        fill={wishlisted ? "#ef4444" : "none"} />
+                                    </motion.button>
+                                  )}
                                 </div>
 
                                 {/* Body */}
@@ -1232,7 +1242,7 @@ const Homepage = () => {
                                       display: "-webkit-box", WebkitLineClamp: 2,
                                       WebkitBoxOrient: "vertical", overflow: "hidden",
                                     }}>{r.title}</h3>
-                                    <span style={{ fontSize: 15, fontWeight: 800, color: T.terra, flexShrink: 0 }}>
+                                    <span style={{ fontSize: 15, fontWeight: 800, color: isSold ? T.textMuted : T.terra, flexShrink: 0 }}>
                                       {r.price > 0
                                         ? <span style={{ display: "flex", alignItems: "center", gap: 1 }}>
                                           <IndianRupee size={11} />{r.price}
@@ -1260,11 +1270,11 @@ const Homepage = () => {
                                         {(typeof r.seller === "string" ? r.seller : r.seller?.name) || "Seller"}
                                       </span>
                                     </div>
-                                    <span style={{ fontSize: 11, fontWeight: 700, color: T.terra }}>Contact</span>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: isSold ? "#991B1B" : T.terra }}>{isSold ? "Sold" : "Contact"}</span>
                                   </div>
                                 </div>
                               </Card>
-                            </Link>
+                            </div>
                           </Reveal>
                         );
                       })}

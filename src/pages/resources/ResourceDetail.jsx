@@ -9,7 +9,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft, MapPin, ShieldCheck, Tag, Clock, MessageSquare,
-  ChevronRight, Package, IndianRupee, CheckCircle2, AlertTriangle, Heart,
+  ChevronRight, Package, IndianRupee, CheckCircle2, AlertTriangle, Heart, BadgeCheck,
 } from 'lucide-react';
 
 const CS = {
@@ -52,6 +52,7 @@ const ResourceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [messageSending, setMessageSending] = useState(false);
+  const [markingSold, setMarkingSold] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -75,14 +76,35 @@ const ResourceDetail = () => {
           receiver_id: resource.owner_id._id,
           message: `Hi! I'm interested in your resource "${resource.title}".`,
           message_type: 'text',
+          resource_id: resource._id,
         });
         toast.success('Message sent! Redirecting...');
         navigate('/messages');
       } catch (err) {
         if (err.response?.data?.profileIncomplete) toast.error('Complete your profile first 🔒');
+        else if (err.response?.status === 403) toast.error(err.response.data?.message || 'This resource is no longer available');
         else navigate('/messages');
       } finally { setMessageSending(false); }
     });
+  };
+
+  const handleMarkSold = async () => {
+    if (resource.status === 'Pending' || resource.status === 'Exchanged') {
+      toast.error(`Cannot mark — resource is currently "${resource.status}"`);
+      return;
+    }
+    setMarkingSold(true);
+    try {
+      const res = await API.patch(`/resource/${resource._id}/mark-sold`);
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setResource(prev => ({ ...prev, status: res.data.resource.status }));
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update status');
+    } finally {
+      setMarkingSold(false);
+    }
   };
 
   const typeStyle = (type) => ({
@@ -211,24 +233,52 @@ const ResourceDetail = () => {
                 ))}
               </div>
 
+              {/* Non-owner: Available → show message + wishlist */}
               {!isOwner && resource.status === 'Available' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <WishlistButton resourceId={resource._id} />
-                <button onClick={handleMessageSeller} disabled={messageSending}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', background: `linear-gradient(135deg, ${CS.primary}, ${CS.primaryHover})`, color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', boxShadow: '0 4px 14px rgba(91,91,214,0.3)' }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                  {messageSending
-                    ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.5)', borderTopColor: '#fff', borderRadius: '50%', animation: 'rdSpin 0.7s linear infinite' }} /> Sending...</>
-                    : <><MessageSquare style={{ width: 18, height: 18 }} /> Message Seller</>
-                  }
-                </button>
+                  <button onClick={handleMessageSeller} disabled={messageSending}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', background: `linear-gradient(135deg, ${CS.primary}, ${CS.primaryHover})`, color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', boxShadow: '0 4px 14px rgba(91,91,214,0.3)' }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                    {messageSending
+                      ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.5)', borderTopColor: '#fff', borderRadius: '50%', animation: 'rdSpin 0.7s linear infinite' }} /> Sending...</>
+                      : <><MessageSquare style={{ width: 18, height: 18 }} /> Message Seller</>
+                    }
+                  </button>
                 </div>
               )}
-              {isOwner && <div style={{ textAlign: 'center', padding: '10px', borderRadius: 12, background: CS.bg, fontSize: 13, color: CS.textSub, fontWeight: 500 }}>This is your listing</div>}
-              {!isOwner && resource.status !== 'Available' && (
+
+              {/* Non-owner: Sold → clear sold banner */}
+              {!isOwner && resource.status === 'Sold' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderRadius: 12, background: '#FEE2E2', border: '1px solid #FECACA', fontSize: 14, color: '#991B1B', fontWeight: 700 }}>
+                    <BadgeCheck style={{ width: 18, height: 18 }} /> This item has been Sold
+                  </div>
+                  <WishlistButton resourceId={resource._id} />
+                </div>
+              )}
+
+              {/* Non-owner: Pending/Exchanged */}
+              {!isOwner && resource.status !== 'Available' && resource.status !== 'Sold' && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, background: '#FEF3C7', fontSize: 13, color: '#D97706', fontWeight: 500 }}>
                   <AlertTriangle style={{ width: 15, height: 15 }} /> No longer available
+                </div>
+              )}
+
+              {/* Owner: controls */}
+              {isOwner && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ textAlign: 'center', padding: '10px', borderRadius: 12, background: CS.bg, fontSize: 13, color: CS.textSub, fontWeight: 500 }}>This is your listing</div>
+                  {(resource.status === 'Available' || resource.status === 'Sold') && (
+                    <button onClick={handleMarkSold} disabled={markingSold}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px', background: resource.status === 'Sold' ? '#E7F8F0' : '#FEE2E2', color: resource.status === 'Sold' ? '#0E9F6E' : '#991B1B', border: `1px solid ${resource.status === 'Sold' ? '#A7F3D0' : '#FECACA'}`, borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: markingSold ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: markingSold ? 0.6 : 1, transition: 'all 0.18s' }}>
+                      {markingSold
+                        ? <><div style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'rdSpin 0.7s linear infinite' }} /> Updating...</>
+                        : <><BadgeCheck style={{ width: 16, height: 16 }} /> {resource.status === 'Sold' ? 'Mark as Available' : 'Mark as Sold'}</>
+                      }
+                    </button>
+                  )}
                 </div>
               )}
             </div>
