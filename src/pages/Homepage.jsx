@@ -984,14 +984,24 @@ const Homepage = () => {
                               }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                                   <div style={{
-                                    width: 24, height: 24, borderRadius: "50%",
-                                    background: `${T.accent}30`, color: T.accentLt,
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    fontSize: 10, fontWeight: 700, border: `1px solid ${T.accent}40`,
-                                  }}>{r.seller?.name?.charAt(0)?.toUpperCase() || "S"}</div>
-                                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 600, fontFamily: FONT_BODY }}>
-                                    {(typeof r.seller === "string" ? r.seller : r.seller?.name) || "Seller"}
-                                  </span>
+                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                    paddingTop: "0.75rem", borderTop: `1px solid ${T.border}`,
+                                  }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                                      <div style={{
+                                        width: 24, height: 24, borderRadius: "50%",
+                                        background: T.primary, color: T.surface,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: 10, fontWeight: 700,
+                                      }}>
+                                        {r.owner_id?.name?.charAt(0)?.toUpperCase() || "S"}
+                                      </div>
+                                      <span style={{ fontSize: 12, color: T.textSub, fontWeight: 600 }}>
+                                        {r.owner_id?.name || "Seller"}
+                                      </span>
+                                    </div>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: isSold ? "#991B1B" : T.terra }}>{isSold ? "Sold" : "Contact"}</span>
+                                  </div>
                                 </div>
                                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: isSold ? "#991B1B" : T.accentLt }}>{isSold ? "Sold" : "Contact"}</span>
                               </div>

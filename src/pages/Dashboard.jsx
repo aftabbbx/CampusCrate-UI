@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [allCount, setAllCount] = useState(0);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, title: '' });
+  const [soldModal, setSoldModal] = useState({ open: false, id: null, title: '', currentStatus: '' });
   const [markingSoldId, setMarkingSoldId] = useState(null);
 
   const greeting = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
@@ -45,12 +46,18 @@ const Dashboard = () => {
   }, []);
 
   // ─── Mark as Sold toggle ─────────────────────────────────────────
-  const handleMarkSold = async (id, currentStatus, e) => {
+  const handleMarkSold = (id, currentStatus, title, e) => {
     e.stopPropagation();
     if (currentStatus === 'Pending' || currentStatus === 'Exchanged') {
       toast.error(`Cannot mark — resource is currently "${currentStatus}"`);
       return;
     }
+    setSoldModal({ open: true, id, title, currentStatus });
+  };
+
+  const confirmMarkSold = async () => {
+    const { id } = soldModal;
+    setSoldModal({ open: false, id: null, title: '', currentStatus: '' });
     setMarkingSoldId(id);
     try {
       const res = await API.patch(`/resource/${id}/mark-sold`);
@@ -262,7 +269,7 @@ const Dashboard = () => {
                         <Eye style={{ width: 13, height: 13 }} /> View
                       </button>
                       {/* Mark Sold / Mark Available toggle */}
-                      <button onClick={(e) => handleMarkSold(r._id, r.status, e)}
+                      <button onClick={(e) => handleMarkSold(r._id, r.status, r.title, e)}
                         disabled={markingSoldId === r._id || r.status === 'Pending' || r.status === 'Exchanged'}
                         title={isSold ? 'Mark as Available' : 'Mark as Sold'}
                         style={{ width: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: 10, background: isSold ? '#FEE2E2' : '#E7F8F0', color: isSold ? '#991B1B' : '#0E9F6E', border: 'none', cursor: (r.status === 'Pending' || r.status === 'Exchanged') ? 'not-allowed' : 'pointer', opacity: markingSoldId === r._id ? 0.5 : 1, transition: 'all 0.18s' }}>
@@ -296,6 +303,38 @@ const Dashboard = () => {
         @media(max-width:900px){ .db-stats{grid-template-columns:repeat(2,1fr)!important;} .db-grid{grid-template-columns:repeat(2,1fr)!important;} }
         @media(max-width:560px){ .db-stats{grid-template-columns:repeat(2,1fr)!important;} .db-grid{grid-template-columns:1fr!important;} }
       `}</style>
+
+      {/* ═══ MARK AS SOLD CONFIRMATION MODAL ═══ */}
+      {soldModal.open && (
+        <div onClick={() => setSoldModal({ open: false, id: null, title: '', currentStatus: '' })}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(36,43,61,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 20, padding: '2rem', maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(36,43,61,0.25)', animation: 'modalIn 0.2s ease', fontFamily: FONT }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: soldModal.currentStatus === 'Sold' ? '#E7F8F0' : '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+              <BadgeCheck style={{ width: 24, height: 24, color: soldModal.currentStatus === 'Sold' ? '#0E9F6E' : '#991B1B' }} />
+            </div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: CS.text, textAlign: 'center', marginBottom: 8 }}>
+              {soldModal.currentStatus === 'Sold' ? 'Mark as Available?' : 'Mark as Sold?'}
+            </h3>
+            <p style={{ fontSize: 14, color: CS.textSub, textAlign: 'center', lineHeight: 1.6 }}>
+              {soldModal.currentStatus === 'Sold'
+                ? <>Are you sure you want to re-list <strong style={{ color: CS.text }}>"{soldModal.title}"</strong> as Available? Buyers will be able to contact you again.</>
+                : <>Are you sure you want to mark <strong style={{ color: CS.text }}>"{soldModal.title}"</strong> as Sold? All active chats for this listing will be disabled.</>
+              }
+            </p>
+            <div style={{ display: 'flex', gap: 10, marginTop: '1.5rem' }}>
+              <button onClick={() => setSoldModal({ open: false, id: null, title: '', currentStatus: '' })}
+                style={{ flex: 1, padding: '11px', borderRadius: 12, border: `1px solid ${CS.border}`, background: CS.bg, color: CS.textSub, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Cancel
+              </button>
+              <button onClick={confirmMarkSold}
+                style={{ flex: 1, padding: '11px', borderRadius: 12, border: 'none', background: soldModal.currentStatus === 'Sold' ? '#0E9F6E' : '#991B1B', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                {soldModal.currentStatus === 'Sold' ? 'Yes, Re-list' : 'Yes, Mark Sold'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ DELETE CONFIRMATION MODAL ═══ */}
       {deleteModal.open && (

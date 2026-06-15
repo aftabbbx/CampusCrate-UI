@@ -7,7 +7,7 @@ import UserLayout from '../components/UserLayout';
 import toast from 'react-hot-toast';
 import {
   Search, Send, Image, Mic, MicOff, Play, Pause, ArrowLeft,
-  MessageSquare, Phone, Video, MoreVertical, Check, CheckCheck, X, AlertTriangle,
+  MessageSquare, Phone, Video, MoreVertical, Check, CheckCheck, X, AlertTriangle, IndianRupee, Package,
 } from 'lucide-react';
 
 const Messages = () => {
@@ -18,6 +18,8 @@ const Messages = () => {
   // ─── State ────────────────────────────────────────────────────────
   const [conversations, setConversations] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [selectedResourceId, setSelectedResourceId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [loadingConvos, setLoadingConvos] = useState(true);
@@ -72,8 +74,8 @@ const Messages = () => {
     if (!lastIncomingMessage) return;
     const msg = lastIncomingMessage;
 
-    // If we're currently chatting with this sender, add to messages
-    if (selectedUser && msg.sender_id === selectedUser._id) {
+    // If we're currently chatting with this sender in the same resource thread, add to messages
+    if (selectedUser && msg.sender_id === selectedUser._id && (msg.resource_id || null) === selectedResourceId) {
       setMessages((prev) => [...prev, msg]);
       // Mark as read immediately
       API.put(`/message/read/${msg.sender_id}`).catch(() => {});
@@ -81,17 +83,18 @@ const Messages = () => {
       markConversationRead(msg.sender_id);
     }
 
-    // Update conversation list
+    // Update conversation list — match on both user AND resource
     setConversations((prev) => {
-      const exists = prev.find((c) => c.user?._id === msg.sender_id);
+      const incomingResourceId = msg.resource_id || null;
+      const exists = prev.find((c) => c.user?._id === msg.sender_id && (c.resource?._id || null) === incomingResourceId);
       if (exists) {
         return prev.map((c) =>
-          c.user?._id === msg.sender_id
+          (c.user?._id === msg.sender_id && (c.resource?._id || null) === incomingResourceId)
             ? {
                 ...c,
                 lastMessage: msg.message_type === 'image' ? '📷 Photo' : msg.message_type === 'voice' ? '🎙️ Voice note' : msg.message,
                 lastMessageAt: msg.createdAt,
-                unreadCount: selectedUser?._id === msg.sender_id ? 0 : c.unreadCount + 1,
+                unreadCount: (selectedUser?._id === msg.sender_id && selectedResourceId === incomingResourceId) ? 0 : c.unreadCount + 1,
               }
             : c
         ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
@@ -101,19 +104,22 @@ const Messages = () => {
   }, [lastIncomingMessage]);
 
   // ─── Select a conversation ────────────────────────────────────────
-  const selectConversation = async (convUser) => {
+  const selectConversation = async (convUser, convResource = null) => {
     setSelectedUser(convUser);
+    setSelectedResource(convResource);
+    const rid = convResource?._id || null;
+    setSelectedResourceId(rid);
     setMobileShowChat(true);
     setLoadingMessages(true);
     setMessages([]);
 
     try {
-      const res = await API.get(`/message/${convUser._id}`);
+      const res = await API.get(`/message/${convUser._id}?resource_id=${rid || ''}`);
       if (res.data.success) {
         setMessages(res.data.messages);
       }
       // Mark messages as read
-      await API.put(`/message/read/${convUser._id}`);
+      await API.put(`/message/read/${convUser._id}?resource_id=${rid || ''}`);
       emitMessagesRead(convUser._id);
       markConversationRead(convUser._id);
 
@@ -144,6 +150,7 @@ const Messages = () => {
           receiver_id: selectedUser._id,
           message: text.trim(),
           message_type: 'text',
+          ...(selectedResourceId && { resource_id: selectedResourceId }),
         });
 
         if (res.data.success) {
@@ -152,18 +159,18 @@ const Messages = () => {
           setText('');
           if (textareaRef.current) textareaRef.current.style.height = '40px';
 
-          // Update conversation list
+          // Update conversation list — match on both user AND resource
           setConversations((prev) => {
-            const exists = prev.find((c) => c.user?._id === selectedUser._id);
+            const exists = prev.find((c) => c.user?._id === selectedUser._id && (c.resource?._id || null) === selectedResourceId);
             if (exists) {
               return prev.map((c) =>
-                c.user?._id === selectedUser._id
+                (c.user?._id === selectedUser._id && (c.resource?._id || null) === selectedResourceId)
                   ? { ...c, lastMessage: text.trim(), lastMessageAt: newMsg.createdAt }
                   : c
               ).sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
             }
             return [
-              { user: selectedUser, lastMessage: text.trim(), lastMessageAt: newMsg.createdAt, unreadCount: 0, isOnline: onlineUsers.has(selectedUser._id) },
+              { user: selectedUser, resource: selectedResource, lastMessage: text.trim(), lastMessageAt: newMsg.createdAt, unreadCount: 0, isOnline: onlineUsers.has(selectedUser._id) },
               ...prev,
             ];
           });
@@ -175,6 +182,7 @@ const Messages = () => {
             message_type: 'text',
             _id: newMsg._id,
             createdAt: newMsg.createdAt,
+            resource_id: selectedResourceId,
           });
         }
       } catch (err) {
@@ -449,8 +457,8 @@ const Messages = () => {
                 return (
                   <div
                     key={u._id}
-                    className={`conv-item ${selectedUser?._id === u._id ? 'conv-item-active' : ''}`}
-                    onClick={() => selectConversation(u)}
+                    className={`conv-item ${selectedUser?._id === u._id && (selectedResource?._id || null) === (conv.resource?._id || null) ? 'conv-item-active' : ''}`}
+                    onClick={() => selectConversation(u, conv.resource)}
                   >
                     <div className="conv-avatar">
                       {u.profile_image ? (
@@ -467,6 +475,11 @@ const Messages = () => {
                           {conv.lastMessageAt && formatTime(conv.lastMessageAt)}
                         </span>
                       </div>
+                      {conv.resource && (
+                        <div style={{ fontSize: '0.7rem', color: conv.resource.status === 'Sold' ? '#991B1B' : 'var(--color-brand)', fontWeight: 600, marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {conv.resource.status === 'Sold' ? '🔴' : '📦'} {conv.resource.title}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.125rem' }}>
                         <span style={{
                           fontSize: '0.75rem', color: 'var(--color-text-muted)',
@@ -508,28 +521,53 @@ const Messages = () => {
           ) : (
             <>
               {/* Chat Header */}
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
-                padding: '0.875rem 1.25rem', background: 'var(--color-card)',
-                borderBottom: '1px solid var(--color-border)',
-              }}>
-                <button className="chat-action-btn mobile-back-btn" onClick={() => { setMobileShowChat(false); setSelectedUser(null); }} style={{ display: 'none' }}>
-                  <ArrowLeft style={{ width: '20px', height: '20px' }} />
-                </button>
-                <div className="conv-avatar" style={{ width: '40px', height: '40px', fontSize: '0.85rem' }}>
-                  {selectedUser.profile_image ? (
-                    <img src={selectedUser.profile_image} alt={selectedUser.name} />
-                  ) : (
-                    selectedUser.name?.charAt(0)?.toUpperCase()
-                  )}
-                  {isUserOnline(selectedUser._id) && <div className="online-dot" style={{ width: '10px', height: '10px' }} />}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--color-text)' }}>{selectedUser.name}</div>
-                  <div style={{ fontSize: '0.7rem', color: isUserOnline(selectedUser._id) ? '#10b981' : 'var(--color-text-muted)' }}>
-                    {isTyping ? 'typing...' : isUserOnline(selectedUser._id) ? 'Online' : 'Offline'}
+              <div style={{ background: 'var(--color-card)', borderBottom: '1px solid var(--color-border)' }}>
+                {/* User row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem' }}>
+                  <button className="chat-action-btn mobile-back-btn" onClick={() => { setMobileShowChat(false); setSelectedUser(null); }} style={{ display: 'none' }}>
+                    <ArrowLeft style={{ width: '20px', height: '20px' }} />
+                  </button>
+                  <div className="conv-avatar" style={{ width: '36px', height: '36px', fontSize: '0.8rem' }}>
+                    {selectedUser.profile_image ? (
+                      <img src={selectedUser.profile_image} alt={selectedUser.name} />
+                    ) : (
+                      selectedUser.name?.charAt(0)?.toUpperCase()
+                    )}
+                    {isUserOnline(selectedUser._id) && <div className="online-dot" style={{ width: '9px', height: '9px' }} />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text)' }}>{selectedUser.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: isUserOnline(selectedUser._id) ? '#10b981' : 'var(--color-text-muted)' }}>
+                      {isTyping ? 'typing...' : isUserOnline(selectedUser._id) ? 'Online' : 'Offline'}
+                    </div>
                   </div>
                 </div>
+                {/* Product card row — OLX style */}
+                {selectedResource && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '0.6rem 1.25rem', borderTop: '1px solid var(--color-border)',
+                    background: selectedResource.status === 'Sold' ? '#FEF2F2' : 'var(--color-bg)',
+                  }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: '#F1F5F9' }}>
+                      {selectedResource.image_url
+                        ? <img src={selectedResource.image_url} alt={selectedResource.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={18} color="#94a3b8" /></div>
+                      }
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: selectedResource.status === 'Sold' ? '#991B1B' : 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {selectedResource.title}
+                      </div>
+                      <div style={{ fontSize: 12, color: selectedResource.status === 'Sold' ? '#B91C1C' : 'var(--color-text-muted)', marginTop: 2 }}>
+                        {selectedResource.status === 'Sold' ? 'This ad has been SOLD' : selectedResource.status}
+                      </div>
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: selectedResource.status === 'Sold' ? '#991B1B' : 'var(--color-brand)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2 }}>
+                      {selectedResource.type === 'Free' ? 'Free' : <><IndianRupee size={12} />{selectedResource.price}</>}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Messages Area */}
@@ -601,6 +639,11 @@ const Messages = () => {
               </div>
 
               {/* Input Bar */}
+              {selectedResource?.status === 'Sold' ? (
+                <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid #FECACA', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 13, color: '#991B1B', fontWeight: 600 }}>This ad has been disabled by the seller</span>
+                </div>
+              ) : (
               <div className="chat-input-bar">
                 {isRecording ? (
                   <>
@@ -662,6 +705,7 @@ const Messages = () => {
                   </>
                 )}
               </div>
+              )}
             </>
           )}
         </div>
