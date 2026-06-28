@@ -13,9 +13,9 @@ import {
 } from 'lucide-react';
 
 const CS = {
-  primary: '#FF5C5C', primaryHover: '#FF4242', primaryPale: '#FFECEC',
-  bg: '#F6F7FB', card: '#FFFFFF', border: 'rgba(36,43,61,0.07)',
-  text: '#242B3D', textSub: '#8A94A6', textMuted: '#AEB6C4',
+  primary: '#47c163', primaryHover: '#3aad54', primaryPale: '#cbeed3',
+  bg: '#f9f9f9', card: '#FFFFFF', border: '#d3ddd3',
+  text: '#0e220e', textSub: '#4a5e4a', textMuted: '#8a9a8a',
 };
 
 // ─── Wishlist Button Component ───────────────────────────────────────
@@ -178,7 +178,7 @@ const ResourceDetail = () => {
                   <img src={resource.image_url} alt={resource.title} onLoad={() => setImageLoaded(true)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.4s' }} />
                 </div>
               ) : (
-                <div style={{ paddingBottom: '60%', position: 'relative', background: `linear-gradient(135deg, ${CS.primaryPale}, #EEF2FF)` }}>
+                <div style={{ paddingBottom: '60%', position: 'relative', background: `linear-gradient(135deg, ${CS.primaryPale}, #e8f0e8)` }}>
                   <Package style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 56, height: 56, color: CS.primaryLight, opacity: 0.5 }} />
                 </div>
               )}
@@ -291,7 +291,7 @@ const ResourceDetail = () => {
                 onMouseEnter={e => e.currentTarget.style.background = CS.bg}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <div style={{ position: 'relative' }}>
-                  <div style={{ width: 46, height: 46, borderRadius: '50%', background: `linear-gradient(135deg, ${CS.primary}, #818CF8)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  <div style={{ width: 46, height: 46, borderRadius: '50%', background: `linear-gradient(135deg, ${CS.primary}, #5fd878)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {resource.owner_id?.profile_image
                       ? <img src={resource.owner_id.profile_image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{resource.owner_id?.name?.charAt(0)?.toUpperCase() || 'U'}</span>

@@ -6,10 +6,10 @@ import UserLayout from '../components/UserLayout';
 import { useWishlist } from '../context/WishlistContext';
 
 const CS = {
-  primary: '#FF5C5C', primaryPale: '#FFECEC', primaryHover: '#FF4242',
-  bg: '#F6F7FB', card: '#FFFFFF', border: 'rgba(36,43,61,0.07)',
-  text: '#242B3D', textSub: '#8A94A6', textMuted: '#AEB6C4',
-  danger: '#ef4444', success: '#10b981',
+  primary: '#47c163', primaryPale: '#cbeed3', primaryHover: '#3aad54',
+  bg: '#f9f9f9', card: '#FFFFFF', border: '#d3ddd3',
+  text: '#0e220e', textSub: '#4a5e4a', textMuted: '#8a9a8a',
+  danger: '#e05c3a', success: '#47c163',
 };
 
 const Wishlist = () => {
@@ -39,11 +39,11 @@ const Wishlist = () => {
   };
 
   const categoryColors = {
-    Book: { bg: '#EEF2FF', color: '#4338CA', emoji: '📚' },
-    Notes: { bg: '#F0FDF4', color: '#166534', emoji: '📝' },
-    Stationery: { bg: '#FFF7ED', color: '#C2410C', emoji: '✏️' },
-    Project: { bg: '#FDF2F8', color: '#BE185D', emoji: '🔬' },
-    Other: { bg: '#F5F3FF', color: '#7C3AED', emoji: '📦' },
+    Book: { bg: '#cbeed3', color: '#2d7a3e', emoji: '📚' },
+    Notes: { bg: '#bfe7e6', color: '#2a7a7a', emoji: '📝' },
+    Stationery: { bg: '#fcf2cb', color: '#8a7020', emoji: '✏️' },
+    Project: { bg: '#cbeed3', color: '#1a5c2e', emoji: '🔬' },
+    Other: { bg: '#e8f0e8', color: '#4a5e4a', emoji: '📦' },
   };
 
   return (
@@ -184,8 +184,8 @@ const Wishlist = () => {
                     <span style={{
                       position: 'absolute', bottom: 12, left: 12,
                       padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700,
-                      background: r.type === 'Free' ? '#D1FAE5' : r.type === 'Exchange' ? '#FEF3C7' : '#EEEEFF',
-                      color: r.type === 'Free' ? '#065F46' : r.type === 'Exchange' ? '#92400E' : '#4338CA',
+                      background: r.type === 'Free' ? '#cbeed3' : r.type === 'Exchange' ? '#bfe7e6' : '#fcf2cb',
+                      color: r.type === 'Free' ? '#2d7a3e' : r.type === 'Exchange' ? '#2a7a7a' : '#8a7020',
                     }}>
                       {r.type}
                     </span>

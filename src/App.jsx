@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import CustomCursor, { CursorTrail } from './components/CustomCursor';
+
 
 // Pages
 import AuthPage from './pages/auth/AuthPage';
@@ -27,18 +27,17 @@ function App() {
     return (
       <div style={{
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'var(--color-bg)', flexDirection: 'column', gap: '0.75rem',
+        background: '#f9f9f9', flexDirection: 'column', gap: '0.75rem',
       }}>
-        <div className="spinner" style={{ borderColor: 'var(--color-border)', borderTopColor: 'var(--color-brand)' }} />
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Loading CampusCrate...</p>
+        <div className="spinner" style={{ borderColor: '#d3ddd3', borderTopColor: '#47c163', width: 28, height: 28 }} />
+        <p style={{ color: '#8a9a8a', fontSize: '0.85rem', fontFamily: 'Inter, system-ui, sans-serif' }}>Loading CampusCrate...</p>
       </div>
     );
   }
 
   return (
     <>
-      <CustomCursor />
-      <CursorTrail />
+
       <Routes>
       {/* Auth */}
       <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />} />

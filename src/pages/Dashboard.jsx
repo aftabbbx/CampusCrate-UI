@@ -6,14 +6,14 @@ import { Package, MessageSquare, TrendingUp, Handshake, AlertTriangle, CheckCirc
 import UserLayout from '../components/UserLayout';
 import toast from 'react-hot-toast';
 
-// ─── Theme: Furniture-app ZIP reference (Coral accent + Navy actions) ─
+// ─── Theme: Solidroad Green — matching Homepage palette ─
 const CS = {
-  primary: '#FF5C5C', primaryHover: '#FF4242', primaryPale: '#FFECEC',
-  dark: '#242B3D', darkHover: '#1A2030',
-  bg: '#F6F7FB', card: '#FFFFFF', border: 'rgba(36,43,61,0.07)',
-  text: '#242B3D', textSub: '#8A94A6', textMuted: '#AEB6C4',
+  primary: '#47c163', primaryHover: '#3aad54', primaryPale: '#cbeed3',
+  dark: '#0e220e', darkHover: '#1a3a1a',
+  bg: '#f9f9f9', card: '#FFFFFF', border: '#d3ddd3',
+  text: '#0e220e', textSub: '#4a5e4a', textMuted: '#8a9a8a',
 };
-const FONT = "'Poppins', system-ui, sans-serif";
+const FONT = "'Inter', system-ui, sans-serif";
 const SHADOW = '0 8px 24px rgba(36,43,61,0.06)';
 const SHADOW_HOVER = '0 14px 34px rgba(36,43,61,0.12)';
 

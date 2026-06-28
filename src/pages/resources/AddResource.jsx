@@ -10,9 +10,9 @@ import {
 import toast from 'react-hot-toast';
 
 const CS = {
-  primary: '#FF5C5C', primaryHover: '#FF4242', primaryPale: '#FFECEC',
-  bg: '#F6F7FB', card: '#FFFFFF', border: 'rgba(36,43,61,0.07)',
-  text: '#242B3D', textSub: '#8A94A6', textMuted: '#AEB6C4',
+  primary: '#47c163', primaryHover: '#3aad54', primaryPale: '#cbeed3',
+  bg: '#f9f9f9', card: '#FFFFFF', border: '#d3ddd3',
+  text: '#0e220e', textSub: '#4a5e4a', textMuted: '#8a9a8a',
 };
 
 const Label = ({ children }) => (

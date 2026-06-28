@@ -4,22 +4,32 @@ import { useSocket } from '../context/SocketContext';
 import {
   BookOpen, MessageSquare, Bell, User, Heart,
   LogOut, Search, Menu, X, LayoutDashboard,
+  Package, ArrowUpRight,
 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
-const CS = {
-  primary: '#FF5C5C',
-  primaryHover: '#FF4242',
-  primaryPale: '#FFECEC',
-  dark: '#242B3D',
-  darkHover: '#1A2030',
-  bg: '#F6F7FB',
-  border: 'rgba(36,43,61,0.07)',
-  text: '#242B3D',
-  textSub: '#8A94A6',
-  danger: '#BA1A1A',
-  dangerPale: '#FFDAD6',
+/* ═══════════════════════════════════════════════════════════════════════
+   Design Tokens — Solidroad Green palette matching Homepage
+   ═══════════════════════════════════════════════════════════════════════ */
+const DS = {
+  primary:     '#47c163',
+  primaryHover:'#3aad54',
+  primaryPale: '#cbeed3',
+  dark:        '#0e220e',
+  darkHover:   '#1a3a1a',
+  bg:          '#f9f9f9',
+  card:        '#FFFFFF',
+  border:      '#d3ddd3',
+  borderLight: '#e8f0e8',
+  text:        '#0e220e',
+  textSub:     '#4a5e4a',
+  textMuted:   '#8a9a8a',
+  danger:      '#e05c3a',
+  dangerPale:  '#FEE2E2',
+  accent:      '#f6d045',
 };
+
+const FONT = "'Inter', system-ui, -apple-system, sans-serif";
 
 const UserLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -30,6 +40,7 @@ const UserLayout = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
@@ -45,46 +56,60 @@ const UserLayout = ({ children }) => {
     return () => document.removeEventListener('mousedown', fn);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
   const navLinks = [
-    { to: '/resources', label: 'Browse' },
-    { to: '/add-resource', label: 'Sell' },
-    { to: '/dashboard', label: 'Dashboard' },
+    { to: '/resources', label: 'Browse', icon: Package },
+    { to: '/add-resource', label: 'Sell', icon: ArrowUpRight },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   ];
 
-  return (
-    <div style={{ minHeight: '100vh', background: CS.bg, fontFamily: "'Poppins', system-ui, sans-serif" }}>
+  const isActive = (path) => location.pathname === path;
 
-      {/* ═══ NAVBAR — identical to Homepage ════════════════════════════ */}
+  return (
+    <div style={{ minHeight: '100vh', background: DS.bg, fontFamily: FONT }}>
+
+      {/* ═══ NAVBAR ════════════════════════════════════════════════════ */}
       <nav style={{
         position: 'fixed', top: 0, width: '100%', zIndex: 50,
-        background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.80)',
-        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${CS.border}`,
-        boxShadow: scrolled ? '0 4px 20px rgba(15,23,42,0.06)' : '0 1px 3px rgba(15,23,42,0.04)',
+        background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.85)',
+        backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: `1px solid ${scrolled ? DS.border : 'transparent'}`,
+        boxShadow: scrolled ? '0 1px 12px rgba(14,34,14,0.06)' : 'none',
         height: 64, transition: 'all 0.3s ease',
       }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
 
           {/* Left: Logo + Nav Links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-              <img src="/uploads/campuscrate-logo.png" alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
-              <span style={{ fontWeight: 800, fontSize: 17, color: CS.text, letterSpacing: '-0.01em' }}>CampusCrate</span>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: `linear-gradient(135deg, ${DS.accent}, #d4b030)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(246,208,69,0.3)',
+                fontSize: 16,
+              }}>
+                🎓
+              </div>
+              <span style={{ fontWeight: 800, fontSize: 17, color: DS.text, letterSpacing: '-0.02em' }}>CampusCrate</span>
             </Link>
 
             {/* Desktop nav links */}
-            <div style={{ display: 'flex', gap: '1.5rem' }} className="ul-desktop-links">
+            <div style={{ display: 'flex', gap: '0.25rem' }} className="ul-desktop-links">
               {navLinks.map(({ to, label }) => (
                 <Link key={to} to={to}
                   style={{
-                    color: window.location.pathname === to ? CS.primary : CS.textSub,
-                    fontWeight: window.location.pathname === to ? 700 : 500,
-                    fontSize: 15, textDecoration: 'none', transition: 'color 0.2s',
-                    borderBottom: window.location.pathname === to ? `2px solid ${CS.primary}` : '2px solid transparent',
-                    paddingBottom: 2,
+                    color: isActive(to) ? DS.primary : DS.textSub,
+                    fontWeight: isActive(to) ? 600 : 500,
+                    fontSize: 14, textDecoration: 'none', transition: 'all 0.2s',
+                    padding: '6px 14px',
+                    borderRadius: 8,
+                    background: isActive(to) ? DS.primaryPale : 'transparent',
                   }}
-                  onMouseEnter={e => { if (window.location.pathname !== to) e.currentTarget.style.color = CS.primary; }}
-                  onMouseLeave={e => { if (window.location.pathname !== to) e.currentTarget.style.color = CS.textSub; }}
+                  onMouseEnter={e => { if (!isActive(to)) { e.currentTarget.style.color = DS.primary; e.currentTarget.style.background = DS.primaryPale; } }}
+                  onMouseLeave={e => { if (!isActive(to)) { e.currentTarget.style.color = DS.textSub; e.currentTarget.style.background = 'transparent'; } }}
                 >
                   {label}
                 </Link>
@@ -93,46 +118,45 @@ const UserLayout = ({ children }) => {
           </div>
 
           {/* Right: Search + Icons + Avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
             {/* Search bar */}
             <div style={{ position: 'relative', display: 'flex' }} className="ul-search">
               <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <Search style={{ width: 16, height: 16, color: '#777585' }} />
+                <Search style={{ width: 15, height: 15, color: DS.textMuted }} />
               </span>
               <input
                 type="text"
-                placeholder="Search campus items..."
+                placeholder="Search items..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') navigate('/resources'); }}
                 style={{
-                  background: CS.bg, border: `1px solid ${CS.border}`,
-                  borderRadius: 9999, paddingLeft: 38, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
-                  fontSize: 14, width: 240, outline: 'none', color: CS.text,
+                  background: DS.bg, border: `1px solid ${DS.border}`,
+                  borderRadius: 9999, paddingLeft: 36, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
+                  fontSize: 13, width: 220, outline: 'none', color: DS.text,
                   transition: 'all 0.2s', fontFamily: 'inherit',
                 }}
-                onFocus={e => { e.target.style.border = `1px solid ${CS.primary}`; e.target.style.boxShadow = `0 0 0 3px ${CS.primaryPale}`; }}
-                onBlur={e => { e.target.style.border = `1px solid ${CS.border}`; e.target.style.boxShadow = 'none'; }}
+                onFocus={e => { e.target.style.border = `1px solid ${DS.primary}`; e.target.style.boxShadow = `0 0 0 3px ${DS.primaryPale}`; }}
+                onBlur={e => { e.target.style.border = `1px solid ${DS.border}`; e.target.style.boxShadow = 'none'; }}
               />
             </div>
 
             {/* Messages */}
             <Link to="/messages"
-              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: CS.textSub, textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.background = CS.primaryPale}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <MessageSquare style={{ width: 20, height: 20 }} />
+              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'all 0.15s', color: DS.textSub, textDecoration: 'none' }}
+              onMouseEnter={e => { e.currentTarget.style.background = DS.primaryPale; e.currentTarget.style.color = DS.primary; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = DS.textSub; }}>
+              <MessageSquare style={{ width: 19, height: 19 }} />
               {totalUnreadMessages > 0 && (
                 <span style={{
                   position: 'absolute', top: -2, right: -2,
-                  minWidth: 20, height: 20, borderRadius: 9999,
-                  background: '#FF3040', color: '#fff',
-                  fontSize: 11, fontWeight: 800,
+                  minWidth: 18, height: 18, borderRadius: 9999,
+                  background: DS.danger, color: '#fff',
+                  fontSize: 10, fontWeight: 700,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 5px', border: '2.5px solid #fff',
+                  padding: '0 4px', border: '2px solid #fff',
                   lineHeight: 1, fontFamily: 'inherit',
-                  boxShadow: '0 1px 4px rgba(255,48,64,0.4)',
                 }}>
                   {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
                 </span>
@@ -141,20 +165,19 @@ const UserLayout = ({ children }) => {
 
             {/* Notifications */}
             <Link to="/notifications"
-              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'background 0.2s', color: CS.textSub, textDecoration: 'none' }}
-              onMouseEnter={e => e.currentTarget.style.background = CS.primaryPale}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <Bell style={{ width: 20, height: 20 }} />
+              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'all 0.15s', color: DS.textSub, textDecoration: 'none' }}
+              onMouseEnter={e => { e.currentTarget.style.background = DS.primaryPale; e.currentTarget.style.color = DS.primary; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = DS.textSub; }}>
+              <Bell style={{ width: 19, height: 19 }} />
               {unreadNotifications > 0 && (
                 <span style={{
                   position: 'absolute', top: -2, right: -2,
-                  minWidth: 20, height: 20, borderRadius: 9999,
-                  background: '#FF3040', color: '#fff',
-                  fontSize: 11, fontWeight: 800,
+                  minWidth: 18, height: 18, borderRadius: 9999,
+                  background: DS.danger, color: '#fff',
+                  fontSize: 10, fontWeight: 700,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 5px', border: '2.5px solid #fff',
+                  padding: '0 4px', border: '2px solid #fff',
                   lineHeight: 1, fontFamily: 'inherit',
-                  boxShadow: '0 1px 4px rgba(255,48,64,0.4)',
                 }}>
                   {unreadNotifications > 99 ? '99+' : unreadNotifications}
                 </span>
@@ -162,18 +185,32 @@ const UserLayout = ({ children }) => {
             </Link>
 
             {/* Avatar dropdown */}
-            <div ref={userMenuRef} style={{ position: 'relative' }}>
+            <div ref={userMenuRef} style={{ position: 'relative', marginLeft: 4 }}>
               <button onClick={() => setUserMenuOpen(!userMenuOpen)}
-                style={{ width: 36, height: 36, borderRadius: '50%', background: CS.dark, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14 }}>
+                style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${DS.primary}, #5fd878)`,
+                  border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontWeight: 700, fontSize: 14,
+                  transition: 'box-shadow 0.2s',
+                  boxShadow: userMenuOpen ? `0 0 0 3px ${DS.primaryPale}` : 'none',
+                  overflow: 'hidden',
+                }}>
                 {user?.profile_image
                   ? <img src={user.profile_image} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
                   : user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </button>
               {userMenuOpen && (
-                <div style={{ position: 'absolute', right: 0, top: 44, background: '#fff', border: '1px solid #E4E1EC', borderRadius: 16, boxShadow: '0 10px 40px rgba(15,23,42,0.12)', padding: '0.5rem', minWidth: 200, zIndex: 100 }}>
-                  <div style={{ padding: '0.75rem 1rem 0.5rem', borderBottom: '1px solid #E4E1EC', marginBottom: 4 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: CS.text }}>{user?.name || 'Student'}</div>
-                    <div style={{ fontSize: 12, color: CS.textSub, marginTop: 2 }}>{user?.email}</div>
+                <div style={{
+                  position: 'absolute', right: 0, top: 46,
+                  background: '#fff', border: `1px solid ${DS.border}`,
+                  borderRadius: 14, boxShadow: '0 12px 40px rgba(14,34,14,0.12), 0 2px 8px rgba(14,34,14,0.06)',
+                  padding: '0.375rem', minWidth: 220, zIndex: 100,
+                  animation: 'fadeUp 0.2s ease-out',
+                }}>
+                  <div style={{ padding: '0.75rem 1rem 0.625rem', borderBottom: `1px solid ${DS.borderLight}`, marginBottom: 4 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: DS.text }}>{user?.name || 'Student'}</div>
+                    <div style={{ fontSize: 12, color: DS.textMuted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
                   </div>
                   {[
                     { to: '/profile', label: 'My Profile', icon: User },
@@ -181,16 +218,16 @@ const UserLayout = ({ children }) => {
                     { to: '/wishlist', label: 'Wishlist', icon: Heart },
                   ].map(item => (
                     <Link key={item.to} to={item.to} onClick={() => setUserMenuOpen(false)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: CS.text, fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = CS.primaryPale}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: DS.text, fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'background 0.12s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = DS.primaryPale}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <item.icon style={{ width: 15, height: 15, color: CS.textSub }} />
+                      <item.icon style={{ width: 15, height: 15, color: DS.textSub }} />
                       {item.label}
                     </Link>
                   ))}
                   <button onClick={logout}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: '#BA1A1A', fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', width: '100%', transition: 'background 0.15s', fontFamily: 'inherit' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#FFDAD6'}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: DS.danger, fontSize: 14, fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', width: '100%', transition: 'background 0.12s', fontFamily: 'inherit', borderTop: `1px solid ${DS.borderLight}`, marginTop: 4, paddingTop: 12 }}
+                    onMouseEnter={e => e.currentTarget.style.background = DS.dangerPale}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <LogOut style={{ width: 15, height: 15 }} /> Sign Out
                   </button>
@@ -200,15 +237,15 @@ const UserLayout = ({ children }) => {
 
             {/* Mobile hamburger */}
             <button className="ul-hamburger" onClick={() => setMobileOpen(!mobileOpen)}
-              style={{ display: 'none', padding: 8, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: CS.text }}>
-              {mobileOpen ? <X style={{ width: 22, height: 22 }} /> : <Menu style={{ width: 22, height: 22 }} />}
+              style={{ display: 'none', padding: 8, borderRadius: 8, background: 'none', border: `1px solid ${DS.border}`, cursor: 'pointer', color: DS.text }}>
+              {mobileOpen ? <X style={{ width: 20, height: 20 }} /> : <Menu style={{ width: 20, height: 20 }} />}
             </button>
           </div>
         </div>
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div style={{ background: '#fff', borderTop: '1px solid #E4E1EC', padding: '1rem 1.5rem' }}>
+          <div style={{ background: '#fff', borderTop: `1px solid ${DS.border}`, padding: '0.75rem 1.5rem 1rem', animation: 'fadeUp 0.25s ease-out' }}>
             {[
               { to: '/resources', label: 'Browse' },
               { to: '/add-resource', label: 'Sell' },
@@ -216,30 +253,109 @@ const UserLayout = ({ children }) => {
               { to: '/messages', label: 'Messages' },
               { to: '/notifications', label: 'Notifications' },
               { to: '/profile', label: 'Profile' },
+              { to: '/wishlist', label: 'Wishlist' },
             ].map(item => (
               <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
-                style={{ display: 'block', padding: '0.75rem 0', color: CS.text, textDecoration: 'none', fontSize: 15, fontWeight: 500, borderBottom: '1px solid #F5F2FD' }}>
+                style={{
+                  display: 'block', padding: '0.75rem 0', color: isActive(item.to) ? DS.primary : DS.text,
+                  textDecoration: 'none', fontSize: 15, fontWeight: isActive(item.to) ? 600 : 500,
+                  borderBottom: `1px solid ${DS.borderLight}`,
+                }}>
                 {item.label}
               </Link>
             ))}
             <button onClick={logout}
-              style={{ display: 'block', padding: '0.75rem 0', color: '#BA1A1A', background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit', width: '100%', textAlign: 'left', marginTop: 4 }}>
+              style={{ display: 'block', padding: '0.75rem 0', color: DS.danger, background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit', width: '100%', textAlign: 'left', marginTop: 4 }}>
               Sign Out
             </button>
           </div>
         )}
       </nav>
 
-      {/* ═══ PAGE CONTENT ══════════════════════════════════════════════ */}
-      <main style={{ paddingTop: 64, minHeight: '100vh' }}>
+      {/* ═══ PAGE CONTENT ════════════════════════════════════════════════ */}
+      <main style={{ paddingTop: 64, minHeight: 'calc(100vh - 320px)' }}>
         {children}
       </main>
+
+      {/* ═══ FOOTER ══════════════════════════════════════════════════════ */}
+      <footer style={{
+        background: DS.dark, padding: '3.5rem 0 1.5rem', color: 'rgba(255,255,255,0.7)', fontFamily: FONT,
+      }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem' }}>
+          {/* Footer grid */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '2.5rem',
+            paddingBottom: '2.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)',
+          }} className="ul-footer-grid">
+            {/* Brand */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <span style={{ fontWeight: 700, fontSize: 16, color: '#fff', letterSpacing: '-0.02em' }}>🎓 CampusCrate</span>
+              </div>
+              <p style={{ fontSize: 13, lineHeight: 1.7, color: 'rgba(255,255,255,0.45)', maxWidth: 260 }}>
+                The trusted campus marketplace for students. Buy, sell, and exchange textbooks, notes, and more.
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h4 style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Quick Links</h4>
+              {[
+                { label: 'Browse Resources', to: '/resources' },
+                { label: 'Sell an Item', to: '/add-resource' },
+                { label: 'Dashboard', to: '/dashboard' },
+                { label: 'Messages', to: '/messages' },
+              ].map(l => (
+                <Link key={l.to} to={l.to} style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 8, textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Account */}
+            <div>
+              <h4 style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Account</h4>
+              {[
+                { label: 'My Profile', to: '/profile' },
+                { label: 'Wishlist', to: '/wishlist' },
+                { label: 'Notifications', to: '/notifications' },
+              ].map(l => (
+                <Link key={l.to} to={l.to} style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 8, textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Support */}
+            <div>
+              <h4 style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Support</h4>
+              {['Help Center', 'Safety Tips', 'Community Guidelines', 'Contact Us'].map(label => (
+                <span key={label} style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 8, cursor: 'default' }}>
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.5rem', fontSize: 12, color: 'rgba(255,255,255,0.3)' }} className="ul-footer-bottom">
+            <span>© {new Date().getFullYear()} CampusCrate. All rights reserved.</span>
+            <span>Made with ♥ for students</span>
+          </div>
+        </div>
+      </footer>
 
       <style>{`
         @media (max-width: 768px) {
           .ul-desktop-links { display: none !important; }
           .ul-search { display: none !important; }
           .ul-hamburger { display: flex !important; }
+          .ul-footer-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+          .ul-footer-bottom { flex-direction: column !important; gap: 0.5rem !important; text-align: center !important; }
         }
       `}</style>
     </div>
