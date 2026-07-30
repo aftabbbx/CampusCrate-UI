@@ -1,10 +1,9 @@
 /**
- * CampusCrate — Homepage  (Solidroad-Inspired Light Design)
+ * CampusCrate — Homepage  (Premium Editorial Redesign)
  *
- * Visual: Solidroad.com reference — illustrated hero, bright natural feel,
- * white navbar, green CTAs, forest-dark text, nature palette
- * Typography: Inter (standing in for Matter)
- * Palette: Off-White / White / Amber Yellow / Leaf Green / Forest Dark
+ * Visual: Premium YC-funded startup aesthetic. Minimal, warm, editorial.
+ * Typography: Inter
+ * Palette: Color Hunt #FF9E20 / #215E61 / #1D2128 / #F4F2F2
  *
  * STRICT: No functionality changed. All APIs, routing, auth,
  * state, contexts preserved 1:1. Only visual layer redesigned.
@@ -36,35 +35,36 @@ const FONT = "'Inter', system-ui, -apple-system, sans-serif";
 
 /* ─── Hero Background ──────────────────────────────────────────────────────── */
 const HERO_IMAGE = "/uploads/gC984JO2A2ifns4lUyrBlRxl6w.jpg";
+const HERO_VIDEO = "/uploads/Firefly Cinematic premium brand film for a modern student marketplace platform.__Opening shot- Extre.mp4";
 
-/* ─── Solidroad Design Tokens ──────────────────────────────────────────────── */
+/* ─── Official Design Tokens ──────────────────────────────────────────────── */
 const T = {
-  bg: "#f9f9f9",
-  surface: "#ffffff",
-  surfaceAlt: "#f9f9f9",
-  primary: "#0e220e",
-  accent: "#f6d045",
-  accentLt: "#f8dc6a",
-  accentDk: "#d4b030",
-  green: "#47c163",
-  greenDk: "#3aad54",
-  greenLt: "#5fd878",
-  text: "#0e220e",
-  textSub: "#4a5e4a",
-  textMuted: "#8a9a8a",
-  border: "#d3ddd3",
-  borderLt: "#e8f0e8",
-  danger: "#e05c3a",
-  paleMint: "#cbeed3",
-  paleTeal: "#bfe7e6",
-  paleYellow: "#fcf2cb",
-  white: "#ffffff",
-  black: "#000000",
+  bg: "#F4F2F2",
+  surface: "#FFFFFF",
+  surfaceAlt: "#E6EEEE",
+  primary: "#1D2128",
+  accent: "#FF9E20",
+  accentLt: "rgba(255,158,32,0.14)",
+  accentDk: "#D98212",
+  green: "#215E61",
+  greenDk: "#194A4D",
+  greenLt: "rgba(33,94,97,0.18)",
+  text: "#1D2128",
+  textSub: "rgba(29,33,40,0.72)",
+  textMuted: "rgba(29,33,40,0.68)",
+  border: "rgba(29,33,40,0.09)",
+  borderLt: "rgba(29,33,40,0.06)",
+  danger: "#D98212",
+  paleMint: "#E6EEEE",
+  paleTeal: "#DDEAEA",
+  paleYellow: "rgba(255,158,32,0.12)",
+  white: "#FFFFFF",
+  black: "#1D2128",
 };
 
 const EASE = [0.22, 1, 0.36, 1];
 
-/* ─── Global Styles (no custom cursor) ───────────────────────────────────── */
+/* ─── Global Styles ────────────────────────────────────────────────────────── */
 const GlobalStyle = () => {
   useEffect(() => {
     const id = "cc-global-style";
@@ -78,33 +78,45 @@ const GlobalStyle = () => {
       html { scroll-behavior: smooth; }
       body {
         font-family: ${FONT};
-        background: ${T.bg};
-        color: ${T.text};
+        background: #F4F2F2;
+        color: #1D2128;
         -webkit-font-smoothing: antialiased;
         overflow-x: hidden;
         margin: 0;
       }
 
-      ::selection { background: ${T.green}30; color: ${T.primary}; }
+      ::selection { background: rgba(255,158,32,0.28); color: #1D2128; }
 
       ::-webkit-scrollbar { width: 5px; }
-      ::-webkit-scrollbar-track { background: ${T.bg}; }
-      ::-webkit-scrollbar-thumb { background: ${T.green}60; border-radius: 10px; }
-      ::-webkit-scrollbar-thumb:hover { background: ${T.green}; }
+      ::-webkit-scrollbar-track { background: #F4F2F2; }
+      ::-webkit-scrollbar-thumb { background: rgba(33,94,97,0.46); border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: #215E61; }
 
       @keyframes cc-spin { to { transform: rotate(360deg); } }
       .cc-spinner {
         width: 28px; height: 28px;
-        border: 2.5px solid ${T.border};
-        border-top-color: ${T.green};
+        border: 2.5px solid rgba(29,33,40,0.08);
+        border-top-color: #215E61;
         border-radius: 50%;
         animation: cc-spin 0.8s linear infinite;
       }
 
+      @keyframes hero-zoom {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.06); }
+      }
+
       a { text-decoration: none; color: inherit; }
+      button, input { font-family: ${FONT}; }
+      button { -webkit-tap-highlight-color: transparent; }
+      img, video { max-width: 100%; }
 
       @media (min-width: 769px) { .cc-mob-only { display: none !important; } }
       @media (max-width: 768px) { .cc-desk-only { display: none !important; } }
+
+      @media (max-width: 1180px) {
+        .cc-hero-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      }
 
       @media (max-width: 900px) {
         .cc-grid-2 { grid-template-columns: 1fr !important; }
@@ -112,15 +124,38 @@ const GlobalStyle = () => {
         .cc-footer-grid { grid-template-columns: 1fr !important; }
         .cc-trust-layout { grid-template-columns: 1fr !important; }
         .cc-cat-layout { grid-template-columns: 1fr !important; }
+        .cc-how-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        .cc-test-grid { grid-template-columns: 1fr !important; }
+        .cc-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        .cc-nav-shell { padding: 8px 14px !important; }
+        .cc-hero-section { min-height: auto !important; padding: 116px 0 40px !important; }
+        .cc-hero-copy { padding-top: 0 !important; }
+        .cc-hero-stats-shell {
+          position: relative !important;
+          padding: 34px 20px 0 !important;
+        }
+        .cc-listing-filters {
+          width: 100% !important;
+          overflow-x: auto !important;
+          justify-content: flex-start !important;
+          scrollbar-width: none;
+        }
+        .cc-listing-filters::-webkit-scrollbar { display: none; }
+        .cc-trust-cards { grid-template-columns: 1fr !important; }
       }
       @media (max-width: 600px) {
+        .cc-nav-frame { padding: 10px 14px !important; }
         .cc-grid-4 { grid-template-columns: 1fr !important; }
-        .cc-hero-heading { font-size: 2rem !important; line-height: 1.15 !important; letter-spacing: -0.8px !important; }
+        .cc-hero-stats-grid { grid-template-columns: 1fr !important; }
         .cc-cat-pills { flex-wrap: wrap !important; }
         .cc-hero-input { width: 100% !important; flex-direction: column !important; }
+        .cc-hero-input > div { width: 100% !important; }
         .cc-hero-input input { border-radius: 12px !important; }
         .cc-hero-input button { border-radius: 12px !important; width: 100% !important; }
         .cc-trust-cards { grid-template-columns: 1fr !important; }
+        .cc-how-grid { grid-template-columns: 1fr !important; }
+        .cc-stats-grid { grid-template-columns: 1fr !important; }
+        .cc-hero-heading { font-size: 2.35rem !important; line-height: 1.08 !important; letter-spacing: 0 !important; }
       }
     `;
     document.head.appendChild(el);
@@ -129,7 +164,7 @@ const GlobalStyle = () => {
   return null;
 };
 
-/* ─── Animated Counter ──────────────────────────────────────────────────────── */
+/* ─── Animated Counter ────────────────────────────────────────────────────── */
 const Counter = ({ target, suffix = "", decimals = 0, duration = 2 }) => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
@@ -163,9 +198,9 @@ const Reveal = ({ children, delay = 0, y = 30, style, className }) => {
 
 /* ─── Type Badge ────────────────────────────────────────────────────────────── */
 const typeBadge = (type) => {
-  if (type === "Free") return { bg: T.paleMint, color: "#2d7a3e", label: "Free" };
-  if (type === "Exchange") return { bg: T.paleTeal, color: "#2a7a7a", label: "Exchange" };
-  return { bg: T.paleYellow, color: "#8a7020", label: type || "Sell" };
+  if (type === "Free") return { bg: T.paleMint, color: T.greenDk, label: "Free" };
+  if (type === "Exchange") return { bg: T.paleTeal, color: T.green, label: "Exchange" };
+  return { bg: T.paleYellow, color: T.accentDk, label: type || "Sell" };
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -250,84 +285,99 @@ const Homepage = () => {
     { to: "/wishlist", label: "Wishlist" },
   ];
 
+  const howItWorks = [
+    { step: "01", title: "Sign Up", desc: "Create your free student account with your university email.", icon: User },
+    { step: "02", title: "List or Browse", desc: "Post items you want to sell or discover amazing deals.", icon: Package },
+    { step: "03", title: "Connect", desc: "Message sellers securely and arrange meetups on campus.", icon: MessageSquare },
+    { step: "04", title: "Exchange", desc: "Meet up and complete your trade safely and easily.", icon: Handshake },
+  ];
+
+  const testimonials = [
+    { name: "Aisha Patel", uni: "Delhi University", quote: "CampusCrate helped me save over ₹3,000 on textbooks this semester. The verified student community makes everything feel safe.", rating: 5, avatar: "AP" },
+    { name: "Rohan Sharma", uni: "IIT Bombay", quote: "I sold my old engineering notes in under 24 hours. The messaging system is super smooth and the community is amazing.", rating: 5, avatar: "RS" },
+    { name: "Priya Nair", uni: "Christ University", quote: "Best campus marketplace I've ever used. The category filters and wishlist feature make browsing so convenient.", rating: 5, avatar: "PN" },
+  ];
+
+  const statsData = [
+    { value: 2400, suffix: "+", label: "Students", icon: Users },
+    { value: 1200, suffix: "+", label: "Books", icon: BookOpen },
+    { value: allResources.length || 850, suffix: "+", label: "Listings", icon: Package },
+    { value: 3400, suffix: "+", label: "Transactions", icon: TrendingUp },
+    { value: 15, suffix: "+", label: "Universities", icon: GraduationCap },
+  ];
+
   /* ── Render ──────────────────────────────────────────────────────────────── */
   return (
     <>
       <GlobalStyle />
 
-      {/* ═══ NAVBAR — Dark Forest Glass Theme ═══════════════════════════════ */}
+      {/* ═══ NAVBAR — Floating Pill ═══════════════════════════════════════ */}
       <motion.nav
+        className="cc-nav-frame"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         style={{
           position: "fixed", top: 0, left: 0, width: "100%", zIndex: 1000,
-          padding: "0 clamp(20px, 3vw, 48px)",
-          background: scrolled
-            ? "rgba(10, 26, 10, 0.92)"
-            : "rgba(10, 26, 10, 0.35)",
-          backdropFilter: "blur(20px) saturate(180%)",
-          WebkitBackdropFilter: "blur(20px) saturate(180%)",
-          borderBottom: scrolled
-            ? "1px solid rgba(71,193,99,0.15)"
-            : "1px solid rgba(255,255,255,0.08)",
-          boxShadow: scrolled
-            ? "0 8px 32px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(71,193,99,0.1)"
-            : "none",
-          transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
+          padding: scrolled ? "12px 24px" : "18px 24px",
+          transition: "padding 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       >
-        <div style={{
-          maxWidth: 1360, margin: "0 auto",
+        <div className="cc-nav-shell" style={{
+          maxWidth: 1260, margin: "0 auto",
+          background: "rgba(255,255,255,0.94)",
+          borderRadius: 9999,
+          border: `1px solid ${T.border}`,
+          backdropFilter: "blur(18px)",
+          boxShadow: scrolled
+            ? "0 18px 50px rgba(29,33,40,0.12)"
+            : "0 10px 32px rgba(29,33,40,0.08)",
+          padding: "10px 12px 10px 18px",
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          height: scrolled ? 60 : 68,
-          transition: "height 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+          transition: "box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+          minHeight: 62,
         }}>
 
-          {/* ── Left: Logo + Nav Links ── */}
-          <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
-            <Link to="/" style={{
-              display: "flex", alignItems: "center", gap: 10,
-              textDecoration: "none", flexShrink: 0,
-            }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: `linear-gradient(135deg, ${T.accent}, ${T.accentDk})`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 17,
-                boxShadow: `0 2px 12px rgba(246,208,69,0.3)`,
-                border: "1px solid rgba(255,255,255,0.15)",
-              }}>🎓</div>
-              <span style={{
-                fontFamily: FONT, color: "#fff", fontWeight: 800,
-                fontSize: 19, letterSpacing: "-0.5px",
-              }}>CampusCrate</span>
-            </Link>
+          {/* ── Left: Logo ── */}
+          <Link to="/" style={{
+            display: "flex", alignItems: "center", gap: 10,
+            textDecoration: "none", flexShrink: 0,
+          }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 14,
+              background: T.accent,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 17,
+              boxShadow: "0 10px 24px rgba(255,158,32,0.22)",
+            }}>🎓</div>
+            <span style={{
+              fontFamily: FONT, color: T.primary, fontWeight: 800,
+              fontSize: 19, letterSpacing: 0,
+            }}>CampusCrate</span>
+          </Link>
 
-            {/* Desktop nav links */}
-            <div className="cc-desk-only" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {navLinks.map(link => {
-                const isActive = window.location.pathname === link.to;
-                return (
-                  <Link key={link.to} to={link.to}>
-                    <span style={{
-                      fontFamily: FONT, fontSize: 14, fontWeight: isActive ? 600 : 450,
-                      color: isActive ? "#fff" : "rgba(255,255,255,0.6)",
-                      letterSpacing: "-0.1px",
-                      padding: "8px 16px",
-                      borderRadius: 10,
-                      background: isActive ? "rgba(71,193,99,0.18)" : "transparent",
-                      border: isActive ? "1px solid rgba(71,193,99,0.25)" : "1px solid transparent",
-                      display: "inline-block",
-                      transition: "all 0.3s ease",
-                    }}
-                      onMouseEnter={e => { if (!isActive) { e.target.style.color = "#fff"; e.target.style.background = "rgba(255,255,255,0.08)"; e.target.style.borderColor = "rgba(255,255,255,0.1)"; } }}
-                      onMouseLeave={e => { if (!isActive) { e.target.style.color = "rgba(255,255,255,0.6)"; e.target.style.background = "transparent"; e.target.style.borderColor = "transparent"; } }}
-                    >{link.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+          {/* Desktop nav links */}
+          <div className="cc-desk-only" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {navLinks.map(link => {
+              const isActive = window.location.pathname === link.to;
+              return (
+                <Link key={link.to} to={link.to}>
+                  <span style={{
+                    fontFamily: FONT, fontSize: 14, fontWeight: isActive ? 600 : 450,
+                    color: isActive ? T.primary : T.textMuted,
+                    letterSpacing: 0,
+                    padding: "9px 16px",
+                    borderRadius: 9999,
+                    background: isActive ? T.paleYellow : "transparent",
+                    display: "inline-block",
+                    transition: "all 0.3s ease",
+                  }}
+                    onMouseEnter={e => { if (!isActive) { e.target.style.color = T.primary; e.target.style.background = "rgba(29,33,40,0.04)"; } }}
+                    onMouseLeave={e => { if (!isActive) { e.target.style.color = T.textMuted; e.target.style.background = "transparent"; } }}
+                  >{link.label}</span>
+                </Link>
+              );
+            })}
           </div>
 
           {/* ── Right: Icons + Avatar + CTA ── */}
@@ -344,19 +394,19 @@ const Homepage = () => {
                     position: "relative", width: 38, height: 38, borderRadius: 10,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "all 0.25s ease",
-                    border: "1px solid transparent",
+                    border: `1px solid ${T.borderLt}`,
+                    background: "rgba(255,255,255,0.68)",
                   }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.transform = "translateY(0)"; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = T.paleMint; e.currentTarget.style.borderColor = T.border; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.68)"; e.currentTarget.style.borderColor = T.borderLt; }}
                   >
-                    <Icon size={18} color="rgba(255,255,255,0.65)" strokeWidth={1.6} />
+                    <Icon size={18} color={T.textMuted} strokeWidth={1.6} />
                     {count > 0 && (
                       <span style={{
                         position: "absolute", top: 6, right: 6,
                         width: 8, height: 8, borderRadius: "50%",
                         background: T.accent,
-                        border: "2px solid rgba(10,26,10,0.8)",
-                        boxShadow: `0 0 8px ${T.accent}60`,
+                        border: `2px solid ${T.white}`,
                       }} />
                     )}
                   </div>
@@ -365,7 +415,7 @@ const Homepage = () => {
             </div>
 
             {/* Divider */}
-            <div className="cc-desk-only" style={{ width: 1, height: 28, background: "rgba(255,255,255,0.1)", margin: "0 8px" }} />
+            <div className="cc-desk-only" style={{ width: 1, height: 28, background: T.border, margin: "0 8px" }} />
 
             {/* Avatar dropdown */}
             <div ref={userMenuRef} style={{ position: "relative" }}>
@@ -373,34 +423,31 @@ const Homepage = () => {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="cc-desk-only"
                 style={{
-                  background: userMenuOpen ? "rgba(255,255,255,0.12)" : "transparent",
-                  border: `1px solid ${userMenuOpen ? "rgba(255,255,255,0.15)" : "transparent"}`,
+                  background: userMenuOpen ? "rgba(29,33,40,0.04)" : "transparent",
+                  border: `1px solid ${userMenuOpen ? T.border : "transparent"}`,
                   cursor: "pointer",
                   fontFamily: FONT, fontSize: 13, fontWeight: 500,
-                  color: "rgba(255,255,255,0.8)", padding: "5px 12px 5px 5px",
+                  color: T.textMuted, padding: "5px 12px 5px 5px",
                   transition: "all 0.25s ease",
                   display: "flex", alignItems: "center", gap: 9,
-                  borderRadius: 12,
+                  borderRadius: 9999,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(29,33,40,0.04)"; e.currentTarget.style.borderColor = T.border; }}
                 onMouseLeave={e => { if (!userMenuOpen) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "transparent"; } }}
               >
                 {user?.profile_image
                   ? <img src={user.profile_image} alt="" style={{
-                    width: 30, height: 30, borderRadius: 8, objectFit: "cover",
-                    border: "2px solid rgba(71,193,99,0.3)",
+                    width: 30, height: 30, borderRadius: 9999, objectFit: "cover",
                   }} />
                   : <div style={{
-                    width: 30, height: 30, borderRadius: 8,
-                    background: `linear-gradient(135deg, rgba(71,193,99,0.3), rgba(71,193,99,0.15))`,
-                    color: T.greenLt,
+                    width: 30, height: 30, borderRadius: 9999,
+                    background: T.paleMint, color: T.green,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 12, fontWeight: 700,
-                    border: "1px solid rgba(71,193,99,0.25)",
                   }}>{user?.name?.charAt(0)?.toUpperCase() || "U"}</div>
                 }
                 {user?.name?.split(" ")[0] || "Account"}
-                <ChevronDown size={13} color="rgba(255,255,255,0.45)" style={{ transition: "transform 0.25s", transform: userMenuOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+                <ChevronDown size={13} color={T.textMuted} style={{ transition: "transform 0.25s", transform: userMenuOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
               </button>
 
               <AnimatePresence>
@@ -412,26 +459,23 @@ const Homepage = () => {
                     transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                     style={{
                       position: "absolute", top: "calc(100% + 12px)", right: 0,
-                      background: "rgba(14,28,14,0.95)",
-                      backdropFilter: "blur(24px)",
-                      border: "1px solid rgba(71,193,99,0.15)",
+                      background: T.white,
+                      border: `1px solid ${T.border}`,
                       borderRadius: 16, overflow: "hidden",
-                      boxShadow: "0 20px 60px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)",
+                      boxShadow: "0 20px 60px rgba(29,33,40,0.14)",
                       minWidth: 240, zIndex: 100,
                     }}
                   >
                     <div style={{
                       padding: "16px 18px",
-                      borderBottom: "1px solid rgba(255,255,255,0.08)",
-                      background: "rgba(71,193,99,0.06)",
+                      borderBottom: `1px solid ${T.borderLt}`,
                     }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <div style={{
                           width: 40, height: 40, borderRadius: 12,
-                          background: `linear-gradient(135deg, rgba(71,193,99,0.25), rgba(71,193,99,0.1))`,
-                          border: `1.5px solid rgba(71,193,99,0.3)`,
+                          background: T.paleMint,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 15, fontWeight: 700, color: T.greenLt, fontFamily: FONT,
+                          fontSize: 15, fontWeight: 700, color: T.green, fontFamily: FONT,
                           overflow: "hidden", flexShrink: 0,
                         }}>
                           {user?.profile_image
@@ -439,8 +483,8 @@ const Homepage = () => {
                             : user?.name?.charAt(0)?.toUpperCase() || "U"}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: "#fff" }}>{user?.name || "Student"}</div>
-                          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{user?.email}</div>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: T.primary }}>{user?.name || "Student"}</div>
+                          <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>{user?.email}</div>
                         </div>
                       </div>
                     </div>
@@ -454,24 +498,24 @@ const Homepage = () => {
                           <div style={{
                             display: "flex", alignItems: "center", gap: 12,
                             padding: "10px 14px", fontSize: 14, fontWeight: 500,
-                            color: "rgba(255,255,255,0.65)", transition: "all 0.2s",
+                            color: T.textMuted, transition: "all 0.2s",
                             borderRadius: 10,
                           }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(71,193,99,0.1)"; e.currentTarget.style.color = "#fff"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+                            onMouseEnter={e => { e.currentTarget.style.background = T.paleMint; e.currentTarget.style.color = T.primary; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = T.textMuted; }}
                           ><item.Icon size={16} strokeWidth={1.5} color={T.green} />{item.label}</div>
                         </Link>
                       ))}
                     </div>
-                    <div style={{ padding: "4px 6px 6px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ padding: "4px 6px 6px", borderTop: `1px solid ${T.borderLt}` }}>
                       <button onClick={logout} style={{
                         width: "100%", display: "flex", alignItems: "center", gap: 12,
                         padding: "10px 14px", fontSize: 14, fontWeight: 500,
-                        color: "#e05c3a", background: "none", border: "none",
+                        color: T.danger, background: "none", border: "none",
                         cursor: "pointer", transition: "all 0.2s",
                         borderRadius: 10, fontFamily: FONT,
                       }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(224,92,58,0.1)"}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(217,130,18,0.08)"}
                         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                       ><LogOut size={16} strokeWidth={1.5} /> Sign Out</button>
                     </div>
@@ -480,21 +524,20 @@ const Homepage = () => {
               </AnimatePresence>
             </div>
 
-            {/* Golden CTA */}
+            {/* Orange CTA */}
             <Link to="/add-resource" className="cc-desk-only">
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
-                background: `linear-gradient(135deg, ${T.accent}, ${T.accentDk})`,
-                color: T.primary,
-                padding: "10px 22px", borderRadius: 12,
+                background: T.accent,
+                color: T.white,
+                padding: "12px 24px", borderRadius: 9999,
                 fontSize: 13, fontWeight: 700, fontFamily: FONT,
                 transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
-                boxShadow: `0 2px 12px rgba(246,208,69,0.25), inset 0 1px 0 rgba(255,255,255,0.3)`,
-                letterSpacing: "-0.1px",
-                border: "1px solid rgba(246,208,69,0.4)",
+                letterSpacing: 0,
+                border: "none",
               }}
-                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(246,208,69,0.35), inset 0 1px 0 rgba(255,255,255,0.3)"; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(246,208,69,0.25), inset 0 1px 0 rgba(255,255,255,0.3)"; }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.background = T.accentDk; e.currentTarget.style.boxShadow = "0 6px 20px rgba(255,158,32,0.28)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.background = T.accent; e.currentTarget.style.boxShadow = "none"; }}
               >
                 List Item <ArrowRight size={14} />
               </div>
@@ -505,51 +548,75 @@ const Homepage = () => {
               className="cc-mob-only"
               onClick={() => setMobileOpen(true)}
               style={{
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(29,33,40,0.04)",
+                border: `1px solid ${T.border}`,
                 padding: 10, borderRadius: 10,
                 display: "flex", flexDirection: "column", gap: 4,
                 cursor: "pointer", transition: "all 0.25s",
               }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.15)"}
-              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.08)"}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(29,33,40,0.08)"}
+              onMouseLeave={e => e.currentTarget.style.background = "rgba(29,33,40,0.04)"}
             >
-              <div style={{ width: 18, height: 2, background: "#fff", borderRadius: 1 }} />
-              <div style={{ width: 18, height: 2, background: "#fff", borderRadius: 1 }} />
-              <div style={{ width: 12, height: 2, background: "rgba(255,255,255,0.5)", borderRadius: 1 }} />
+              <div style={{ width: 18, height: 2, background: T.primary, borderRadius: 1 }} />
+              <div style={{ width: 18, height: 2, background: T.primary, borderRadius: 1 }} />
+              <div style={{ width: 12, height: 2, background: T.textMuted, borderRadius: 1 }} />
             </button>
           </div>
         </div>
       </motion.nav>
 
-      {/* ═══ HERO — Full illustrated image bg + centered text ═══════════════ */}
-      <section style={{
+      {/* ═══ HERO — Cinematic image bg + editorial text ═══════════════════ */}
+      <section className="cc-hero-section" style={{
         position: "relative", width: "100%",
-        minHeight: "100vh",
+        minHeight: "100svh",
         overflow: "hidden",
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
+        padding: "112px 0 190px",
+        background: T.bg,
       }}>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster={HERO_IMAGE}
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0, width: "100%", height: "100%",
+            objectFit: "cover", pointerEvents: "none",
+            filter: "saturate(1.05) contrast(1.02) brightness(0.96)",
+          }}
+        >
+          <source src={HERO_VIDEO} type="video/mp4" />
+        </video>
         <img
           src={HERO_IMAGE}
           alt=""
           style={{
             position: "absolute", inset: 0, width: "100%", height: "100%",
             objectFit: "cover", pointerEvents: "none",
+            opacity: 0.06,
+            animation: "hero-zoom 28s ease-in-out infinite alternate",
           }}
         />
 
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(14,34,14,0.25) 60%, rgba(14,34,14,0.6) 100%)",
+          background: "linear-gradient(120deg, rgba(244,242,242,0.70) 0%, rgba(244,242,242,0.38) 46%, rgba(33,94,97,0.18) 100%)",
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to bottom, rgba(244,242,242,0.04) 0%, rgba(244,242,242,0.16) 58%, rgba(244,242,242,0.94) 100%)",
           pointerEvents: "none",
         }} />
 
-        <div style={{
+        <div className="cc-hero-copy" style={{
           position: "relative", zIndex: 10,
           textAlign: "center",
-          padding: "100px clamp(24px, 6vw, 80px) 0",
-          maxWidth: 800,
+          padding: "36px clamp(24px, 6vw, 80px) 0",
+          maxWidth: 1000,
         }}>
           <motion.h1
             className="cc-hero-heading"
@@ -558,12 +625,13 @@ const Homepage = () => {
             transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
             style={{
               fontFamily: FONT,
-              fontSize: "clamp(36px, 6vw, 60px)",
-              lineHeight: 1.1,
-              letterSpacing: "-1.8px",
-              fontWeight: 500,
-              color: "#fff",
-              marginBottom: 20,
+              fontSize: "clamp(46px, 8vw, 88px)",
+              lineHeight: 0.98,
+              letterSpacing: 0,
+              fontWeight: 800,
+              color: T.primary,
+              marginBottom: 24,
+              textWrap: "balance",
             }}
           >
             Buy, sell & exchange{"\n"}campus resources
@@ -575,16 +643,16 @@ const Homepage = () => {
             transition={{ duration: 0.8, delay: 0.35, ease: "easeOut" }}
             style={{
               fontFamily: FONT,
-              color: "rgba(255,255,255,0.85)",
-              fontSize: "clamp(16px, 2vw, 19px)",
-              lineHeight: 1.5, maxWidth: 550,
-              margin: "0 auto 32px",
+              color: T.textMuted,
+              fontSize: "clamp(17px, 2vw, 21px)",
+              lineHeight: 1.65, maxWidth: 620,
+              margin: "0 auto 34px",
               fontWeight: 400,
-              letterSpacing: "-0.38px",
+              letterSpacing: 0,
+              textWrap: "balance",
             }}
           >
-            Make every campus exchange better, faster, and more
-            trusted with the student marketplace you can rely on.
+            Join thousands of verified students trading textbooks, notes, and essentials on the most trusted campus marketplace.
           </motion.p>
 
           {!isProfileComplete && (
@@ -593,19 +661,20 @@ const Homepage = () => {
               transition={{ delay: 0.5 }}
               style={{
                 marginBottom: 20, display: "inline-flex", alignItems: "center",
-                gap: 8, padding: "10px 18px", borderRadius: 12,
-                background: "rgba(224,92,58,0.15)", backdropFilter: "blur(12px)",
-                border: "1px solid rgba(224,92,58,0.25)",
-                fontSize: 13, color: "#fff", fontWeight: 500,
+                gap: 8, padding: "10px 18px", borderRadius: 9999,
+                background: "rgba(255,255,255,0.84)", backdropFilter: "blur(12px)",
+                border: "1px solid rgba(255,158,32,0.24)",
+                fontSize: 13, color: T.primary, fontWeight: 500,
+                boxShadow: "0 12px 36px rgba(29,33,40,0.08)",
               }}
             >
-              <AlertTriangle size={14} />
+              <AlertTriangle size={14} color={T.accent} />
               Complete your profile
               <Link to="/profile" style={{ color: T.accent, fontWeight: 700 }}>Go →</Link>
             </motion.div>
           )}
 
-          {/* Search / CTA Input Bar — Solidroad style */}
+          {/* Search / CTA Input Bar */}
           <motion.div
             className="cc-hero-input"
             initial={{ opacity: 0, y: 20 }}
@@ -615,10 +684,13 @@ const Homepage = () => {
               display: "inline-flex", alignItems: "center",
               background: "rgba(255,255,255,0.95)",
               backdropFilter: "blur(20px)",
-              borderRadius: 16, padding: 6,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
-              maxWidth: 520, width: "100%",
-              border: `1px solid ${T.border}`,
+              borderRadius: 9999, padding: 7,
+              boxShadow: searchFocused
+                ? "0 20px 60px rgba(29,33,40,0.14), 0 0 0 5px rgba(33,94,97,0.18)"
+                : "0 18px 56px rgba(29,33,40,0.12), 0 2px 10px rgba(29,33,40,0.05)",
+              maxWidth: 590, width: "100%",
+              border: `1px solid ${searchFocused ? T.green : T.border}`,
+              transition: "all 0.28s ease",
             }}
           >
             <div style={{
@@ -638,7 +710,7 @@ const Homepage = () => {
                   border: "none", outline: "none", background: "transparent",
                   flex: 1, fontFamily: FONT, fontSize: 15, fontWeight: 400,
                   color: T.primary, padding: "12px 0",
-                  letterSpacing: "-0.15px",
+                  letterSpacing: 0,
                 }}
               />
             </div>
@@ -646,39 +718,99 @@ const Homepage = () => {
               onClick={() => navigate("/resources")}
               style={{
                 display: "flex", alignItems: "center", gap: 8,
-                background: T.green, color: "#fff",
-                padding: "12px 24px", borderRadius: 12,
+                background: T.accent, color: T.white,
+                padding: "14px 28px", borderRadius: 9999,
                 fontSize: 14, fontWeight: 600, fontFamily: FONT,
                 border: "none", cursor: "pointer",
                 transition: "all 0.25s",
                 whiteSpace: "nowrap",
-                boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.15)",
               }}
-              onMouseEnter={e => e.currentTarget.style.background = T.greenDk}
-              onMouseLeave={e => e.currentTarget.style.background = T.green}
+              onMouseEnter={e => e.currentTarget.style.background = T.accentDk}
+              onMouseLeave={e => e.currentTarget.style.background = T.accent}
             >
               Explore <ArrowRight size={14} />
             </button>
           </motion.div>
+
+          {/* Primary & Secondary CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.65 }}
+            style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap", marginTop: 30 }}
+          >
+            <button onClick={() => navigate("/resources")}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 10,
+                background: T.accent, color: T.white,
+                padding: "14px 32px", borderRadius: 9999,
+                fontSize: 15, fontWeight: 700, fontFamily: FONT,
+                border: "none", cursor: "pointer",
+                transition: "all 0.3s ease",
+                letterSpacing: 0,
+                boxShadow: "0 16px 34px rgba(255,158,32,0.22)",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1.02)"; e.currentTarget.style.background = T.accentDk; e.currentTarget.style.boxShadow = "0 18px 38px rgba(255,158,32,0.28)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.background = T.accent; e.currentTarget.style.boxShadow = "0 16px 34px rgba(255,158,32,0.22)"; }}
+            >Explore Marketplace <ArrowRight size={15} /></button>
+            <button onClick={() => navigate("/add-resource")}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 10,
+                background: T.white, color: T.primary,
+                border: `1.5px solid ${T.border}`,
+                padding: "14px 32px", borderRadius: 9999,
+                fontSize: 15, fontWeight: 600, fontFamily: FONT,
+                transition: "all 0.3s ease", cursor: "pointer",
+                boxShadow: "0 12px 34px rgba(29,33,40,0.08)",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = T.paleMint; e.currentTarget.style.borderColor = T.green; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = T.white; e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "translateY(0)"; }}
+            >Sell Your Item <ArrowUpRight size={15} /></button>
+          </motion.div>
+
+          {/* Trust Badges */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap", marginTop: 32 }}
+          >
+            {[
+              { icon: Shield, text: "Verified Students" },
+              { icon: MessageSquare, text: "Secure Messaging" },
+              { icon: Users, text: "Campus Community" },
+            ].map((badge, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: "rgba(255,255,255,0.72)",
+                border: `1px solid ${T.border}`,
+                borderRadius: 9999,
+                padding: "8px 13px",
+                boxShadow: "0 10px 28px rgba(29,33,40,0.07)",
+              }}>
+                <badge.icon size={16} color={T.green} strokeWidth={1.8} />
+                <span style={{ fontSize: 13, color: T.textMuted, fontWeight: 500 }}>{badge.text}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
 
-        {/* Stats Strip at bottom of hero */}
+        {/* Floating Stats at bottom of hero */}
         <motion.div
+          className="cc-hero-stats-shell"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
+          transition={{ duration: 0.8, delay: 0.9 }}
           style={{
             position: "absolute", bottom: 0, left: 0, right: 0,
             zIndex: 10,
-            background: "linear-gradient(180deg, rgba(14,34,14,0.0) 0%, rgba(14,34,14,0.85) 100%)",
-            backdropFilter: "blur(12px)",
-            padding: "48px clamp(20px, 4vw, 60px) 28px",
+            padding: "48px clamp(20px, 4vw, 60px) 30px",
           }}
         >
           <div style={{
-            maxWidth: 1100, margin: "0 auto",
-            display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12,
-          }} className="cc-grid-4">
+            maxWidth: 1120, margin: "0 auto",
+            display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14,
+          }} className="cc-grid-4 cc-hero-stats-grid">
             {[
               { value: "2,400+", label: "Students Active", icon: GraduationCap },
               { value: `${allResources.length || 850}+`, label: "Resources Listed", icon: Package },
@@ -688,35 +820,35 @@ const Homepage = () => {
               const Icon = st.icon;
               return (
                 <motion.div key={i}
-                  whileHover={{ y: -3, background: "rgba(255,255,255,0.12)" }}
+                  whileHover={{ y: -4 }}
                   style={{
                     display: "flex", alignItems: "center", gap: 14,
-                    padding: "16px 20px",
-                    borderRadius: 14,
-                    background: "rgba(255,255,255,0.06)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    backdropFilter: "blur(8px)",
+                    padding: "20px 22px",
+                    borderRadius: 22,
+                    background: "rgba(255,255,255,0.9)",
+                    border: `1px solid ${T.border}`,
+                    backdropFilter: "blur(18px)",
+                    boxShadow: "0 18px 48px rgba(29,33,40,0.10)",
                     transition: "all 0.3s ease",
                     cursor: "default",
                   }}
                 >
                   <div style={{
-                    width: 42, height: 42, borderRadius: 12,
-                    background: `${T.accent}18`,
+                    width: 46, height: 46, borderRadius: 14,
+                    background: T.paleMint,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     flexShrink: 0,
-                    border: `1px solid ${T.accent}20`,
                   }}>
-                    <Icon size={20} color={T.accent} strokeWidth={1.8} />
+                    <Icon size={20} color={T.green} strokeWidth={1.8} />
                   </div>
                   <div>
                     <div style={{
-                      fontFamily: FONT, fontSize: 20, fontWeight: 800,
-                      color: "#fff", letterSpacing: "-0.5px", lineHeight: 1.2,
+                      fontFamily: FONT, fontSize: 22, fontWeight: 800,
+                      color: T.primary, letterSpacing: 0, lineHeight: 1.2,
                     }}>{st.value}</div>
                     <div style={{
-                      fontSize: 12, color: "rgba(255,255,255,0.55)",
-                      fontWeight: 500, letterSpacing: "0.2px", marginTop: 2,
+                      fontSize: 13, color: T.textMuted,
+                      fontWeight: 500, marginTop: 2,
                     }}>{st.label}</div>
                   </div>
                 </motion.div>
@@ -726,28 +858,28 @@ const Homepage = () => {
         </motion.div>
       </section>
 
-      {/* ═══ PROFILE BANNER (if incomplete) ════════════════════════════════ */}
+      {/* ═══ PROFILE BANNER (if incomplete) ══════════════════════════════ */}
       {user && !isProfileComplete && (
-        <section style={{ padding: "0 clamp(20px, 3vw, 40px)", marginTop: "-2rem" }}>
+        <section style={{ padding: "0 clamp(20px, 3vw, 40px)", marginTop: "-2rem", position: "relative", zIndex: 20 }}>
           <div style={{
-            maxWidth: 1440, margin: "0 auto",
-            background: T.white, border: `1px solid ${T.borderLt}`,
-            borderRadius: 16, padding: "1.25rem 1.5rem",
+            maxWidth: 1180, margin: "0 auto",
+            background: "rgba(255,255,255,0.96)", border: `1px solid ${T.border}`, borderRadius: 22, padding: "1.25rem 1.5rem",
             display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+            boxShadow: "0 18px 48px rgba(48,56,65,0.10)",
+            backdropFilter: "blur(16px)",
           }}>
             <div style={{ width: 42, height: 42, borderRadius: 12, background: T.paleMint, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <User size={20} color={T.green} />
             </div>
             <div style={{ flex: 1, minWidth: 180 }}>
-              <div style={{ fontWeight: 600, fontSize: 15, color: T.text, fontFamily: FONT }}>Complete Your Profile</div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: T.primary, fontFamily: FONT }}>Complete Your Profile</div>
               <div style={{ fontSize: 13, color: T.textMuted, marginTop: 2 }}>Fill in your details to unlock messaging & listings.</div>
             </div>
             <button onClick={() => navigate("/profile")} style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              background: T.green, color: "#fff", border: "none",
-              padding: "10px 24px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-              fontFamily: FONT, cursor: "pointer",
+              background: T.accent, color: T.white, border: "none",
+              padding: "10px 24px", borderRadius: 9999, fontSize: 13, fontWeight: 600,
+              fontFamily: FONT, cursor: "pointer", transition: "all 0.25s",
             }}>Complete Profile <ArrowRight size={14} /></button>
           </div>
         </section>
@@ -758,50 +890,57 @@ const Homepage = () => {
       <main style={{ background: T.bg }}>
 
         {/* ── CATEGORIES ─────────────────────── */}
-        <section style={{ padding: "clamp(4rem, 8vw, 7rem) clamp(20px, 3vw, 40px) clamp(2rem, 4vw, 4rem)" }}>
+        <section style={{ padding: "clamp(5rem, 9vw, 8rem) clamp(20px, 3vw, 40px) clamp(3rem, 5vw, 5rem)" }}>
           <div className="cc-cat-layout" style={{
-            maxWidth: 1440, margin: "0 auto",
-            display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "clamp(2rem, 4vw, 4rem)", alignItems: "center",
+            maxWidth: 1240, margin: "0 auto",
+            display: "grid", gridTemplateColumns: "0.85fr 1.35fr", gap: "clamp(2rem, 5vw, 5rem)", alignItems: "center",
           }}>
             <Reveal>
               <div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 36, background: T.paleMint, marginBottom: 20 }}>
                   <BookOpen size={14} color={T.green} />
-                  <span style={{ fontSize: 12, fontWeight: 600, color: T.green, letterSpacing: "0.5px", textTransform: "uppercase" }}>Categories</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: T.green, letterSpacing: 0, textTransform: "uppercase" }}>Categories</span>
                 </div>
-                <h2 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 600, color: T.primary, lineHeight: 1.1, letterSpacing: "-1.44px" }}>
+                <h2 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 700, color: T.primary, lineHeight: 1.1, letterSpacing: 0 }}>
                   Browse by<br />Category
                 </h2>
-                <p style={{ fontFamily: FONT, fontSize: 16, color: T.textMuted, lineHeight: 1.6, marginTop: 16, maxWidth: 340 }}>
+                <p style={{ fontFamily: FONT, fontSize: 16, color: T.textMuted, lineHeight: 1.7, marginTop: 18, maxWidth: 360 }}>
                   Everything your campus life needs — from textbooks to project materials, all in one place.
                 </p>
                 <button onClick={() => navigate("/resources")}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 24, fontSize: 14, fontWeight: 600, color: T.green, cursor: "pointer", background: "none", border: "none", fontFamily: FONT, transition: "gap 0.3s" }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 24, fontSize: 14, fontWeight: 600, color: T.accent, cursor: "pointer", background: "none", border: "none", fontFamily: FONT, transition: "gap 0.3s" }}
                   onMouseEnter={e => e.currentTarget.style.gap = "12px"}
                   onMouseLeave={e => e.currentTarget.style.gap = "8px"}
                 >View all <ArrowRight size={15} /></button>
               </div>
             </Reveal>
             <Reveal delay={0.1}>
-              <div className="cc-cat-pills" style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 14 }}>
                 {categories.map(cat => {
                   const isActive = activeCat === cat.name;
                   return (
                     <motion.button key={cat.name}
                       onClick={() => { setActiveCat(isActive ? "All" : cat.name); document.getElementById("listings-section")?.scrollIntoView({ behavior: "smooth" }); }}
-                      whileHover={{ y: -3 }} whileTap={{ scale: 0.96 }}
+                      whileHover={{ y: -4 }} whileTap={{ scale: 0.96 }}
                       style={{
-                        display: "inline-flex", alignItems: "center", gap: 10,
-                        padding: "14px 24px", borderRadius: 14,
-                        background: isActive ? T.green : T.white,
-                        border: `1.5px solid ${isActive ? T.green : T.border}`,
-                        color: isActive ? "#fff" : T.textSub,
-                        fontFamily: FONT, fontSize: 14, fontWeight: 500,
+                        minHeight: 174,
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14,
+                        padding: "30px 18px", borderRadius: 24,
+                        background: isActive ? T.accent : T.white,
+                        border: `1.5px solid ${isActive ? T.accent : T.border}`,
+                        color: isActive ? T.white : T.primary,
+                        fontFamily: FONT, fontSize: 14, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.3s",
-                        boxShadow: isActive ? `0 6px 20px ${T.green}30` : "0 2px 8px rgba(0,0,0,0.04)",
+                        boxShadow: isActive ? "0 18px 38px rgba(255,87,34,0.18)" : "0 18px 42px rgba(48,56,65,0.06)",
+                        textAlign: "center",
                       }}
                     >
-                      <span style={{ fontSize: 18 }}>{cat.icon}</span>
+                      <span style={{
+                        width: 64, height: 64, borderRadius: 18,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        background: isActive ? "rgba(255,255,255,0.18)" : T.paleMint,
+                        fontSize: 34,
+                      }}>{cat.icon}</span>
                       <span>{cat.name}</span>
                     </motion.button>
                   );
@@ -812,19 +951,19 @@ const Homepage = () => {
         </section>
 
         {/* ── LISTINGS ─────────────────────────── */}
-        <section id="listings-section" style={{ padding: "clamp(2rem, 4vw, 4rem) clamp(20px, 3vw, 40px) clamp(5rem, 8vw, 7rem)" }}>
-          <div style={{ maxWidth: 1440, margin: "0 auto" }}>
+        <section id="listings-section" style={{ padding: "clamp(3rem, 5vw, 5rem) clamp(20px, 3vw, 40px) clamp(6rem, 9vw, 8rem)" }}>
+          <div style={{ maxWidth: 1240, margin: "0 auto" }}>
             <Reveal>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "clamp(2rem, 3vw, 3rem)", flexWrap: "wrap", gap: 16 }}>
-                <h2 style={{ fontFamily: FONT, fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 600, color: T.primary, letterSpacing: "-1.44px" }}>
+                <h2 style={{ fontFamily: FONT, fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 700, color: T.primary, letterSpacing: 0 }}>
                   {activeCat === "All" ? "Featured Listings" : activeCat}
                 </h2>
-                <div style={{ display: "flex", gap: 4, alignItems: "center", background: T.white, borderRadius: 12, padding: 4, border: `1px solid ${T.borderLt}` }}>
+                <div className="cc-listing-filters" style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "flex-end", background: T.white, borderRadius: 9999, padding: 6, border: `1px solid ${T.borderLt}`, boxShadow: "0 12px 36px rgba(48,56,65,0.06)" }}>
                   {["All", ...categories.map(c => c.name)].map(cat => {
                     const isA = activeCat === cat;
                     return (
                       <button key={cat} onClick={() => setActiveCat(cat)}
-                        style={{ padding: "8px 16px", fontSize: 13, fontWeight: isA ? 600 : 500, fontFamily: FONT, background: isA ? T.green : "transparent", color: isA ? "#fff" : T.textMuted, border: "none", borderRadius: 8, transition: "all 0.25s ease", cursor: "pointer" }}
+                        style={{ padding: "9px 16px", fontSize: 13, fontWeight: isA ? 600 : 500, fontFamily: FONT, background: isA ? T.accent : "transparent", color: isA ? T.white : T.textMuted, border: "none", borderRadius: 9999, transition: "all 0.25s ease", cursor: "pointer", whiteSpace: "nowrap" }}
                       >{cat}</button>
                     );
                   })}
@@ -842,10 +981,10 @@ const Homepage = () => {
                       <Package size={32} color={T.textMuted} strokeWidth={1.2} />
                     </div>
                     <p style={{ color: T.textMuted, fontSize: 16, marginBottom: "1.25rem" }}>No listings in this category yet.</p>
-                    <button onClick={() => navigate("/add-resource")} style={{ background: T.green, color: "#fff", border: "none", padding: "14px 32px", borderRadius: 14, fontSize: 14, fontWeight: 600, fontFamily: FONT, cursor: "pointer", boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.15)" }}>Post First Listing</button>
+                    <button onClick={() => navigate("/add-resource")} style={{ background: T.accent, color: T.white, border: "none", padding: "14px 32px", borderRadius: 9999, fontSize: 14, fontWeight: 600, fontFamily: FONT, cursor: "pointer" }}>Post First Listing</button>
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "clamp(14px, 2vw, 20px)" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(285px, 1fr))", gap: "clamp(18px, 2.4vw, 26px)" }}>
                     {filtered.map((r, idx) => {
                       const tb = typeBadge(r.type);
                       const wishlisted = isWishlisted(r._id);
@@ -855,43 +994,44 @@ const Homepage = () => {
                           <motion.div
                             onClick={() => !isSold && navigate(`/resource/${r._id}`)}
                             whileHover={!isSold ? { y: -6 } : {}}
-                            style={{ cursor: isSold ? "not-allowed" : "pointer", overflow: "hidden", background: T.white, border: `1px solid ${T.borderLt}`, borderRadius: 20, opacity: isSold ? 0.6 : 1, transition: "all 0.35s ease", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
+                            style={{ cursor: isSold ? "not-allowed" : "pointer", overflow: "hidden", background: T.white, border: `1px solid ${T.border}`, borderRadius: 26, opacity: isSold ? 0.6 : 1, transition: "all 0.35s ease", boxShadow: "0 20px 52px rgba(48,56,65,0.08)" }}
                           >
-                            <div style={{ position: "relative", height: 220, background: T.surfaceAlt, overflow: "hidden" }}>
+                            <div style={{ position: "relative", aspectRatio: "1/1", background: T.surfaceAlt, overflow: "hidden" }}>
                               {r.image_url
                                 ? <img src={r.image_url} alt={r.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.6s ease" }}
                                   onMouseEnter={e => e.target.style.transform = "scale(1.06)"}
                                   onMouseLeave={e => e.target.style.transform = "scale(1)"} />
-                                : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg, ${T.paleMint}, ${T.paleTeal})` }}><Package size={32} color={T.textMuted} strokeWidth={1} /></div>
+                                : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: T.paleMint }}><Package size={32} color={T.textMuted} strokeWidth={1} /></div>
                               }
-                              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "50%", background: "linear-gradient(to top, rgba(0,0,0,0.4), transparent)", pointerEvents: "none" }} />
+                              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "46%", background: "linear-gradient(to top, rgba(48,56,65,0.54), rgba(48,56,65,0))", pointerEvents: "none" }} />
                               <div style={{ position: "absolute", bottom: 14, left: 16, zIndex: 2 }}>
-                                <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: FONT, letterSpacing: "-0.5px", textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
+                                <span style={{ display: "inline-flex", alignItems: "center", padding: "8px 12px", borderRadius: 9999, background: "rgba(255,255,255,0.92)", fontSize: 20, fontWeight: 800, color: T.primary, fontFamily: FONT, letterSpacing: 0, boxShadow: "0 12px 28px rgba(48,56,65,0.16)" }}>
                                   {r.price > 0 ? <span style={{ display: "flex", alignItems: "center", gap: 2 }}><IndianRupee size={16} strokeWidth={2.5} />{r.price}</span> : "Free"}
                                 </span>
                               </div>
                               {isSold && (
-                                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)" }}>
-                                  <span style={{ padding: "8px 24px", background: T.danger, color: "#fff", fontSize: 12, fontWeight: 700, borderRadius: 8, letterSpacing: "0.5px", textTransform: "uppercase" }}>Sold</span>
+                                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(48,56,65,0.54)" }}>
+                                  <span style={{ padding: "8px 24px", background: T.danger, color: T.white, fontSize: 12, fontWeight: 700, borderRadius: 9999, letterSpacing: 0, textTransform: "uppercase" }}>Sold</span>
                                 </div>
                               )}
-                              <span style={{ position: "absolute", top: 14, left: 14, padding: "5px 12px", fontSize: 12, fontWeight: 600, background: tb.bg, color: tb.color, borderRadius: 8, fontFamily: FONT }}>{tb.label}</span>
+                              <span style={{ position: "absolute", top: 14, left: 14, padding: "7px 14px", fontSize: 12, fontWeight: 700, background: tb.bg, color: tb.color, borderRadius: 9999, fontFamily: FONT, border: "1px solid rgba(255,255,255,0.74)", boxShadow: "0 10px 26px rgba(48,56,65,0.12)" }}>{tb.label}</span>
                               {!isSold && (
                                 <motion.button onClick={e => toggleWishlist(r._id, e)} whileTap={{ scale: 0.8 }}
-                                  style={{ position: "absolute", top: 14, right: 14, width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
-                                ><Heart size={15} color={wishlisted ? T.danger : T.textMuted} fill={wishlisted ? T.danger : "none"} strokeWidth={1.8} /></motion.button>
+                                  style={{ position: "absolute", top: 14, right: 14, width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.96)", border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s", boxShadow: "0 12px 28px rgba(48,56,65,0.12)", cursor: "pointer" }}
+                                ><Heart size={15} color={wishlisted ? T.accent : T.textMuted} fill={wishlisted ? T.accent : "none"} strokeWidth={1.8} /></motion.button>
                               )}
                             </div>
-                            <div style={{ padding: "16px 18px 18px" }}>
-                              <h3 style={{ fontSize: 16, fontWeight: 600, color: T.primary, lineHeight: 1.4, marginBottom: 10, display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden", fontFamily: FONT, letterSpacing: "-0.3px" }}>{r.title}</h3>
-                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <div style={{ width: 24, height: 24, borderRadius: 8, background: T.paleMint, color: T.green, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700 }}>{r.seller?.name?.charAt(0)?.toUpperCase() || "S"}</div>
-                                  <span style={{ fontSize: 13, color: T.textMuted }}>{(typeof r.seller === "string" ? r.seller : r.seller?.name) || "Seller"}</span>
+                            <div style={{ padding: "18px 18px 20px" }}>
+                              <h3 style={{ fontSize: 17, fontWeight: 700, color: T.primary, lineHeight: 1.35, marginBottom: 12, display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden", fontFamily: FONT, letterSpacing: 0 }}>{r.title}</h3>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flexWrap: "wrap" }}>
+                                  <div style={{ width: 30, height: 30, borderRadius: 9999, background: T.paleMint, color: T.green, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, border: `1px solid ${T.border}` }}>{r.seller?.name?.charAt(0)?.toUpperCase() || "S"}</div>
+                                  <span style={{ fontSize: 13, color: T.textMuted, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(typeof r.seller === "string" ? r.seller : r.seller?.name) || "Seller"}</span>
+                                  <Shield size={13} color={T.green} strokeWidth={1.8} />
                                   <span style={{ width: 3, height: 3, borderRadius: "50%", background: T.border, display: "inline-block" }} />
-                                  <span style={{ fontSize: 13, color: T.textMuted, display: "flex", alignItems: "center", gap: 3 }}><MapPin size={11} strokeWidth={1.5} />{r.location || "Campus"}</span>
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: T.green, display: "flex", alignItems: "center", gap: 3, padding: "4px 9px", background: T.paleMint, borderRadius: 9999, border: `1px solid ${T.borderLt}` }}><MapPin size={11} strokeWidth={1.5} />{r.location || "Campus"}</span>
                                 </div>
-                                <span style={{ fontSize: 12, fontWeight: 600, color: isSold ? T.danger : T.green }}>{isSold ? "Sold" : "View →"}</span>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: isSold ? T.danger : T.accent, flexShrink: 0 }}>{isSold ? "Sold" : "View →"}</span>
                               </div>
                             </div>
                           </motion.div>
@@ -906,8 +1046,8 @@ const Homepage = () => {
             {filtered.length > 0 && (
               <Reveal style={{ textAlign: "center", marginTop: "clamp(2rem, 4vw, 3.5rem)" }}>
                 <button onClick={() => navigate("/resources")}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 10, background: T.primary, color: T.white, padding: "15px 40px", border: "none", borderRadius: 14, fontSize: 15, fontWeight: 600, fontFamily: FONT, transition: "all 0.3s", cursor: "pointer", boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.15)" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = T.green; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 10, background: T.primary, color: T.white, padding: "15px 40px", border: "none", borderRadius: 9999, fontSize: 15, fontWeight: 600, fontFamily: FONT, transition: "all 0.3s", cursor: "pointer" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = T.accent; e.currentTarget.style.transform = "translateY(-2px)"; }}
                   onMouseLeave={e => { e.currentTarget.style.background = T.primary; e.currentTarget.style.transform = "translateY(0)"; }}
                 >View All Listings <ArrowRight size={15} /></button>
               </Reveal>
@@ -915,41 +1055,147 @@ const Homepage = () => {
           </div>
         </section>
 
+        {/* ── HOW IT WORKS ───────────────────── */}
+        <section style={{ padding: "clamp(6rem, 10vw, 9rem) clamp(20px, 3vw, 40px)", background: T.surface }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <Reveal>
+              <div style={{ textAlign: "center", marginBottom: "clamp(3rem, 5vw, 4rem)" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 36, background: T.paleYellow, marginBottom: 20 }}>
+                  <Zap size={14} color={T.accentDk} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: T.accentDk, letterSpacing: 0, textTransform: "uppercase" }}>How It Works</span>
+                </div>
+                <h2 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 700, color: T.primary, lineHeight: 1.05, letterSpacing: 0 }}>Simple as it gets</h2>
+              </div>
+            </Reveal>
+            <div className="cc-how-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18, position: "relative" }}>
+              <div className="cc-desk-only" style={{ position: "absolute", top: 28, left: "12.5%", right: "12.5%", height: 1, background: T.border, zIndex: 0 }} />
+              {howItWorks.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <Reveal key={i} delay={i * 0.1}>
+                    <div style={{
+                      position: "relative", zIndex: 1, textAlign: "left",
+                      background: T.white, border: `1px solid ${T.border}`,
+                      borderRadius: 24, padding: "28px 24px 30px",
+                      minHeight: 246,
+                      boxShadow: "0 18px 44px rgba(48,56,65,0.06)",
+                    }}>
+                      <div style={{ width: 56, height: 56, borderRadius: 18, background: T.paleYellow, border: `1px solid ${T.borderLt}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                        <Icon size={24} color={T.accent} strokeWidth={1.6} />
+                      </div>
+                      <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: T.accent, letterSpacing: 0, marginBottom: 8, textTransform: "uppercase" }}>Step {step.step}</div>
+                      <h4 style={{ fontFamily: FONT, fontSize: 18, fontWeight: 600, color: T.primary, marginBottom: 10, letterSpacing: 0 }}>{step.title}</h4>
+                      <p style={{ fontSize: 14, color: T.textMuted, lineHeight: 1.65, fontFamily: FONT }}>{step.desc}</p>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         {/* ── WHY CAMPUSCRATE ─────────────────── */}
-        <section style={{ padding: "clamp(5rem, 9vw, 8rem) clamp(20px, 3vw, 40px)", background: T.white, overflow: "hidden" }}>
-          <div style={{ maxWidth: 1440, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "clamp(3rem, 5vw, 6rem)", alignItems: "start" }} className="cc-trust-layout">
+        <section style={{ padding: "clamp(6rem, 10vw, 9rem) clamp(20px, 3vw, 40px)", background: T.bg, overflow: "hidden" }}>
+          <div style={{ maxWidth: 1240, margin: "0 auto", display: "grid", gridTemplateColumns: "0.85fr 1.45fr", gap: "clamp(3rem, 5vw, 6rem)", alignItems: "start" }} className="cc-trust-layout">
             <Reveal>
               <div style={{ position: "sticky", top: 120 }}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 36, background: T.paleYellow, marginBottom: 20 }}>
                   <Sparkles size={14} color={T.accentDk} />
-                  <span style={{ fontSize: 12, fontWeight: 600, color: T.accentDk, letterSpacing: "0.5px", textTransform: "uppercase" }}>Why Us</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: T.accentDk, letterSpacing: 0, textTransform: "uppercase" }}>Why Us</span>
                 </div>
-                <h2 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 600, color: T.primary, lineHeight: 1.05, letterSpacing: "-1.56px", marginBottom: 20 }}>
+                <h2 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 700, color: T.primary, lineHeight: 1.05, letterSpacing: 0, marginBottom: 20 }}>
                   More than<br />a marketplace
                 </h2>
-                <p style={{ fontFamily: FONT, fontSize: 16, color: T.textMuted, lineHeight: 1.65, maxWidth: 320 }}>
+                <p style={{ fontFamily: FONT, fontSize: 16, color: T.textMuted, lineHeight: 1.7, maxWidth: 340 }}>
                   A verified student ecosystem built for safety, speed, and trust — not just another listing board.
                 </p>
-                <div style={{ width: 48, height: 3, background: T.green, marginTop: 28, borderRadius: 2 }} />
+                <div style={{ width: 48, height: 3, background: T.accent, marginTop: 28, borderRadius: 2 }} />
               </div>
             </Reveal>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="cc-trust-cards" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
               {trustFeatures.map((f, i) => {
                 const Icon = f.icon;
                 const decorBgs = [T.paleMint, T.paleYellow, T.paleTeal, T.surfaceAlt];
-                const iconColors = [T.green, T.accentDk, "#e05c3a", T.primary];
+                const iconColors = [T.green, T.accentDk, T.danger, T.primary];
                 const topColors = [T.green, T.accent, T.danger, T.primary];
                 return (
                   <Reveal key={i} delay={i * 0.1}>
                     <motion.div
-                      whileHover={{ y: -6, boxShadow: "0 12px 32px rgba(0,0,0,0.08)" }}
-                      style={{ padding: "clamp(24px, 2.5vw, 32px)", background: T.white, border: `1px solid ${T.borderLt}`, borderRadius: 20, transition: "all 0.35s ease", cursor: "default", borderTop: `3px solid ${topColors[i]}`, boxShadow: "0 2px 12px rgba(0,0,0,0.03)" }}
+                      whileHover={{ y: -6, boxShadow: "0 24px 58px rgba(48,56,65,0.09)" }}
+                      style={{ minHeight: 224, padding: "clamp(26px, 2.8vw, 34px)", background: T.white, border: `1px solid ${T.border}`, borderRadius: 24, transition: "all 0.35s ease", cursor: "default", borderTop: `3px solid ${topColors[i]}`, boxShadow: "0 18px 44px rgba(48,56,65,0.06)" }}
                     >
-                      <div style={{ width: 48, height: 48, borderRadius: 14, background: decorBgs[i], display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                      <div style={{ width: 52, height: 52, borderRadius: 16, background: decorBgs[i], display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
                         <Icon size={22} color={iconColors[i]} strokeWidth={1.8} />
                       </div>
-                      <h4 style={{ fontFamily: FONT, fontSize: 18, fontWeight: 600, color: T.primary, marginBottom: 10, letterSpacing: "-0.5px", lineHeight: 1.2 }}>{f.title}</h4>
-                      <p style={{ fontSize: 14, color: T.textMuted, lineHeight: 1.6, fontFamily: FONT }}>{f.desc}</p>
+                      <h4 style={{ fontFamily: FONT, fontSize: 18, fontWeight: 600, color: T.primary, marginBottom: 10, letterSpacing: 0, lineHeight: 1.2 }}>{f.title}</h4>
+                      <p style={{ fontSize: 14, color: T.textMuted, lineHeight: 1.65, fontFamily: FONT }}>{f.desc}</p>
+                    </motion.div>
+                  </Reveal>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── TESTIMONIALS ───────────────────── */}
+        <section style={{ padding: "clamp(6rem, 10vw, 9rem) clamp(20px, 3vw, 40px)", background: T.white }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <Reveal>
+              <div style={{ textAlign: "center", marginBottom: "clamp(3rem, 5vw, 4rem)" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 36, background: T.paleMint, marginBottom: 20 }}>
+                  <Star size={14} color={T.green} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: T.green, letterSpacing: 0, textTransform: "uppercase" }}>Testimonials</span>
+                </div>
+                <h2 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 700, color: T.primary, lineHeight: 1.05, letterSpacing: 0 }}>Loved by students</h2>
+              </div>
+            </Reveal>
+            <div className="cc-test-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 22 }}>
+              {testimonials.map((t, i) => (
+                <Reveal key={i} delay={i * 0.1}>
+                  <motion.div whileHover={{ y: -4 }} style={{ minHeight: 286, padding: "clamp(26px, 2.8vw, 34px)", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 24, transition: "all 0.35s ease", boxShadow: "0 18px 44px rgba(48,56,65,0.06)", display: "flex", flexDirection: "column" }}>
+                    <div style={{ display: "flex", gap: 2, marginBottom: 16 }}>
+                      {[...Array(t.rating)].map((_, j) => <Star key={j} size={16} color={T.accent} fill={T.accent} strokeWidth={1.5} />)}
+                    </div>
+                    <p style={{ fontSize: 16, color: T.primary, lineHeight: 1.75, fontFamily: FONT, marginBottom: 26, fontStyle: "italic" }}>"{t.quote}"</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: "auto" }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 9999, background: T.paleMint, color: T.green, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, border: `1px solid ${T.border}` }}>{t.avatar}</div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: T.primary, fontFamily: FONT }}>{t.name}</div>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: T.textMuted, marginTop: 5, padding: "4px 9px", background: T.white, border: `1px solid ${T.border}`, borderRadius: 9999 }}><GraduationCap size={12} color={T.green} strokeWidth={1.8} />{t.uni}</div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── MARKETPLACE STATS ──────────────── */}
+        <section style={{ padding: "clamp(6rem, 10vw, 9rem) clamp(20px, 3vw, 40px)", background: T.paleMint }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <Reveal>
+              <div style={{ textAlign: "center", marginBottom: "clamp(3rem, 5vw, 4rem)" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 36, background: T.white, marginBottom: 20, border: `1px solid ${T.border}` }}>
+                  <TrendingUp size={14} color={T.green} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: T.green, letterSpacing: 0, textTransform: "uppercase" }}>Marketplace Stats</span>
+                </div>
+                <h2 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 700, color: T.primary, lineHeight: 1.05, letterSpacing: 0 }}>Growing every day</h2>
+              </div>
+            </Reveal>
+            <div className="cc-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
+              {statsData.map((st, i) => {
+                const Icon = st.icon;
+                return (
+                  <Reveal key={i} delay={i * 0.08}>
+                    <motion.div whileHover={{ y: -4 }} style={{ padding: "30px 24px", background: T.white, border: `1px solid ${T.border}`, borderRadius: 24, textAlign: "center", transition: "all 0.35s ease", boxShadow: "0 18px 44px rgba(48,56,65,0.06)" }}>
+                      <div style={{ width: 52, height: 52, borderRadius: 16, background: T.paleMint, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                        <Icon size={24} color={T.green} strokeWidth={1.8} />
+                      </div>
+                      <div style={{ fontFamily: FONT, fontSize: 28, fontWeight: 800, color: T.primary, letterSpacing: 0, lineHeight: 1.2 }}>
+                        <Counter target={st.value} suffix={st.suffix} />
+                      </div>
+                      <div style={{ fontSize: 13, color: T.textMuted, fontWeight: 500, marginTop: 6 }}>{st.label}</div>
                     </motion.div>
                   </Reveal>
                 );
@@ -960,62 +1206,54 @@ const Homepage = () => {
 
         {/* ── CTA ────────────────────────── */}
         <section style={{
-          padding: "clamp(5rem, 10vw, 8rem) clamp(20px, 3vw, 40px)",
-          background: "linear-gradient(135deg, #1a5c2e 0%, #2d8a4e 30%, #47c163 60%, #3aad54 100%)",
+          padding: "clamp(6rem, 10vw, 9rem) clamp(20px, 3vw, 40px)",
+          background: T.bg,
           position: "relative", overflow: "hidden",
         }}>
-          {/* Decorative floating shapes */}
-          <div style={{ position: "absolute", top: -80, right: -40, width: 300, height: 300, borderRadius: "50%", background: "rgba(255,255,255,0.08)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: 60, right: 120, width: 120, height: 120, borderRadius: "50%", background: "rgba(246,208,69,0.12)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: -60, left: -30, width: 250, height: 250, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: 40, left: "40%", width: 80, height: 80, borderRadius: 20, transform: "rotate(45deg)", background: "rgba(246,208,69,0.1)", pointerEvents: "none" }} />
-          {/* Noise texture */}
-          <div style={{ position: "absolute", inset: 0, opacity: 0.04, backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", pointerEvents: "none" }} />
-
           <Reveal>
             <div style={{
-              maxWidth: 680, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1,
-              background: "rgba(255,255,255,0.1)",
-              backdropFilter: "blur(16px)",
-              borderRadius: 28, padding: "clamp(40px, 6vw, 64px) clamp(24px, 4vw, 48px)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)",
+              maxWidth: 1120, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1,
+              background: T.paleMint,
+              borderRadius: 30, padding: "clamp(44px, 7vw, 76px) clamp(24px, 5vw, 72px)",
+              border: `1px solid ${T.border}`,
+              boxShadow: "0 24px 70px rgba(48,56,65,0.08)",
             }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 16px", borderRadius: 36, background: "rgba(255,255,255,0.18)", border: "1px solid rgba(255,255,255,0.25)", marginBottom: 28 }}>
-                <Zap size={14} color="#fff" />
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.5px", textTransform: "uppercase" }}>Get Started</span>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 16px", borderRadius: 36, background: T.white, marginBottom: 28, border: `1px solid ${T.border}` }}>
+                <Zap size={14} color={T.green} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: T.green, letterSpacing: 0, textTransform: "uppercase" }}>Get Started</span>
               </div>
-              <h2 style={{ fontFamily: FONT, fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, lineHeight: 1.1, letterSpacing: "-1.5px", color: "#fff", marginBottom: 18, textShadow: "0 2px 12px rgba(0,0,0,0.15)" }}>
+              <h2 style={{ fontFamily: FONT, fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, lineHeight: 1.1, letterSpacing: 0, color: T.primary, marginBottom: 18 }}>
                 Your campus,<br />your market
               </h2>
-              <p style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", lineHeight: 1.65, maxWidth: 440, margin: "0 auto 36px", fontFamily: FONT }}>
+              <p style={{ fontSize: 16, color: T.textMuted, lineHeight: 1.7, maxWidth: 500, margin: "0 auto 36px", fontFamily: FONT }}>
                 Post your first listing in under 2 minutes and start earning — or find your next great campus deal.
               </p>
               <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                 <button onClick={() => navigate("/add-resource")}
                   style={{
                     display: "inline-flex", alignItems: "center", gap: 10,
-                    background: "#fff", color: T.primary,
-                    padding: "15px 34px", border: "none", borderRadius: 14,
+                    background: T.accent, color: T.white,
+                    padding: "15px 34px", border: "none", borderRadius: 9999,
                     fontSize: 15, fontWeight: 700, fontFamily: FONT,
                     transition: "all 0.3s ease", cursor: "pointer",
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-                    letterSpacing: "-0.2px",
+                    letterSpacing: 0,
+                    boxShadow: "0 16px 34px rgba(255,87,34,0.18)",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1.02)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(0,0,0,0.18)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)"; }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1.02)"; e.currentTarget.style.background = T.accentDk; e.currentTarget.style.boxShadow = "0 18px 38px rgba(255,87,34,0.22)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0) scale(1)"; e.currentTarget.style.background = T.accent; e.currentTarget.style.boxShadow = "0 16px 34px rgba(255,87,34,0.18)"; }}
                 >Start Selling <ArrowUpRight size={15} /></button>
                 <button onClick={() => navigate("/resources")}
                   style={{
                     display: "inline-flex", alignItems: "center", gap: 10,
-                    background: "transparent", color: "#fff",
-                    border: "2px solid rgba(255,255,255,0.4)",
-                    padding: "15px 34px", borderRadius: 14,
+                    background: T.white, color: T.primary,
+                    border: `1.5px solid ${T.border}`,
+                    padding: "15px 34px", borderRadius: 9999,
                     fontSize: 15, fontWeight: 600, fontFamily: FONT,
                     transition: "all 0.3s ease", cursor: "pointer",
+                    boxShadow: "0 12px 30px rgba(48,56,65,0.06)",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.7)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.4)"; e.currentTarget.style.transform = "translateY(0)"; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = T.bg; e.currentTarget.style.borderColor = T.green; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = T.white; e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "translateY(0)"; }}
                 >Explore Listings</button>
               </div>
             </div>
@@ -1033,17 +1271,17 @@ const Homepage = () => {
             transition={{ duration: 0.35 }}
             style={{
               position: "fixed", inset: 0, zIndex: 2000,
-              background: "rgba(255,255,255,0.98)", backdropFilter: "blur(20px)",
+              background: T.white,
               display: "flex", flexDirection: "column",
             }}
           >
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "24px 24px", borderBottom: `1px solid ${T.borderLt}`,
+              padding: "24px 24px", borderBottom: `1px solid ${T.border}`,
             }}>
               <span style={{ fontFamily: FONT, color: T.primary, fontWeight: 800, fontSize: 18 }}>🎓 CampusCrate</span>
               <button onClick={() => setMobileOpen(false)}
-                style={{ background: T.surfaceAlt, border: "none", color: T.textMuted, padding: 10, borderRadius: 12, cursor: "pointer" }}
+                style={{ background: T.bg, border: "none", color: T.textMuted, padding: 10, borderRadius: 12, cursor: "pointer" }}
               ><X size={20} /></button>
             </div>
             <div style={{
@@ -1061,13 +1299,13 @@ const Homepage = () => {
                 >
                   <Link to={link.to} onClick={() => setMobileOpen(false)}>
                     <span style={{
-                      fontFamily: FONT, color: T.textSub,
+                      fontFamily: FONT, color: T.textMuted,
                       fontSize: "clamp(24px, 7vw, 36px)", fontWeight: 600,
-                      letterSpacing: "-0.84px", display: "block",
+                      letterSpacing: 0, display: "block",
                       padding: "8px 0", textAlign: "center", transition: "color 0.2s",
                     }}
                       onMouseEnter={e => e.target.style.color = T.primary}
-                      onMouseLeave={e => e.target.style.color = T.textSub}
+                      onMouseLeave={e => e.target.style.color = T.textMuted}
                     >{link.label}</span>
                   </Link>
                 </motion.div>
@@ -1076,10 +1314,9 @@ const Homepage = () => {
                 <Link to="/add-resource" onClick={() => setMobileOpen(false)}>
                   <div style={{
                     display: "inline-flex", alignItems: "center", gap: 8,
-                    background: T.green, color: "#fff",
-                    padding: "14px 36px", borderRadius: 14,
+                    background: T.accent, color: T.white,
+                    padding: "14px 36px", borderRadius: 9999,
                     fontSize: 15, fontWeight: 600, fontFamily: FONT,
-                    boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.15)",
                   }}>List Item <ArrowUpRight size={14} /></div>
                 </Link>
               </motion.div>
@@ -1099,7 +1336,7 @@ const Homepage = () => {
           <div className="cc-footer-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "3rem", paddingBottom: "3rem", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1.2rem" }}>
-                <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>🎓 CampusCrate</span>
+                <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 800, color: T.white, letterSpacing: 0 }}>🎓 CampusCrate</span>
               </div>
               <p style={{ fontSize: 14, lineHeight: 1.7, maxWidth: 300, color: "rgba(255,255,255,0.45)" }}>
                 The premium student-to-student marketplace designed for trust, safety, and local efficiency.
@@ -1110,7 +1347,7 @@ const Homepage = () => {
               { heading: "Account", links: [{ to: "/profile", label: "Profile" }, { to: "/dashboard", label: "Dashboard" }, { to: "/wishlist", label: "Wishlist" }, { to: "/notifications", label: "Notifications" }] },
             ].map(col => (
               <div key={col.heading}>
-                <h5 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "rgba(255,255,255,0.35)", marginBottom: "1.2rem", fontFamily: FONT }}>{col.heading}</h5>
+                <h5 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0, color: "rgba(255,255,255,0.35)", marginBottom: "1.2rem", fontFamily: FONT }}>{col.heading}</h5>
                 <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
                   {col.links.map(item => (
                     <li key={item.label}>
