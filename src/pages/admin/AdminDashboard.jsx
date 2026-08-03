@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
   BookOpen, LayoutDashboard, Users, Package, ShoppingBag,
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const { user: adminUser } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -27,8 +29,6 @@ const AdminDashboard = () => {
   const [dealsLoading, setDealsLoading] = useState(false);
 
   const [confirmModal, setConfirmModal] = useState(null);
-
-  const adminUser = JSON.parse(localStorage.getItem('campuscrate_admin') || '{}');
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -190,8 +190,8 @@ const AdminDashboard = () => {
   };
 
   const statCards = [
-    { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: '#47c163', bg: '#cbeed3' },
-    { label: 'Resources', value: stats?.totalResources || 0, icon: Package, color: '#f59e0b', bg: '#fef3c7' },
+    { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: '#215E61', bg: '#E6EEEE' },
+    { label: 'Resources', value: stats?.totalResources || 0, icon: Package, color: '#FF9E20', bg: 'rgba(255,158,32,0.12)' },
     { label: 'Deals', value: stats?.totalDeals || 0, icon: ShoppingBag, color: '#10b981', bg: '#d1fae5' },
     { label: 'Pending', value: stats?.pendingRequests || 0, icon: Bell, color: '#3b82f6', bg: '#dbeafe' },
   ];
@@ -400,7 +400,7 @@ const AdminDashboard = () => {
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: '0.25rem' }}>{r.title}</h2>
               <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>{r.description || 'No description provided.'}</p>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: '#cbeed3', color: '#47c163' }}>{r.category}</span>
+                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: '#E6EEEE', color: '#215E61' }}>{r.category}</span>
                 <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: r.type === 'Paid' ? '#fef3c7' : '#d1fae5', color: r.type === 'Paid' ? '#d97706' : '#059669' }}>{r.type}</span>
                 <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: r.status === 'Available' ? '#d1fae5' : '#e2e8f0', color: r.status === 'Available' ? '#059669' : '#64748b' }}>{r.status}</span>
               </div>
@@ -459,8 +459,8 @@ const AdminDashboard = () => {
                     <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)' }}>{r.category}</td>
                     <td style={{ padding: '0.75rem 1.25rem' }}>
                       <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600,
-                        background: r.type === 'Paid' ? '#cbeed3' : r.type === 'Exchange' ? '#fef3c7' : '#d1fae5',
-                        color: r.type === 'Paid' ? '#47c163' : r.type === 'Exchange' ? '#d97706' : '#059669',
+                        background: r.type === 'Paid' ? '#E6EEEE' : r.type === 'Exchange' ? '#fef3c7' : '#d1fae5',
+                        color: r.type === 'Paid' ? '#215E61' : r.type === 'Exchange' ? '#d97706' : '#059669',
                       }}>{r.type}</span>
                     </td>
                     <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)', fontWeight: 500 }}>{r.price > 0 ? `₹${r.price}` : 'Free'}</td>

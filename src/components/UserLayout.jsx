@@ -4,29 +4,30 @@ import { useSocket } from '../context/SocketContext';
 import {
   BookOpen, MessageSquare, Bell, User, Heart,
   LogOut, Search, Menu, X, LayoutDashboard,
-  Package, ArrowUpRight,
+  Package, ArrowUpRight, ChevronDown, Shield
 } from 'lucide-react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /* ═══════════════════════════════════════════════════════════════════════
    Design Tokens — Solidroad Green palette matching Homepage
    ═══════════════════════════════════════════════════════════════════════ */
 const DS = {
-  primary:     '#47c163',
-  primaryHover:'#3aad54',
-  primaryPale: '#cbeed3',
-  dark:        '#0e220e',
-  darkHover:   '#1a3a1a',
-  bg:          '#f9f9f9',
+  primary:     '#215E61',
+  primaryHover:'#194A4D',
+  primaryPale: '#E6EEEE',
+  dark:        '#1D2128',
+  darkHover:   'rgba(29,33,40,0.85)',
+  bg:          '#F4F2F2',
   card:        '#FFFFFF',
-  border:      '#d3ddd3',
-  borderLight: '#e8f0e8',
-  text:        '#0e220e',
-  textSub:     '#4a5e4a',
-  textMuted:   '#8a9a8a',
-  danger:      '#e05c3a',
+  border:      'rgba(29,33,40,0.09)',
+  borderLight: 'rgba(29,33,40,0.06)',
+  text:        '#1D2128',
+  textSub:     'rgba(29,33,40,0.72)',
+  textMuted:   'rgba(29,33,40,0.68)',
+  danger:      '#D98212',
   dangerPale:  '#FEE2E2',
-  accent:      '#f6d045',
+  accent:      '#FF9E20',
 };
 
 const FONT = "'Inter', system-ui, -apple-system, sans-serif";
@@ -70,60 +71,87 @@ const UserLayout = ({ children }) => {
   return (
     <div style={{ minHeight: '100vh', background: DS.bg, fontFamily: FONT }}>
 
-      {/* ═══ NAVBAR ════════════════════════════════════════════════════ */}
-      <nav style={{
-        position: 'fixed', top: 0, width: '100%', zIndex: 50,
-        background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.85)',
-        backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: `1px solid ${scrolled ? DS.border : 'transparent'}`,
-        boxShadow: scrolled ? '0 1px 12px rgba(14,34,14,0.06)' : 'none',
-        height: 64, transition: 'all 0.3s ease',
-      }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
+      {/* ═══ NAVBAR — Floating Pill ═══════════════════════════════════════ */}
+      <motion.nav
+        className="cc-nav-frame"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          position: "fixed", top: 0, left: 0, width: "100%", zIndex: 1000,
+          padding: scrolled ? "12px 24px" : "18px 24px",
+          transition: "padding 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+      >
+        <div className="cc-nav-shell" style={{
+          maxWidth: 1260, margin: "0 auto",
+          background: "rgba(255,255,255,0.94)",
+          borderRadius: 9999,
+          border: `1px solid ${DS.border}`,
+          backdropFilter: "blur(18px)",
+          boxShadow: scrolled
+            ? "0 18px 50px rgba(29,33,40,0.12)"
+            : "0 10px 32px rgba(29,33,40,0.08)",
+          padding: "10px 12px 10px 18px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          transition: "box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+          minHeight: 62,
+        }}>
 
-          {/* Left: Logo + Nav Links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-              <div style={{
-                width: 34, height: 34, borderRadius: 10,
-                background: `linear-gradient(135deg, ${DS.accent}, #d4b030)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(246,208,69,0.3)',
-                fontSize: 16,
-              }}>
-                🎓
-              </div>
-              <span style={{ fontWeight: 800, fontSize: 17, color: DS.text, letterSpacing: '-0.02em' }}>CampusCrate</span>
-            </Link>
+          {/* ── Left: Logo ── */}
+          <Link to="/" style={{
+            display: "flex", alignItems: "center", gap: 10,
+            textDecoration: "none", flexShrink: 0,
+          }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 14,
+              background: DS.accent,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 17,
+              boxShadow: "0 10px 24px rgba(255,158,32,0.22)",
+            }}>🎓</div>
+            <span style={{
+              fontFamily: FONT, color: DS.dark, fontWeight: 800,
+              fontSize: 19, letterSpacing: 0,
+            }}>CampusCrate</span>
+          </Link>
 
-            {/* Desktop nav links */}
-            <div style={{ display: 'flex', gap: '0.25rem' }} className="ul-desktop-links">
-              {navLinks.map(({ to, label }) => (
-                <Link key={to} to={to}
-                  style={{
-                    color: isActive(to) ? DS.primary : DS.textSub,
-                    fontWeight: isActive(to) ? 600 : 500,
-                    fontSize: 14, textDecoration: 'none', transition: 'all 0.2s',
-                    padding: '6px 14px',
-                    borderRadius: 8,
-                    background: isActive(to) ? DS.primaryPale : 'transparent',
+          {/* Desktop nav links */}
+          <div className="cc-desk-only ul-desktop-links" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {[
+              { to: "/resources", label: "Browse" },
+              { to: "/add-resource", label: "Sell" },
+              { to: "/dashboard", label: "Dashboard" },
+              { to: "/wishlist", label: "Wishlist" },
+            ].map(link => {
+              const isActiveLocal = location.pathname === link.to;
+              return (
+                <Link key={link.to} to={link.to}>
+                  <span style={{
+                    fontFamily: FONT, fontSize: 14, fontWeight: isActiveLocal ? 600 : 450,
+                    color: isActiveLocal ? DS.dark : DS.textMuted,
+                    letterSpacing: 0,
+                    padding: "9px 16px",
+                    borderRadius: 9999,
+                    background: isActiveLocal ? 'rgba(255,158,32,0.12)' : "transparent",
+                    display: "inline-block",
+                    transition: "all 0.3s ease",
                   }}
-                  onMouseEnter={e => { if (!isActive(to)) { e.currentTarget.style.color = DS.primary; e.currentTarget.style.background = DS.primaryPale; } }}
-                  onMouseLeave={e => { if (!isActive(to)) { e.currentTarget.style.color = DS.textSub; e.currentTarget.style.background = 'transparent'; } }}
-                >
-                  {label}
+                    onMouseEnter={e => { if (!isActiveLocal) { e.target.style.color = DS.dark; e.target.style.background = "rgba(29,33,40,0.04)"; } }}
+                    onMouseLeave={e => { if (!isActiveLocal) { e.target.style.color = DS.textMuted; e.target.style.background = "transparent"; } }}
+                  >{link.label}</span>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
-          {/* Right: Search + Icons + Avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {/* ── Right: Search + Icons + Avatar ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
 
             {/* Search bar */}
-            <div style={{ position: 'relative', display: 'flex' }} className="ul-search">
+            <div className="ul-search cc-desk-only" style={{ position: 'relative', display: 'flex', marginRight: 8 }}>
               <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <Search style={{ width: 15, height: 15, color: DS.textMuted }} />
+                <Search style={{ width: 14, height: 14, color: DS.textMuted }} />
               </span>
               <input
                 type="text"
@@ -133,8 +161,8 @@ const UserLayout = ({ children }) => {
                 onKeyDown={e => { if (e.key === 'Enter') navigate('/resources'); }}
                 style={{
                   background: DS.bg, border: `1px solid ${DS.border}`,
-                  borderRadius: 9999, paddingLeft: 36, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
-                  fontSize: 13, width: 220, outline: 'none', color: DS.text,
+                  borderRadius: 9999, paddingLeft: 34, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
+                  fontSize: 13, width: 180, outline: 'none', color: DS.text,
                   transition: 'all 0.2s', fontFamily: 'inherit',
                 }}
                 onFocus={e => { e.target.style.border = `1px solid ${DS.primary}`; e.target.style.boxShadow = `0 0 0 3px ${DS.primaryPale}`; }}
@@ -142,64 +170,73 @@ const UserLayout = ({ children }) => {
               />
             </div>
 
-            {/* Messages */}
-            <Link to="/messages"
-              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'all 0.15s', color: DS.textSub, textDecoration: 'none' }}
-              onMouseEnter={e => { e.currentTarget.style.background = DS.primaryPale; e.currentTarget.style.color = DS.primary; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = DS.textSub; }}>
-              <MessageSquare style={{ width: 19, height: 19 }} />
-              {totalUnreadMessages > 0 && (
-                <span style={{
-                  position: 'absolute', top: -2, right: -2,
-                  minWidth: 18, height: 18, borderRadius: 9999,
-                  background: DS.danger, color: '#fff',
-                  fontSize: 10, fontWeight: 700,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 4px', border: '2px solid #fff',
-                  lineHeight: 1, fontFamily: 'inherit',
-                }}>
-                  {totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}
-                </span>
-              )}
-            </Link>
+            {/* Notification icons */}
+            <div className="cc-desk-only ul-desktop-links" style={{ display: "flex", gap: 4, alignItems: "center" }}>
+              {[
+                { to: "/messages", Icon: MessageSquare, count: totalUnreadMessages },
+                { to: "/notifications", Icon: Bell, count: unreadNotifications },
+              ].map(({ to, Icon, count }) => (
+                <Link key={to} to={to}>
+                  <div style={{
+                    position: "relative", width: 38, height: 38, borderRadius: 10,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "all 0.25s ease",
+                    border: `1px solid ${DS.borderLight}`,
+                    background: "rgba(255,255,255,0.68)",
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.background = DS.primaryPale; e.currentTarget.style.borderColor = DS.border; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.68)"; e.currentTarget.style.borderColor = DS.borderLight; }}
+                  >
+                    <Icon size={18} color={DS.textMuted} strokeWidth={1.6} />
+                    {count > 0 && (
+                      <span style={{
+                        position: "absolute", top: 6, right: 6,
+                        width: 8, height: 8, borderRadius: "50%",
+                        background: DS.accent,
+                        border: `2px solid #fff`,
+                      }} />
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
 
-            {/* Notifications */}
-            <Link to="/notifications"
-              style={{ position: 'relative', display: 'flex', padding: 8, borderRadius: '50%', transition: 'all 0.15s', color: DS.textSub, textDecoration: 'none' }}
-              onMouseEnter={e => { e.currentTarget.style.background = DS.primaryPale; e.currentTarget.style.color = DS.primary; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = DS.textSub; }}>
-              <Bell style={{ width: 19, height: 19 }} />
-              {unreadNotifications > 0 && (
-                <span style={{
-                  position: 'absolute', top: -2, right: -2,
-                  minWidth: 18, height: 18, borderRadius: 9999,
-                  background: DS.danger, color: '#fff',
-                  fontSize: 10, fontWeight: 700,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 4px', border: '2px solid #fff',
-                  lineHeight: 1, fontFamily: 'inherit',
-                }}>
-                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
-                </span>
-              )}
-            </Link>
+            {/* Divider */}
+            <div className="cc-desk-only ul-desktop-links" style={{ width: 1, height: 28, background: DS.border, margin: "0 4px" }} />
 
             {/* Avatar dropdown */}
-            <div ref={userMenuRef} style={{ position: 'relative', marginLeft: 4 }}>
-              <button onClick={() => setUserMenuOpen(!userMenuOpen)}
+            <div ref={userMenuRef} style={{ position: "relative" }}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="cc-desk-only ul-desktop-links"
                 style={{
-                  width: 36, height: 36, borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${DS.primary}, #5fd878)`,
-                  border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontWeight: 700, fontSize: 14,
-                  transition: 'box-shadow 0.2s',
-                  boxShadow: userMenuOpen ? `0 0 0 3px ${DS.primaryPale}` : 'none',
-                  overflow: 'hidden',
-                }}>
+                  background: userMenuOpen ? "rgba(29,33,40,0.04)" : "transparent",
+                  border: `1px solid ${userMenuOpen ? DS.border : "transparent"}`,
+                  cursor: "pointer",
+                  fontFamily: FONT, fontSize: 13, fontWeight: 500,
+                  color: DS.textMuted, padding: "5px 12px 5px 5px",
+                  transition: "all 0.25s ease",
+                  display: "flex", alignItems: "center", gap: 9,
+                  borderRadius: 9999,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(29,33,40,0.04)"; e.currentTarget.style.borderColor = DS.border; }}
+                onMouseLeave={e => { if (!userMenuOpen) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "transparent"; } }}
+              >
                 {user?.profile_image
-                  ? <img src={user.profile_image} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
-                  : user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  ? <img src={user.profile_image} alt="" style={{
+                    width: 30, height: 30, borderRadius: 9999, objectFit: "cover",
+                  }} />
+                  : <div style={{
+                    width: 30, height: 30, borderRadius: 9999,
+                    background: DS.primaryPale, color: DS.primary,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 12, fontWeight: 700,
+                  }}>{user?.name?.charAt(0)?.toUpperCase() || "U"}</div>
+                }
+                {user?.name?.split(" ")[0] || "Account"}
+                <ChevronDown size={13} color={DS.textMuted} style={{ transition: "transform 0.25s", transform: userMenuOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
               </button>
+
               {userMenuOpen && (
                 <div style={{
                   position: 'absolute', right: 0, top: 46,
@@ -216,6 +253,7 @@ const UserLayout = ({ children }) => {
                     { to: '/profile', label: 'My Profile', icon: User },
                     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
                     { to: '/wishlist', label: 'Wishlist', icon: Heart },
+                    ...(user?.role === 'admin' ? [{ to: '/admin/dashboard', label: 'Admin Panel', icon: Shield }] : []),
                   ].map(item => (
                     <Link key={item.to} to={item.to} onClick={() => setUserMenuOpen(false)}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.625rem 1rem', borderRadius: 10, color: DS.text, fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'background 0.12s' }}
@@ -237,40 +275,85 @@ const UserLayout = ({ children }) => {
 
             {/* Mobile hamburger */}
             <button className="ul-hamburger" onClick={() => setMobileOpen(!mobileOpen)}
-              style={{ display: 'none', padding: 8, borderRadius: 8, background: 'none', border: `1px solid ${DS.border}`, cursor: 'pointer', color: DS.text }}>
+              style={{ display: 'none', padding: 8, borderRadius: 12, background: 'transparent', border: `1px solid ${DS.border}`, cursor: 'pointer', color: DS.text }}>
               {mobileOpen ? <X style={{ width: 20, height: 20 }} /> : <Menu style={{ width: 20, height: 20 }} />}
             </button>
           </div>
         </div>
+      </motion.nav>
 
-        {/* Mobile menu */}
+      {/* ═══ MOBILE MENU OVERLAY ═══════════════════════════════════════════ */}
+      <AnimatePresence>
         {mobileOpen && (
-          <div style={{ background: '#fff', borderTop: `1px solid ${DS.border}`, padding: '0.75rem 1.5rem 1rem', animation: 'fadeUp 0.25s ease-out' }}>
-            {[
-              { to: '/resources', label: 'Browse' },
-              { to: '/add-resource', label: 'Sell' },
-              { to: '/dashboard', label: 'Dashboard' },
-              { to: '/messages', label: 'Messages' },
-              { to: '/notifications', label: 'Notifications' },
-              { to: '/profile', label: 'Profile' },
-              { to: '/wishlist', label: 'Wishlist' },
-            ].map(item => (
-              <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
-                style={{
-                  display: 'block', padding: '0.75rem 0', color: isActive(item.to) ? DS.primary : DS.text,
-                  textDecoration: 'none', fontSize: 15, fontWeight: isActive(item.to) ? 600 : 500,
-                  borderBottom: `1px solid ${DS.borderLight}`,
-                }}>
-                {item.label}
-              </Link>
-            ))}
-            <button onClick={logout}
-              style={{ display: 'block', padding: '0.75rem 0', color: DS.danger, background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500, fontFamily: 'inherit', width: '100%', textAlign: 'left', marginTop: 4 }}>
-              Sign Out
-            </button>
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            style={{
+              position: "fixed", inset: 0, zIndex: 2000,
+              background: '#fff',
+              display: "flex", flexDirection: "column",
+            }}
+          >
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "24px 24px", borderBottom: `1px solid ${DS.border}`,
+            }}>
+              <span style={{ fontFamily: FONT, color: DS.dark, fontWeight: 800, fontSize: 18 }}>🎓 CampusCrate</span>
+              <button onClick={() => setMobileOpen(false)}
+                style={{ background: DS.bg, border: "none", color: DS.textMuted, padding: 10, borderRadius: 12, cursor: "pointer" }}
+              ><X size={20} /></button>
+            </div>
+            <div style={{
+              flex: 1, display: "flex", flexDirection: "column",
+              justifyContent: "center", alignItems: "center", gap: 8,
+            }}>
+              {[
+                { to: "/resources", label: "Browse" },
+                { to: "/add-resource", label: "Sell" },
+                { to: "/dashboard", label: "Dashboard" },
+                { to: "/wishlist", label: "Wishlist" },
+                { to: "/messages", label: "Messages" },
+                { to: "/notifications", label: "Alerts" },
+                { to: "/profile", label: "Profile" },
+              ].map((link, i) => (
+                <motion.div key={link.to}
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: i * 0.05 + 0.1 }}
+                >
+                  <Link to={link.to} onClick={() => setMobileOpen(false)} style={{ textDecoration: 'none' }}>
+                    <span style={{
+                      fontFamily: FONT, color: DS.textMuted,
+                      fontSize: "clamp(24px, 7vw, 36px)", fontWeight: 600,
+                      letterSpacing: 0, display: "block",
+                      padding: "8px 0", textAlign: "center", transition: "color 0.2s",
+                    }}
+                      onMouseEnter={e => e.target.style.color = DS.dark}
+                      onMouseLeave={e => e.target.style.color = DS.textMuted}
+                    >{link.label}</span>
+                  </Link>
+                </motion.div>
+              ))}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.5 }} style={{ marginTop: 28 }}>
+                <Link to="/add-resource" onClick={() => setMobileOpen(false)} style={{ textDecoration: 'none' }}>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    background: DS.accent, color: '#fff',
+                    padding: "14px 36px", borderRadius: 9999,
+                    fontSize: 15, fontWeight: 600, fontFamily: FONT,
+                  }}>List Item <ArrowUpRight size={14} /></div>
+                </Link>
+              </motion.div>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+                <button onClick={() => { logout(); setMobileOpen(false); }}
+                  style={{ marginTop: 16, background: "none", border: "none", color: DS.textMuted, fontSize: 14, fontFamily: FONT, fontWeight: 500, cursor: "pointer" }}
+                >Sign Out</button>
+              </motion.div>
+            </div>
+          </motion.div>
         )}
-      </nav>
+      </AnimatePresence>
 
       {/* ═══ PAGE CONTENT ════════════════════════════════════════════════ */}
       <main style={{ paddingTop: 64, minHeight: 'calc(100vh - 320px)' }}>

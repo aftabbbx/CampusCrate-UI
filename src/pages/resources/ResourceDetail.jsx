@@ -13,9 +13,9 @@ import {
 } from 'lucide-react';
 
 const CS = {
-  primary: '#47c163', primaryHover: '#3aad54', primaryPale: '#cbeed3',
-  bg: '#f9f9f9', card: '#FFFFFF', border: '#d3ddd3',
-  text: '#0e220e', textSub: '#4a5e4a', textMuted: '#8a9a8a',
+  primary: '#215E61', primaryHover: '#194A4D', primaryPale: '#E6EEEE',
+  bg: '#F4F2F2', card: '#FFFFFF', border: 'rgba(29,33,40,0.09)',
+  text: '#1D2128', textSub: 'rgba(29,33,40,0.72)', textMuted: 'rgba(29,33,40,0.68)',
 };
 
 // ─── Wishlist Button Component ───────────────────────────────────────

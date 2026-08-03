@@ -7,9 +7,9 @@ import { useWishlist } from '../../context/WishlistContext';
 import toast from 'react-hot-toast';
 
 const CS = {
-  primary: '#47c163', primaryPale: '#cbeed3', primaryLight: '#5fd878',
-  bg: '#f9f9f9', card: '#FFFFFF', border: '#d3ddd3',
-  text: '#0e220e', textSub: '#4a5e4a', textMuted: '#8a9a8a',
+  primary: '#215E61', primaryPale: '#E6EEEE', primaryLight: 'rgba(33,94,97,0.18)',
+  bg: '#F4F2F2', card: '#FFFFFF', border: 'rgba(29,33,40,0.09)',
+  text: '#1D2128', textSub: 'rgba(29,33,40,0.72)', textMuted: 'rgba(29,33,40,0.68)',
 };
 
 const CATEGORIES = ['All', 'Book', 'Notes', 'Stationery', 'Project', 'Other'];

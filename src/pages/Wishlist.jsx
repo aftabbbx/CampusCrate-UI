@@ -6,10 +6,10 @@ import UserLayout from '../components/UserLayout';
 import { useWishlist } from '../context/WishlistContext';
 
 const CS = {
-  primary: '#47c163', primaryPale: '#cbeed3', primaryHover: '#3aad54',
-  bg: '#f9f9f9', card: '#FFFFFF', border: '#d3ddd3',
-  text: '#0e220e', textSub: '#4a5e4a', textMuted: '#8a9a8a',
-  danger: '#e05c3a', success: '#47c163',
+  primary: '#215E61', primaryPale: '#E6EEEE', primaryHover: '#194A4D',
+  bg: '#F4F2F2', card: '#FFFFFF', border: 'rgba(29,33,40,0.09)',
+  text: '#1D2128', textSub: 'rgba(29,33,40,0.72)', textMuted: 'rgba(29,33,40,0.68)',
+  danger: '#D98212', success: '#215E61',
 };
 
 const Wishlist = () => {
@@ -39,11 +39,11 @@ const Wishlist = () => {
   };
 
   const categoryColors = {
-    Book: { bg: '#cbeed3', color: '#2d7a3e', emoji: '📚' },
+    Book: { bg: '#E6EEEE', color: '#215E61', emoji: '📚' },
     Notes: { bg: '#bfe7e6', color: '#2a7a7a', emoji: '📝' },
     Stationery: { bg: '#fcf2cb', color: '#8a7020', emoji: '✏️' },
-    Project: { bg: '#cbeed3', color: '#1a5c2e', emoji: '🔬' },
-    Other: { bg: '#e8f0e8', color: '#4a5e4a', emoji: '📦' },
+    Project: { bg: '#E6EEEE', color: '#194A4D', emoji: '🔬' },
+    Other: { bg: '#E6EEEE', color: 'rgba(29,33,40,0.72)', emoji: '📦' },
   };
 
   return (
@@ -184,8 +184,8 @@ const Wishlist = () => {
                     <span style={{
                       position: 'absolute', bottom: 12, left: 12,
                       padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 700,
-                      background: r.type === 'Free' ? '#cbeed3' : r.type === 'Exchange' ? '#bfe7e6' : '#fcf2cb',
-                      color: r.type === 'Free' ? '#2d7a3e' : r.type === 'Exchange' ? '#2a7a7a' : '#8a7020',
+                      background: r.type === 'Free' ? '#E6EEEE' : r.type === 'Exchange' ? '#bfe7e6' : '#fcf2cb',
+                      color: r.type === 'Free' ? '#215E61' : r.type === 'Exchange' ? '#2a7a7a' : '#8a7020',
                     }}>
                       {r.type}
                     </span>

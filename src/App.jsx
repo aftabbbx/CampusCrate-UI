@@ -16,7 +16,6 @@ import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
 import Wishlist from './pages/Wishlist';
-import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 
@@ -29,7 +28,7 @@ function App() {
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: '#f9f9f9', flexDirection: 'column', gap: '0.75rem',
       }}>
-        <div className="spinner" style={{ borderColor: '#d3ddd3', borderTopColor: '#47c163', width: 28, height: 28 }} />
+        <div className="spinner" style={{ borderColor: 'rgba(29,33,40,0.09)', borderTopColor: '#215E61', width: 28, height: 28 }} />
         <p style={{ color: '#8a9a8a', fontSize: '0.85rem', fontFamily: 'Inter, system-ui, sans-serif' }}>Loading CampusCrate...</p>
       </div>
     );
@@ -45,7 +44,6 @@ function App() {
       <Route path="/verify-otp" element={isAuthenticated ? <Navigate to="/" replace /> : <VerifyOTP />} />
 
       {/* Admin */}
-      <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
 
       {/* Public Profile (no auth needed) */}

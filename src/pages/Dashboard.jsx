@@ -6,16 +6,16 @@ import { Package, MessageSquare, TrendingUp, Handshake, AlertTriangle, CheckCirc
 import UserLayout from '../components/UserLayout';
 import toast from 'react-hot-toast';
 
-// ─── Theme: Solidroad Green — matching Homepage palette ─
+// ─── Theme: Premium Teal/Amber — matching Homepage palette ─
 const CS = {
-  primary: '#47c163', primaryHover: '#3aad54', primaryPale: '#cbeed3',
-  dark: '#0e220e', darkHover: '#1a3a1a',
-  bg: '#f9f9f9', card: '#FFFFFF', border: '#d3ddd3',
-  text: '#0e220e', textSub: '#4a5e4a', textMuted: '#8a9a8a',
+  primary: '#215E61', primaryHover: '#194A4D', primaryPale: '#E6EEEE',
+  dark: '#1D2128', darkHover: 'rgba(29,33,40,0.85)',
+  bg: '#F4F2F2', card: '#FFFFFF', border: 'rgba(29,33,40,0.09)',
+  text: '#1D2128', textSub: 'rgba(29,33,40,0.72)', textMuted: 'rgba(29,33,40,0.68)',
 };
 const FONT = "'Inter', system-ui, sans-serif";
-const SHADOW = '0 8px 24px rgba(36,43,61,0.06)';
-const SHADOW_HOVER = '0 14px 34px rgba(36,43,61,0.12)';
+const SHADOW = '0 8px 24px rgba(29,33,40,0.06)';
+const SHADOW_HOVER = '0 14px 34px rgba(29,33,40,0.12)';
 
 const Dashboard = () => {
   const { user, isProfileComplete } = useAuth();

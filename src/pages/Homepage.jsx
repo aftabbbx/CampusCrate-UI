@@ -35,7 +35,6 @@ const FONT = "'Inter', system-ui, -apple-system, sans-serif";
 
 /* ─── Hero Background ──────────────────────────────────────────────────────── */
 const HERO_IMAGE = "/uploads/gC984JO2A2ifns4lUyrBlRxl6w.jpg";
-const HERO_VIDEO = "/uploads/Firefly Cinematic premium brand film for a modern student marketplace platform.__Opening shot- Extre.mp4";
 
 /* ─── Official Design Tokens ──────────────────────────────────────────────── */
 const T = {
@@ -493,6 +492,7 @@ const Homepage = () => {
                         { to: "/profile", label: "My Profile", Icon: User },
                         { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
                         { to: "/wishlist", label: "Wishlist", Icon: Heart },
+                        ...(user?.role === 'admin' ? [{ to: '/admin/dashboard', label: 'Admin Panel', Icon: Shield }] : []),
                       ].map(item => (
                         <Link key={item.to} to={item.to} onClick={() => setUserMenuOpen(false)}>
                           <div style={{
@@ -575,28 +575,13 @@ const Homepage = () => {
         padding: "112px 0 190px",
         background: T.bg,
       }}>
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster={HERO_IMAGE}
-          aria-hidden="true"
-          style={{
-            position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "cover", pointerEvents: "none",
-            filter: "saturate(1.05) contrast(1.02) brightness(0.96)",
-          }}
-        >
-          <source src={HERO_VIDEO} type="video/mp4" />
-        </video>
         <img
           src={HERO_IMAGE}
           alt=""
           style={{
             position: "absolute", inset: 0, width: "100%", height: "100%",
             objectFit: "cover", pointerEvents: "none",
-            opacity: 0.06,
+            filter: "saturate(1.05) contrast(1.02) brightness(0.96)",
             animation: "hero-zoom 28s ease-in-out infinite alternate",
           }}
         />

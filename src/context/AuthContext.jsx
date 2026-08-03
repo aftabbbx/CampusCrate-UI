@@ -17,6 +17,13 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ─── Helper: strip volatile data before saving to localStorage ─────
+  const toStorableUser = (userData) => {
+    if (!userData) return null;
+    const { followers_count, following_count, followers, following, ...rest } = userData;
+    return rest;
+  };
+
   // ─── Load from localStorage on mount ───────────────────────────────
   useEffect(() => {
     const savedToken = localStorage.getItem('campuscrate_token');
@@ -25,16 +32,19 @@ export const AuthProvider = ({ children }) => {
     if (savedToken && savedUser) {
       setToken(savedToken);
       setUser(JSON.parse(savedUser));
+      
+      // Fetch fresh profile in the background to get updated fields like 'role'
+      API.get('/user/profile', {
+        headers: { Authorization: `Bearer ${savedToken}` }
+      }).then(res => {
+        if (res.data.success) {
+          setUser(res.data.user);
+          localStorage.setItem('campuscrate_user', JSON.stringify(toStorableUser(res.data.user)));
+        }
+      }).catch(err => console.error('Failed to background refresh profile:', err));
     }
     setLoading(false);
   }, []);
-
-  // ─── Helper: strip volatile data before saving to localStorage ─────
-  const toStorableUser = (userData) => {
-    if (!userData) return null;
-    const { followers_count, following_count, followers, following, ...rest } = userData;
-    return rest;
-  };
 
   // ─── Signup ─────────────────────────────────────────────────────────
   const signup = async (userData) => {

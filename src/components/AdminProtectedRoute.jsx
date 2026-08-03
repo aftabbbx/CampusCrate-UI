@@ -1,9 +1,13 @@
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const AdminProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('campuscrate_admin_token');
-  if (!token) {
-    return <Navigate to="/admin/login" replace />;
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) return null;
+
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return <Navigate to="/" replace />;
   }
   return children;
 };
