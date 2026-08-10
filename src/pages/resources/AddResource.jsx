@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 
 const CS = {
   primary: '#215E61', primaryHover: '#194A4D', primaryPale: '#E6EEEE',
+  accent: '#FF9E20', accentHover: '#D98212',
   bg: '#F4F2F2', card: '#FFFFFF', border: 'rgba(29,33,40,0.09)',
   text: '#1D2128', textSub: 'rgba(29,33,40,0.72)', textMuted: 'rgba(29,33,40,0.68)',
 };
@@ -226,7 +227,7 @@ const AddResource = () => {
                   onMouseLeave={e => e.currentTarget.style.borderColor = CS.border}>
                   {imagePreview ? (
                     <>
-                      <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={imagePreview} alt="Preview" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}
                         onMouseEnter={e => e.currentTarget.style.opacity = 1}
                         onMouseLeave={e => e.currentTarget.style.opacity = 0}>
@@ -262,9 +263,9 @@ const AddResource = () => {
                 Cancel
               </Link>
               <button type="submit" disabled={isLoading}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 24px', background: isLoading ? '#A5A5FF' : CS.primary, color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
-                onMouseEnter={e => { if (!isLoading) { e.currentTarget.style.background = CS.primaryHover; e.currentTarget.style.boxShadow = '0 4px 14px rgba(91,91,214,0.3)'; } }}
-                onMouseLeave={e => { e.currentTarget.style.background = isLoading ? '#A5A5FF' : CS.primary; e.currentTarget.style.boxShadow = 'none'; }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 24px', background: isLoading ? 'rgba(255,158,32,0.5)' : CS.accent, color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
+                onMouseEnter={e => { if (!isLoading) { e.currentTarget.style.background = CS.accentHover; e.currentTarget.style.boxShadow = '0 4px 14px rgba(255,158,32,0.35)'; } }}
+                onMouseLeave={e => { e.currentTarget.style.background = isLoading ? 'rgba(255,158,32,0.5)' : CS.accent; e.currentTarget.style.boxShadow = 'none'; }}>
                 {isLoading
                   ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.5)', borderTopColor: '#fff', borderRadius: '50%', animation: 'arSpin 0.7s linear infinite' }} /> Publishing...</>
                   : <><CheckCircle style={{ width: 16, height: 16 }} /> {isEditMode ? 'Update Resource' : 'List Resource'}</>

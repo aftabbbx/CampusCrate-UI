@@ -238,7 +238,7 @@ const Dashboard = () => {
                   {/* Image */}
                   <div style={{ position: 'relative', height: 160, background: CS.primaryPale }}>
                     {r.image_url
-                      ? <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ? <img src={r.image_url} alt={r.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Package style={{ width: 32, height: 32, color: CS.primary, opacity: 0.6 }} /></div>}
                     {/* Status pill on image */}
                     <span style={{ position: 'absolute', top: 12, left: 12, padding: '4px 11px', borderRadius: 9999, fontSize: 11, fontWeight: 700, background: ss.bg, color: ss.color }}>

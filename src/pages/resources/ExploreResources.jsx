@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 const CS = {
   primary: '#215E61', primaryPale: '#E6EEEE', primaryLight: 'rgba(33,94,97,0.18)',
+  accent: '#FF9E20', accentHover: '#D98212', accentPale: 'rgba(255,158,32,0.12)',
   bg: '#F4F2F2', card: '#FFFFFF', border: 'rgba(29,33,40,0.09)',
   text: '#1D2128', textSub: 'rgba(29,33,40,0.72)', textMuted: 'rgba(29,33,40,0.68)',
 };
@@ -86,14 +87,14 @@ const ExploreResources = () => {
             <span style={{ fontSize: 12, color: CS.textSub, fontWeight: 600, marginRight: 4 }}>Category:</span>
             {CATEGORIES.map(cat => (
               <button key={cat} onClick={() => setActiveCategory(cat)}
-                style={{ padding: '5px 14px', borderRadius: 9999, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s', background: activeCategory === cat ? CS.primary : CS.primaryPale, color: activeCategory === cat ? '#fff' : CS.primary }}>
+                style={{ padding: '5px 14px', borderRadius: 9999, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s', background: activeCategory === cat ? CS.accent : CS.primaryPale, color: activeCategory === cat ? '#fff' : CS.primary }}>
                 {cat}
               </button>
             ))}
             <span style={{ fontSize: 12, color: CS.textSub, fontWeight: 600, marginLeft: 8, marginRight: 4 }}>Type:</span>
             {TYPES.map(t => (
               <button key={t} onClick={() => setActiveType(t)}
-                style={{ padding: '5px 14px', borderRadius: 9999, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s', background: activeType === t ? '#0F172A' : '#F1F5F9', color: activeType === t ? '#fff' : CS.textSub }}>
+                style={{ padding: '5px 14px', borderRadius: 9999, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.18s', background: activeType === t ? CS.accent : '#F1F5F9', color: activeType === t ? '#fff' : CS.textSub }}>
                 {t}
               </button>
             ))}
@@ -103,7 +104,7 @@ const ExploreResources = () => {
         {/* ═══ GRID ═══ */}
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
-            <div style={{ width: 40, height: 40, border: `3px solid #E2DFFF`, borderTopColor: CS.primary, borderRadius: '50%', animation: 'erSpin 0.7s linear infinite' }} />
+            <div style={{ width: 40, height: 40, border: `3px solid #E2DFFF`, borderTopColor: CS.accent, borderRadius: '50%', animation: 'erSpin 0.7s linear infinite' }} />
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '5rem 2rem', background: CS.card, borderRadius: 20, border: `1px solid ${CS.border}` }}>
@@ -126,7 +127,7 @@ const ExploreResources = () => {
                     {/* Image */}
                     <div style={{ position: 'relative', aspectRatio: '4/3', background: CS.primaryPale, overflow: 'hidden' }}>
                       {r.image_url
-                        ? <img src={r.image_url} alt={r.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ? <img src={r.image_url} alt={r.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package style={{ width: 32, height: 32, color: CS.primaryLight }} /></div>
                       }
                       {/* Sold overlay */}
@@ -149,12 +150,12 @@ const ExploreResources = () => {
                     <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontSize: 11, fontWeight: 600, color: isSold ? CS.textMuted : CS.primary, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>{r.category}</span>
                       <h3 style={{ fontWeight: 700, fontSize: 14, color: CS.text, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 8 }}>{r.title}</h3>
-                      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${CS.border}` }}>
-                        <span style={{ fontWeight: 700, fontSize: 16, color: isSold ? CS.textSub : CS.primary }}>
+                      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${CS.border}`, gap: 8 }}>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: isSold ? CS.textSub : CS.accent, flexShrink: 0 }}>
                           {r.price > 0 ? <><IndianRupee style={{ width: 12, height: 12, display: 'inline', verticalAlign: 'middle' }} />{r.price}</> : 'Free'}
                         </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: CS.textMuted }}>
-                          <MapPin style={{ width: 11, height: 11 }} /> {r.location || 'Campus'}
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: CS.textMuted, overflow: 'hidden', maxWidth: 120, whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                          <MapPin style={{ width: 11, height: 11, flexShrink: 0 }} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.location || 'Campus'}</span>
                         </span>
                       </div>
                     </div>

@@ -462,7 +462,7 @@ const Messages = () => {
                   >
                     <div className="conv-avatar">
                       {u.profile_image ? (
-                        <img src={u.profile_image} alt={u.name} />
+                        <img src={u.profile_image} alt={u.name} loading="lazy" />
                       ) : (
                         u.name?.charAt(0)?.toUpperCase() || '?'
                       )}
@@ -529,7 +529,7 @@ const Messages = () => {
                   </button>
                   <div className="conv-avatar" style={{ width: '36px', height: '36px', fontSize: '0.8rem' }}>
                     {selectedUser.profile_image ? (
-                      <img src={selectedUser.profile_image} alt={selectedUser.name} />
+                      <img src={selectedUser.profile_image} alt={selectedUser.name} loading="lazy" />
                     ) : (
                       selectedUser.name?.charAt(0)?.toUpperCase()
                     )}
@@ -551,7 +551,7 @@ const Messages = () => {
                   }}>
                     <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: '#F1F5F9' }}>
                       {selectedResource.image_url
-                        ? <img src={selectedResource.image_url} alt={selectedResource.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ? <img src={selectedResource.image_url} alt={selectedResource.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={18} color="#94a3b8" /></div>
                       }
                     </div>

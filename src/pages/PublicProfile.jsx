@@ -176,7 +176,7 @@ const PublicProfile = () => {
               }}>
                 {profile.profile_image ? (
                   <img src={profile.profile_image} alt={profile.name}
-                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    loading="lazy" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                 ) : (
                   <span style={{ fontSize: '2rem', fontWeight: 700, color: 'white' }}>
                     {profile.name?.charAt(0)?.toUpperCase()}
@@ -370,7 +370,7 @@ const PublicProfile = () => {
                     {/* Image */}
                     <div style={{ position: 'relative', paddingBottom: '65%', background: 'linear-gradient(135deg, var(--color-bg-alt), var(--color-border-light))' }}>
                       {r.image_url ? (
-                        <img src={r.image_url} alt={r.title} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={r.image_url} alt={r.title} loading="lazy" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Package style={{ width: '32px', height: '32px', color: 'var(--color-text-muted)', opacity: 0.2 }} />
@@ -477,7 +477,7 @@ const PublicProfile = () => {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0,
                     }}>
                       {u.profile_image ? (
-                        <img src={u.profile_image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={u.profile_image} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>{u.name?.charAt(0)?.toUpperCase()}</span>
                       )}
