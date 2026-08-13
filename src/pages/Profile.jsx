@@ -183,7 +183,7 @@ const Profile = () => {
                   <div className="spinner" style={{ borderColor: 'white', borderTopColor: 'transparent', width: '24px', height: '24px' }} />
                 ) : profile.profile_image ? (
                   <img src={profile.profile_image} alt={profile.name}
-                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    loading="lazy" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
                 ) : (
                   <span style={{ fontSize: '2rem', fontWeight: 700, color: 'white' }}>
                     {profile.name?.charAt(0)?.toUpperCase()}

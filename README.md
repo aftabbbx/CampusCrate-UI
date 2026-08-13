@@ -18,35 +18,35 @@ Smart Student Resource Exchange Platform — React + Vite UI
 | Animations | Framer Motion |
 | Icons | Lucide React |
 | HTTP | Axios |
-| Fonts | Poppins (Google Fonts) |
-| Styling | Inline CSS-in-JS + CSS custom properties |
+| Fonts | Inter (all pages) |
+| Styling | Inline CSS-in-JS + CSS custom properties (index.css) |
 
 ---
 
-## Design System
+## Design System (index.css)
 
-**Theme: Coral + Navy + Poppins** (furniture-app inspired)
+**Theme: Premium Teal / Amber**
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| Primary (Coral) | `#FF5C5C` | Buttons, accents, price, links |
-| Primary Hover | `#FF4242` | Button hover state |
-| Primary Pale | `#FFECEC` | Hover backgrounds, tags |
-| Dark (Navy) | `#242B3D` | Action buttons, text, avatar bg |
-| Dark Hover | `#1A2030` | Dark button hover |
-| Background | `#F6F7FB` | Page background |
-| Border | `rgba(36,43,61,0.07)` | Dividers, card borders |
-| Text | `#242B3D` | Primary text |
-| Text Sub | `#8A94A6` | Secondary/muted text |
-| Danger | `#BA1A1A` | Delete, error states |
+| `--color-brand` | `#215E61` | Teal — buttons, active states, links |
+| `--color-brand-hover` | `#194A4D` | Darker teal on hover |
+| `--color-brand-light` | `rgba(33,94,97,0.18)` | Light teal backgrounds |
+| `--color-brand-pale` | `#E6EEEE` | Very light teal — active nav items |
+| `--color-accent` | `#FF9E20` | Amber — highlights, warnings |
+| `--color-accent-dk` | `#D98212` | Dark amber |
+| `--color-dark` | `#1D2128` | Near-black — secondary buttons |
+| `--color-bg` | `#F4F2F2` | Page background (warm off-white) |
+| `--color-card` | `#FFFFFF` | Card/surface white |
+| `--color-text` | `#1D2128` | Primary text |
+| `--color-text-sub` | `rgba(29,33,40,0.72)` | Secondary text |
+| `--color-danger` | `#D98212` | Danger/error (amber-red) |
+| `--color-danger-pale` | `#FEE2E2` | Danger backgrounds |
+| Typography | Inter | All pages (system fallback) |
+| Spacing | 8px system | `--space-1` (4px) to `--space-20` (80px) |
+| Radius | `--radius-sm` (6px) to `--radius-full` (9999px) | |
 
-CSS variables (in `src/index.css`) affect global components like Profile, Messages, AuthPage, AdminLogin:
-```css
---color-brand: #FF5C5C
---color-dark: #242B3D
---color-bg: #F6F7FB
---font-display: 'Poppins', system-ui, sans-serif
-```
+**Global CSS classes defined:** `.auth-*`, `.btn-*`, `.card`, `.form-*`, `.navbar`, `.sidebar`, `.chat-*`, `.conv-*`, `.notif-*`, `.hp-*` (homepage), `.profile-*`
 
 ---
 
@@ -54,45 +54,47 @@ CSS variables (in `src/index.css`) affect global components like Profile, Messag
 
 ```
 CampusCrate-UI/
-├── index.html                          # Poppins font loaded here
+├── public/
+│   └── uploads/                        # Static assets (images)
 ├── src/
 │   ├── main.jsx                        # React entry point
 │   ├── App.jsx                         # Route definitions
-│   ├── index.css                       # Global CSS variables + base styles
+│   ├── index.css                       # Global design system + CSS variables
 │   ├── api/
 │   │   └── axios.js                    # Axios instance (baseURL + JWT interceptor)
 │   ├── context/
 │   │   ├── AuthContext.jsx             # User auth state (login/logout/token)
-│   │   ├── SocketContext.jsx           # Socket.io + unread counts
+│   │   ├── SocketContext.jsx           # Socket.io + unread counts + typing
 │   │   └── WishlistContext.jsx         # Global wishlist state
 │   ├── components/
 │   │   ├── UserLayout.jsx              # Navbar + page wrapper for all user pages
 │   │   ├── ProtectedRoute.jsx          # Redirect to /login if not authed
-│   │   ├── AdminProtectedRoute.jsx     # Redirect to /admin/login if not admin
+│   │   ├── AdminProtectedRoute.jsx     # Redirect to /admin/dashboard if not admin
 │   │   └── CustomCursor.jsx            # Custom cursor + trail effect
 │   ├── hooks/
-│   │   └── useProfileGate.js           # Redirect to profile if incomplete
+│   │   └── useProfileGate.js           # Redirect if profile incomplete
 │   └── pages/
-│       ├── Homepage.jsx                # Landing page (public listings, hero)
-│       ├── Dashboard.jsx               # My listings with Edit/Delete CRUD
-│       ├── Messages.jsx                # Real-time chat
+│       ├── Homepage.jsx                # Landing + listings (premium teal/green design)
+│       ├── Dashboard.jsx               # My listings with CRUD + Mark as Sold
+│       ├── Messages.jsx                # Real-time chat (resource-scoped threads)
 │       ├── Notifications.jsx           # In-app notifications
 │       ├── Profile.jsx                 # Edit my profile
-│       ├── PublicProfile.jsx           # View any user's public profile
+│       ├── PublicProfile.jsx           # Any user's public profile
 │       ├── Wishlist.jsx                # Saved resources
 │       ├── auth/
-│       │   ├── AuthPage.jsx            # Login/Signup tabs combined
+│       │   ├── AuthPage.jsx            # Login/Signup tabs combined (sliding animation)
 │       │   ├── Login.jsx               # Login form
-│       │   ├── Signup.jsx              # Signup form
+│       │   ├── Signup.jsx              # Signup form (multi-step indicator)
 │       │   └── VerifyOTP.jsx           # OTP verification
 │       ├── resources/
 │       │   ├── ExploreResources.jsx    # Browse/search all resources
 │       │   ├── AddResource.jsx         # Create new listing (also Edit mode)
-│       │   └── ResourceDetail.jsx      # Single resource detail + request button
+│       │   └── ResourceDetail.jsx      # Single resource detail + request/chat
 │       └── admin/
-│           ├── AdminLogin.jsx          # Admin login page
-│           └── AdminDashboard.jsx      # Admin panel (users + resources)
+│           └── AdminDashboard.jsx      # Admin panel (users + resources management)
 ```
+
+> **Note:** `AdminLogin.jsx` has been removed. Admin login is handled directly in `AdminDashboard.jsx` or via the main auth flow with role check.
 
 ---
 
@@ -112,61 +114,90 @@ Make sure the backend is running at `http://localhost:3400` first.
 
 | Route | Page | Auth | Description |
 |-------|------|------|-------------|
-| `/` | Homepage | Yes | Landing with hero, categories, listings |
+| `/` | Homepage | JWT | Listings, categories, hero, community section |
 | `/login` | AuthPage | No | Login tab |
 | `/signup` | AuthPage | No | Signup tab |
 | `/verify-otp` | VerifyOTP | No | OTP verification after signup |
-| `/dashboard` | Dashboard | Yes | My listed resources (CRUD) |
-| `/resources` | ExploreResources | Yes | Browse all available resources |
-| `/add-resource` | AddResource | Yes | Create new listing |
-| `/add-resource?edit=RSC-001` | AddResource | Yes | Edit existing listing |
-| `/resource/:id` | ResourceDetail | Yes | Resource detail + Request/Chat |
-| `/messages` | Messages | Yes | Real-time chat |
-| `/notifications` | Notifications | Yes | In-app notifications |
-| `/profile` | Profile | Yes | Edit my profile |
+| `/dashboard` | Dashboard | JWT | My listings (CRUD + Mark as Sold) |
+| `/resources` | ExploreResources | JWT | Browse all available + sold resources |
+| `/add-resource` | AddResource | JWT | Create new listing |
+| `/add-resource?edit=RSC-001` | AddResource | JWT | Edit existing listing |
+| `/resource/:id` | ResourceDetail | JWT | Resource detail + Request/Chat |
+| `/messages` | Messages | JWT | Real-time chat (resource-scoped) |
+| `/notifications` | Notifications | JWT | In-app notifications |
+| `/profile` | Profile | JWT | Edit my profile |
 | `/profile/:rollNumber` | PublicProfile | No | Any student's public profile |
-| `/wishlist` | Wishlist | Yes | Saved/favourited resources |
-| `/admin/login` | AdminLogin | No | Admin login |
-| `/admin/dashboard` | AdminDashboard | Admin | Admin panel |
+| `/wishlist` | Wishlist | JWT | Saved/favourited resources |
+| `/admin/dashboard` | AdminDashboard | Admin JWT | Admin panel |
 
 ---
 
 ## Key Features
 
 ### Authentication
-- Login/Signup with OTP email verification
-- JWT token stored in localStorage
-- Auto-attach token on all API calls via Axios interceptor
+- Login/Signup on one page with animated sliding tab switch
+- Multi-step indicator on signup form (visual progress)
+- OTP email verification via Brevo SMTP
+- JWT stored in localStorage, auto-attached via Axios interceptor
 - Redirect to `/login` if token missing/expired
 
+### Profile Gate
+- If `roll_number`, `course`, `batch`, `semester` are incomplete → API returns `403 profileIncomplete: true`
+- Frontend shows profile completion banner on Homepage with missing fields listed
+
+### Homepage (Premium Design)
+- Sticky nav with blur backdrop, user avatar dropdown, notification/message badges
+- Hero section: green gradient bg, headline, CTA buttons, animated activity cards (right side visual)
+- Categories grid (3-col): Books, Notes, Stationery, Projects, Other
+- Filter pills: All / Free / Paid / Exchange
+- Listings grid (4-col responsive)
+- Community stats section (dark `#0F172A` background)
+- Features section (4-col cards)
+- Testimonials section (3-col)
+- CTA banner (green gradient)
+- Footer (dark, 4-col grid)
+- Mobile: hamburger menu, all grids collapse to 1-col
+
 ### Dashboard (My Resources)
-- Card grid layout (3 col → 2 → 1 on mobile)
-- Skeleton loading cards (not spinner)
-- Each card: image, status pill, title, coral price, View / Edit / Delete buttons
+- Card grid (3 col → 2 → 1 on mobile)
+- Each card: image, status pill, title, price, View / Edit / Delete / Mark as Sold
 - **Edit:** navigates to `/add-resource?edit=<id>` (pre-fills form)
-- **Delete:** opens custom modal confirmation (not browser alert)
-- Soft delete — resource hidden from explore but not erased from DB
+- **Delete:** confirmation modal
+- **Mark as Sold:** double confirmation modal — toggle Available ↔ Sold
+- Sold cards: faded (opacity 0.65, grayscale 40%), red border, SOLD overlay badge
 
-### Add/Edit Resource
-- Same page for create and edit (`isEditMode` via `?edit=` query param)
-- Pre-fills all fields when editing
-- Image upload to Cloudinary before form submit
-- Profile completion check — incomplete profiles blocked
+### Mark as Sold (OLX-style)
+- Confirmation modal before marking sold or re-listing
+- Sold cards non-clickable, faded across all pages:
+  - Homepage, Explore Resources, Wishlist, Public Profile
+- Sold resource detail: red banner instead of message/request buttons
+- New chat blocked server-side for sold resources
 
-### Real-time Chat
-- Socket.io powered messaging
-- Conversation list with unread badge counts
-- Read receipts (markAsRead on open)
-- Unread counts in navbar badges (messages + notifications)
+### Real-time Chat (Resource-scoped Threads)
+- Each product gets its own separate chat thread (like OLX)
+- Sidebar shows `📦 Resource Title` or `🔴 Resource Title` (sold)
+- Chat header: OLX-style product card (image, name, price)
+- Sold resource: "This ad has been disabled by the seller" banner replaces input
+- Image + voice note sending (Cloudinary)
+- Typing indicators, read receipts, unread badge counts
+- Online/Offline status via Socket.io
+
+### Explore Resources
+- 4-column grid (responsive to 1)
+- Category + Type filter pills
+- Search by title/category
+- Sold cards: faded, non-clickable, SOLD badge, no wishlist button
 
 ### Wishlist
-- Toggle add/remove from any resource card
-- Global WishlistContext — consistent state across pages
-- Confirmation modal before removing
+- Toggle add/remove from any card
+- Global WishlistContext — consistent state across all pages
+- Sold items: faded + SOLD badge, remove still works
 
-### Custom Cursor
-- Coral colored custom cursor
-- Trail effect on mouse move
+### Admin Dashboard
+- Full user management: list, view profile, suspend/unsuspend, delete, verify/unverify
+- Resource management: list all, delete
+- Deal management: view all exchanges
+- Stats overview (counts)
 
 ---
 
@@ -182,39 +213,47 @@ const { user, token, isAuthenticated, loading, login, logout } = useAuth();
 
 ### SocketContext (`src/context/SocketContext.jsx`)
 ```js
-const { socket, totalUnreadMessages, unreadNotifications } = useSocket();
+const { socket, onlineUsers, lastIncomingMessage, typingUsers,
+        totalUnreadMessages, unreadNotifications,
+        emitTyping, emitStopTyping, emitMessagesRead } = useSocket();
 ```
-- Connects socket on login, disconnects on logout
-- Listens for `newMessage` and `notification` events
-- Exposes unread counts for navbar badges
+- Connects on login with JWT, disconnects on logout
+- Tracks: `onlineUsers` (Set), `typingUsers`, unread message + notification counts
+- Handles: `user-online`, `user-offline`, `online-users-list`, `receive-message`, `new-notification`, `user-typing`, `user-stop-typing`, `messages-marked-read`
 
 ### WishlistContext (`src/context/WishlistContext.jsx`)
 ```js
 const { wishlistIds, toggleWishlist, isWishlisted } = useWishlist();
 ```
 - Fetches wishlist IDs on mount
-- Toggle add/remove with optimistic UI update
+- Toggle with optimistic UI update
 
 ---
 
 ## Axios Setup (`src/api/axios.js`)
 
 ```js
-baseURL: 'http://localhost:3400'
-// Auto-attach JWT:
+baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3400'
+// Auto-attach JWT on every request:
 headers['Authorization'] = `Bearer ${localStorage.getItem('token')}`
 ```
 
 ---
 
-## Backup Files
+## Sold Card Treatment (All Pages)
 
-Several pages have `.BACKUP.jsx` files kept for reference:
-- `Dashboard.BACKUP.jsx` — original table-based dashboard
-- `Homepage.BACKUP.jsx` — pre-optimization homepage
-- `Messages.BACKUP.jsx`, `Profile.BACKUP.jsx`, etc.
+```js
+opacity: 0.65
+filter: 'grayscale(40%)'
+border: '1px solid #FECACA'
+cursor: 'not-allowed'
+```
 
-These are excluded from git via `.gitignore`.
+SOLD overlay badge on image:
+```jsx
+<span style={{ background: '#991B1B', color: '#fff', padding: '6px 20px',
+  borderRadius: 9999, fontSize: 13, fontWeight: 800 }}>SOLD</span>
+```
 
 ---
 

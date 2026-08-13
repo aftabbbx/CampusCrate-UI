@@ -7,6 +7,7 @@ import { useWishlist } from '../context/WishlistContext';
 
 const CS = {
   primary: '#215E61', primaryPale: '#E6EEEE', primaryHover: '#194A4D',
+  accent: '#FF9E20', accentHover: '#D98212',
   bg: '#F4F2F2', card: '#FFFFFF', border: 'rgba(29,33,40,0.09)',
   text: '#1D2128', textSub: 'rgba(29,33,40,0.72)', textMuted: 'rgba(29,33,40,0.68)',
   danger: '#D98212', success: '#215E61',
@@ -64,11 +65,11 @@ const Wishlist = () => {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '0.625rem 1.5rem', borderRadius: 12, fontSize: '0.875rem', fontWeight: 600,
-              background: CS.primary, color: '#fff', textDecoration: 'none',
+              background: CS.accent, color: '#fff', textDecoration: 'none',
               transition: 'all 0.2s', border: 'none',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = CS.primaryHover}
-            onMouseLeave={e => e.currentTarget.style.background = CS.primary}
+            onMouseEnter={e => e.currentTarget.style.background = CS.accentHover}
+            onMouseLeave={e => e.currentTarget.style.background = CS.accent}
           >
             <ShoppingBag style={{ width: 16, height: 16 }} /> Browse More
           </Link>
@@ -104,10 +105,10 @@ const Wishlist = () => {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
                 padding: '0.75rem 2rem', borderRadius: 12, fontSize: '0.9rem', fontWeight: 600,
-                background: CS.primary, color: '#fff', textDecoration: 'none', transition: 'all 0.2s',
+                background: CS.accent, color: '#fff', textDecoration: 'none', transition: 'all 0.2s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = CS.primaryHover}
-              onMouseLeave={e => e.currentTarget.style.background = CS.primary}
+              onMouseEnter={e => e.currentTarget.style.background = CS.accentHover}
+              onMouseLeave={e => e.currentTarget.style.background = CS.accent}
             >
               Explore Resources <ArrowRight style={{ width: 16, height: 16 }} />
             </Link>
@@ -147,7 +148,7 @@ const Wishlist = () => {
                   <div style={{ position: 'relative', height: 180, background: '#F1F5F9', overflow: 'hidden' }}>
                     {r.image_url ? (
                       <img src={r.image_url} alt={r.title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Package style={{ width: 48, height: 48, color: '#CBD5E1' }} />
@@ -218,7 +219,7 @@ const Wishlist = () => {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${CS.border}` }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         {owner?.profile_image ? (
-                          <img src={owner.profile_image} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                          <img src={owner.profile_image} alt="" loading="lazy" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
                         ) : (
                           <div style={{ width: 24, height: 24, borderRadius: '50%', background: CS.primaryPale, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: CS.primary }}>
                             {owner?.name?.charAt(0) || '?'}

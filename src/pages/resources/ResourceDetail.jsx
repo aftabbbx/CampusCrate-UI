@@ -14,6 +14,7 @@ import {
 
 const CS = {
   primary: '#215E61', primaryHover: '#194A4D', primaryPale: '#E6EEEE',
+  accent: '#FF9E20', accentHover: '#D98212',
   bg: '#F4F2F2', card: '#FFFFFF', border: 'rgba(29,33,40,0.09)',
   text: '#1D2128', textSub: 'rgba(29,33,40,0.72)', textMuted: 'rgba(29,33,40,0.68)',
 };
@@ -175,7 +176,7 @@ const ResourceDetail = () => {
               {resource.image_url ? (
                 <div style={{ position: 'relative', paddingBottom: '60%', background: CS.primaryPale }}>
                   {!imageLoaded && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 32, height: 32, border: `3px solid #E2DFFF`, borderTopColor: CS.primary, borderRadius: '50%', animation: 'rdSpin 0.7s linear infinite' }} /></div>}
-                  <img src={resource.image_url} alt={resource.title} onLoad={() => setImageLoaded(true)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.4s' }} />
+                  <img src={resource.image_url} alt={resource.title} loading="lazy" onLoad={() => setImageLoaded(true)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.4s' }} />
                 </div>
               ) : (
                 <div style={{ paddingBottom: '60%', position: 'relative', background: `linear-gradient(135deg, ${CS.primaryPale}, #e8f0e8)` }}>
@@ -238,7 +239,7 @@ const ResourceDetail = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <WishlistButton resourceId={resource._id} />
                   <button onClick={handleMessageSeller} disabled={messageSending}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', background: `linear-gradient(135deg, ${CS.primary}, ${CS.primaryHover})`, color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', boxShadow: '0 4px 14px rgba(91,91,214,0.3)' }}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', background: `linear-gradient(135deg, ${CS.accent}, ${CS.accentHover})`, color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', boxShadow: '0 4px 14px rgba(255,158,32,0.35)' }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                     onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
                     {messageSending
@@ -293,7 +294,7 @@ const ResourceDetail = () => {
                 <div style={{ position: 'relative' }}>
                   <div style={{ width: 46, height: 46, borderRadius: '50%', background: `linear-gradient(135deg, ${CS.primary}, #5fd878)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {resource.owner_id?.profile_image
-                      ? <img src={resource.owner_id.profile_image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ? <img src={resource.owner_id.profile_image} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{resource.owner_id?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
                     }
                   </div>

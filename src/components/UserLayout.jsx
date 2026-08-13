@@ -103,13 +103,9 @@ const UserLayout = ({ children }) => {
             display: "flex", alignItems: "center", gap: 10,
             textDecoration: "none", flexShrink: 0,
           }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 14,
-              background: DS.accent,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 17,
-              boxShadow: "0 10px 24px rgba(255,158,32,0.22)",
-            }}>🎓</div>
+            <img src="/campuscrate-logo.png" alt="CampusCrate" style={{
+              height: 40, width: "auto", objectFit: "contain",
+            }} />
             <span style={{
               fontFamily: FONT, color: DS.dark, fontWeight: 800,
               fontSize: 19, letterSpacing: 0,
@@ -300,7 +296,10 @@ const UserLayout = ({ children }) => {
               display: "flex", alignItems: "center", justifyContent: "space-between",
               padding: "24px 24px", borderBottom: `1px solid ${DS.border}`,
             }}>
-              <span style={{ fontFamily: FONT, color: DS.dark, fontWeight: 800, fontSize: 18 }}>🎓 CampusCrate</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <img src="/campuscrate-logo.png" alt="CampusCrate" style={{ height: 36, width: "auto", objectFit: "contain" }} />
+                <span style={{ fontFamily: FONT, color: DS.dark, fontWeight: 800, fontSize: 18 }}>CampusCrate</span>
+              </div>
               <button onClick={() => setMobileOpen(false)}
                 style={{ background: DS.bg, border: "none", color: DS.textMuted, padding: 10, borderRadius: 12, cursor: "pointer" }}
               ><X size={20} /></button>
@@ -373,7 +372,8 @@ const UserLayout = ({ children }) => {
             {/* Brand */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <span style={{ fontWeight: 700, fontSize: 16, color: '#fff', letterSpacing: '-0.02em' }}>🎓 CampusCrate</span>
+                <img src="/campuscrate-logo.png" alt="CampusCrate" style={{ height: 36, width: "auto", objectFit: "contain" }} />
+                <span style={{ fontWeight: 700, fontSize: 16, color: '#fff', letterSpacing: '-0.02em' }}>CampusCrate</span>
               </div>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: 'rgba(255,255,255,0.45)', maxWidth: 260 }}>
                 The trusted campus marketplace for students. Buy, sell, and exchange textbooks, notes, and more.

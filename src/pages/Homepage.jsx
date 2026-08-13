@@ -342,13 +342,9 @@ const Homepage = () => {
             display: "flex", alignItems: "center", gap: 10,
             textDecoration: "none", flexShrink: 0,
           }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 14,
-              background: T.accent,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 17,
-              boxShadow: "0 10px 24px rgba(255,158,32,0.22)",
-            }}>🎓</div>
+            <img src="/campuscrate-logo.png" alt="CampusCrate" style={{
+              height: 40, width: "auto", objectFit: "contain",
+            }} />
             <span style={{
               fontFamily: FONT, color: T.primary, fontWeight: 800,
               fontSize: 19, letterSpacing: 0,
@@ -435,7 +431,7 @@ const Homepage = () => {
                 onMouseLeave={e => { if (!userMenuOpen) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "transparent"; } }}
               >
                 {user?.profile_image
-                  ? <img src={user.profile_image} alt="" style={{
+                  ? <img src={user.profile_image} alt="" loading="lazy" style={{
                     width: 30, height: 30, borderRadius: 9999, objectFit: "cover",
                   }} />
                   : <div style={{
@@ -478,7 +474,7 @@ const Homepage = () => {
                           overflow: "hidden", flexShrink: 0,
                         }}>
                           {user?.profile_image
-                            ? <img src={user.profile_image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ? <img src={user.profile_image} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             : user?.name?.charAt(0)?.toUpperCase() || "U"}
                         </div>
                         <div>
@@ -979,11 +975,11 @@ const Homepage = () => {
                           <motion.div
                             onClick={() => !isSold && navigate(`/resource/${r._id}`)}
                             whileHover={!isSold ? { y: -6 } : {}}
-                            style={{ cursor: isSold ? "not-allowed" : "pointer", overflow: "hidden", background: T.white, border: `1px solid ${T.border}`, borderRadius: 26, opacity: isSold ? 0.6 : 1, transition: "all 0.35s ease", boxShadow: "0 20px 52px rgba(48,56,65,0.08)" }}
+                            style={{ cursor: isSold ? "not-allowed" : "pointer", overflow: "hidden", background: T.white, border: `1px solid ${T.border}`, borderRadius: 26, opacity: isSold ? 0.6 : 1, transition: "all 0.35s ease", boxShadow: "0 20px 52px rgba(48,56,65,0.08)", display: "flex", flexDirection: "column", height: "100%" }}
                           >
                             <div style={{ position: "relative", aspectRatio: "1/1", background: T.surfaceAlt, overflow: "hidden" }}>
                               {r.image_url
-                                ? <img src={r.image_url} alt={r.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.6s ease" }}
+                                ? <img src={r.image_url} alt={r.title} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.6s ease" }}
                                   onMouseEnter={e => e.target.style.transform = "scale(1.06)"}
                                   onMouseLeave={e => e.target.style.transform = "scale(1)"} />
                                 : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: T.paleMint }}><Package size={32} color={T.textMuted} strokeWidth={1} /></div>
@@ -1006,15 +1002,14 @@ const Homepage = () => {
                                 ><Heart size={15} color={wishlisted ? T.accent : T.textMuted} fill={wishlisted ? T.accent : "none"} strokeWidth={1.8} /></motion.button>
                               )}
                             </div>
-                            <div style={{ padding: "18px 18px 20px" }}>
+                            <div style={{ padding: "18px 18px 20px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                               <h3 style={{ fontSize: 17, fontWeight: 700, color: T.primary, lineHeight: 1.35, marginBottom: 12, display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden", fontFamily: FONT, letterSpacing: 0 }}>{r.title}</h3>
                               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flexWrap: "wrap" }}>
-                                  <div style={{ width: 30, height: 30, borderRadius: 9999, background: T.paleMint, color: T.green, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, border: `1px solid ${T.border}` }}>{r.seller?.name?.charAt(0)?.toUpperCase() || "S"}</div>
-                                  <span style={{ fontSize: 13, color: T.textMuted, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(typeof r.seller === "string" ? r.seller : r.seller?.name) || "Seller"}</span>
-                                  <Shield size={13} color={T.green} strokeWidth={1.8} />
-                                  <span style={{ width: 3, height: 3, borderRadius: "50%", background: T.border, display: "inline-block" }} />
-                                  <span style={{ fontSize: 12, fontWeight: 600, color: T.green, display: "flex", alignItems: "center", gap: 3, padding: "4px 9px", background: T.paleMint, borderRadius: 9999, border: `1px solid ${T.borderLt}` }}><MapPin size={11} strokeWidth={1.5} />{r.location || "Campus"}</span>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
+                                  <div style={{ width: 30, height: 30, borderRadius: 9999, background: T.paleMint, color: T.green, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, border: `1px solid ${T.border}`, flexShrink: 0 }}>{r.seller?.name?.charAt(0)?.toUpperCase() || "S"}</div>
+                                  <span style={{ fontSize: 13, color: T.textMuted, maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(typeof r.seller === "string" ? r.seller : r.seller?.name) || "Seller"}</span>
+                                  <Shield size={13} color={T.green} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: T.green, display: "flex", alignItems: "center", gap: 3, padding: "4px 9px", background: T.paleMint, borderRadius: 9999, border: `1px solid ${T.borderLt}`, maxWidth: 110, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", flexShrink: 0 }}><MapPin size={11} strokeWidth={1.5} style={{ flexShrink: 0 }} /><span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.location || "Campus"}</span></span>
                                 </div>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: isSold ? T.danger : T.accent, flexShrink: 0 }}>{isSold ? "Sold" : "View →"}</span>
                               </div>
@@ -1264,7 +1259,10 @@ const Homepage = () => {
               display: "flex", alignItems: "center", justifyContent: "space-between",
               padding: "24px 24px", borderBottom: `1px solid ${T.border}`,
             }}>
-              <span style={{ fontFamily: FONT, color: T.primary, fontWeight: 800, fontSize: 18 }}>🎓 CampusCrate</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <img src="/campuscrate-logo.png" alt="CampusCrate" style={{ height: 36, width: "auto", objectFit: "contain" }} />
+                <span style={{ fontFamily: FONT, color: T.primary, fontWeight: 800, fontSize: 18 }}>CampusCrate</span>
+              </div>
               <button onClick={() => setMobileOpen(false)}
                 style={{ background: T.bg, border: "none", color: T.textMuted, padding: 10, borderRadius: 12, cursor: "pointer" }}
               ><X size={20} /></button>
@@ -1321,7 +1319,8 @@ const Homepage = () => {
           <div className="cc-footer-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "3rem", paddingBottom: "3rem", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1.2rem" }}>
-                <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 800, color: T.white, letterSpacing: 0 }}>🎓 CampusCrate</span>
+                <img src="/campuscrate-logo.png" alt="CampusCrate" style={{ height: 36, width: "auto", objectFit: "contain" }} />
+                <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 800, color: T.white, letterSpacing: 0 }}>CampusCrate</span>
               </div>
               <p style={{ fontSize: 14, lineHeight: 1.7, maxWidth: 300, color: "rgba(255,255,255,0.45)" }}>
                 The premium student-to-student marketplace designed for trust, safety, and local efficiency.

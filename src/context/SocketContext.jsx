@@ -107,8 +107,7 @@ export const SocketProvider = ({ children }) => {
 
     socketRef.current = socket;
 
-    socket.on('connect', () => console.log('Socket connected:', socket.id));
-    socket.on('connect_error', (err) => console.error('Socket error:', err.message));
+    socket.on('connect_error', (err) => { if (import.meta.env.DEV) console.error('Socket error:', err.message); });
 
     // ── Online Users ───────────────────────────────────────────────
     socket.on('online-users-list', (userIds) => setOnlineUsers(new Set(userIds)));

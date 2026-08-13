@@ -395,7 +395,7 @@ const AdminDashboard = () => {
         </button>
         <div className="card" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            {r.image_url && <img src={r.image_url} alt={r.title} style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }} />}
+            {r.image_url && <img src={r.image_url} alt={r.title} loading="lazy" style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }} />}
             <div style={{ flex: 1, minWidth: '200px' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: '0.25rem' }}>{r.title}</h2>
               <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>{r.description || 'No description provided.'}</p>
