@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Mail, Lock, Eye, EyeOff, ArrowRight, BookOpen,
+  Mail, Lock, Eye, EyeOff, ArrowRight,
   User, LogIn, UserPlus,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -119,14 +119,11 @@ const AuthPage = () => {
       <div className="auth-page-wrapper">
         {/* ─── Branding ────────────────────────────────────────────── */}
         <div className="anim-up" style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-          <div style={{
-            width: '52px', height: '52px', borderRadius: '16px', display: 'inline-flex',
-            alignItems: 'center', justifyContent: 'center', marginBottom: '1rem',
-            background: 'linear-gradient(135deg, var(--color-brand), var(--color-brand-light))',
-            boxShadow: '0 8px 24px rgba(79,70,229,0.3)',
-          }}>
-            <BookOpen style={{ width: '26px', height: '26px', color: 'white' }} />
-          </div>
+          <img
+            src="/campuscrate-logo.png"
+            alt="CampusCrate"
+            style={{ width: '64px', height: '64px', marginBottom: '0.75rem', borderRadius: '16px' }}
+          />
           <h1 style={{
             fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-display)',
             color: 'var(--color-text)',
@@ -336,7 +333,7 @@ const AuthPage = () => {
 
         {/* ─── Footer ──────────────────────────────────────────────── */}
         <div className="anim-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', marginTop: '1.5rem', animationDelay: '0.16s' }}>
-          <BookOpen style={{ width: '14px', height: '14px', color: 'var(--color-text-muted)' }} />
+          <img src="/campuscrate-logo.png" alt="" style={{ width: '14px', height: '14px' }} />
           <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>CampusCrate</span>
         </div>
       </div>

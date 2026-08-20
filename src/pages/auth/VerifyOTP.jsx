@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, BookOpen, RotateCw, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, RotateCw, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const VerifyOTP = () => {
@@ -28,7 +28,7 @@ const OTPForm = ({ email }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] = useState(30);
   const refs = useRef([]);
   const { verifyOTP, resendOTP } = useAuth();
   const navigate = useNavigate();
@@ -76,40 +76,79 @@ const OTPForm = ({ email }) => {
       const d = await verifyOTP(email, code);
       if (d.success) { toast.success('Verified! Welcome 🎉'); navigate('/dashboard', { replace: true }); }
       else { toast.error(d.message || 'Invalid OTP'); resetOtp(); }
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed'); resetOtp(); }
+    } catch (err) { toast.error(err.response?.data?.message || 'Verification failed'); resetOtp(); }
     finally { setIsLoading(false); }
   };
 
   const resend = async () => {
-    if (!canResend) return;
+    if (!canResend || isResending) return;
     setIsResending(true);
     try {
       const d = await resendOTP(email);
-      if (d.success) { toast.success('New OTP sent! ✉️'); setCountdown(60); resetOtp(); }
-      else toast.error(d.message || 'Failed');
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
-    finally { setIsResending(false); }
+      if (d.success) {
+        toast.success('New OTP sent! ✉️');
+        setCountdown(30);
+        resetOtp();
+      } else {
+        toast.error(d.message || 'Failed to resend OTP');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to resend OTP');
+    } finally {
+      setIsResending(false);
+    }
   };
 
   const allFilled = otp.every((d) => d !== '');
 
   return (
     <div className="auth-bg">
-      <div style={{ width: '100%', maxWidth: '420px', margin: 'auto', position: 'relative', zIndex: 1 }}>
-        {/* Back */}
-        <Link to="/signup" style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-          color: 'var(--color-text-sub)', fontSize: '0.85rem', marginBottom: '1.5rem', textDecoration: 'none',
-        }}>
-          <ArrowLeft style={{ width: '16px', height: '16px' }} /> Back
-        </Link>
+      {/* Floating decorative elements */}
+      <div className="auth-floating-orb auth-orb-1" />
+      <div className="auth-floating-orb auth-orb-2" />
+      <div className="auth-floating-orb auth-orb-3" />
 
-        {/* Card */}
-        <div className="card-lg" style={{ padding: '2.25rem 1.75rem', textAlign: 'center' }}>
+      <div className="auth-page-wrapper">
+        {/* ─── Branding ────────────────────────────────────────────── */}
+        <div className="anim-up" style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+          <img
+            src="/campuscrate-logo.png"
+            alt="CampusCrate"
+            style={{ width: '64px', height: '64px', marginBottom: '0.75rem', borderRadius: '16px' }}
+          />
+          <h1 style={{
+            fontSize: '1.75rem', fontWeight: 700, fontFamily: 'var(--font-display)',
+            color: 'var(--color-text)',
+            background: 'linear-gradient(135deg, var(--color-text), var(--color-brand))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>
+            CampusCrate
+          </h1>
+          <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+            Your campus marketplace & community
+          </p>
+        </div>
+
+        {/* ─── OTP Card ────────────────────────────────────────────── */}
+        <div className="auth-card anim-up" style={{ animationDelay: '0.08s', textAlign: 'center', padding: '2rem 1.75rem' }}>
+          {/* Back link */}
+          <Link to="/signup" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+            color: 'var(--color-text-sub)', fontSize: '0.8rem', textDecoration: 'none',
+            marginBottom: '1.25rem', float: 'left',
+          }}>
+            <ArrowLeft style={{ width: '15px', height: '15px' }} /> Back
+          </Link>
+
+          <div style={{ clear: 'both' }} />
+
+          {/* Shield icon */}
           <div style={{
             width: '56px', height: '56px', borderRadius: '16px', display: 'inline-flex',
-            alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem',
-            background: 'var(--color-brand)', boxShadow: '0 4px 12px rgba(79,70,229,0.2)',
+            alignItems: 'center', justifyContent: 'center', marginBottom: '1rem',
+            background: 'linear-gradient(135deg, var(--color-brand), var(--color-brand-hover))',
+            boxShadow: '0 8px 24px rgba(33,94,97,0.25)',
           }}>
             <ShieldCheck style={{ width: '28px', height: '28px', color: 'white' }} />
           </div>
@@ -139,27 +178,57 @@ const OTPForm = ({ email }) => {
               ))}
             </div>
 
-            <button type="submit" disabled={isLoading || !allFilled} className="btn btn-brand">
-              {isLoading ? <div className="spinner" /> : <><ShieldCheck style={{ width: '16px', height: '16px' }} /> Verify Email</>}
+            {/* Verify Button — same style as auth submit */}
+            <button type="submit" disabled={isLoading || !allFilled} className="auth-submit-btn">
+              <div className="auth-btn-layer" />
+              <span className="auth-btn-text">
+                {isLoading ? <div className="spinner" /> : <><ShieldCheck style={{ width: '16px', height: '16px' }} /> Verify Email</>}
+              </span>
             </button>
           </form>
 
-          <div style={{ marginTop: '1.25rem' }}>
+          {/* Resend OTP section */}
+          <div style={{ marginTop: '1.5rem' }}>
             {canResend ? (
-              <button onClick={resend} disabled={isResending}
-                style={{ background: 'none', border: 'none', color: 'var(--color-brand)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', fontFamily: 'var(--font-body)' }}>
-                <RotateCw style={{ width: '14px', height: '14px', animation: isResending ? 'spin 0.6s linear infinite' : 'none' }} /> Resend OTP
+              <button
+                onClick={resend}
+                disabled={isResending}
+                style={{
+                  background: 'none', border: 'none', color: 'var(--color-brand)',
+                  fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                  fontFamily: 'var(--font-body)', opacity: isResending ? 0.6 : 1,
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                <RotateCw style={{
+                  width: '14px', height: '14px',
+                  animation: isResending ? 'spin 0.6s linear infinite' : 'none',
+                }} />
+                {isResending ? 'Sending...' : 'Resend OTP'}
               </button>
             ) : (
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                Resend in <span style={{ color: 'var(--color-brand)', fontWeight: 600 }}>{countdown}s</span>
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  background: 'var(--color-brand-pale)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-brand)',
+                  fontFamily: 'var(--font-display)',
+                }}>
+                  {countdown}
+                </div>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+                  seconds to resend
+                </p>
+              </div>
             )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', marginTop: '1.5rem' }}>
-          <BookOpen style={{ width: '14px', height: '14px', color: 'var(--color-text-muted)' }} />
+        {/* ─── Footer ──────────────────────────────────────────────── */}
+        <div className="anim-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', marginTop: '1.5rem', animationDelay: '0.16s' }}>
+          <img src="/campuscrate-logo.png" alt="" style={{ width: '14px', height: '14px' }} />
           <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>CampusCrate</span>
         </div>
       </div>
