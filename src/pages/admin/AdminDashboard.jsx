@@ -190,10 +190,10 @@ const AdminDashboard = () => {
   };
 
   const statCards = [
-    { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: '#215E61', bg: '#E6EEEE' },
-    { label: 'Resources', value: stats?.totalResources || 0, icon: Package, color: '#FF9E20', bg: 'rgba(255,158,32,0.12)' },
-    { label: 'Deals', value: stats?.totalDeals || 0, icon: ShoppingBag, color: '#10b981', bg: '#d1fae5' },
-    { label: 'Pending', value: stats?.pendingRequests || 0, icon: Bell, color: '#3b82f6', bg: '#dbeafe' },
+    { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: 'var(--color-brand)', bg: 'var(--color-brand-pale)' },
+    { label: 'Resources', value: stats?.totalResources || 0, icon: Package, color: 'var(--color-accent)', bg: 'var(--color-warning-pale)' },
+    { label: 'Deals', value: stats?.totalDeals || 0, icon: ShoppingBag, color: 'var(--color-brand)', bg: 'var(--color-brand-ghost)' },
+    { label: 'Pending', value: stats?.pendingRequests || 0, icon: Bell, color: 'var(--color-accent-dk)', bg: 'rgba(255,158,32,0.08)' },
   ];
 
   // ─── Render Helpers ─────────────────────────────────────────────────
@@ -286,16 +286,16 @@ const AdminDashboard = () => {
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             {u.is_college_verified ? (
-              <button onClick={() => handleUnverify(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: 'var(--color-warning-pale)', color: '#d97706', borderRadius: '0.625rem' }}>
+              <button onClick={() => handleUnverify(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: 'var(--color-warning-pale)', color: 'var(--color-accent-dk)', borderRadius: '0.625rem' }}>
                 <Shield style={{ width: '16px', height: '16px' }} /> Remove Verification
               </button>
             ) : (
-              <button onClick={() => handleVerify(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: '#d1fae5', color: '#059669', borderRadius: '0.625rem' }}>
+              <button onClick={() => handleVerify(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: 'var(--color-brand-pale)', color: 'var(--color-brand)', borderRadius: '0.625rem' }}>
                 <ShieldCheck style={{ width: '16px', height: '16px' }} /> Verify Student
               </button>
             )}
             {u.is_suspended ? (
-              <button onClick={() => handleUnsuspend(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: 'var(--color-success-pale)', color: 'var(--color-success)' }}>
+              <button onClick={() => handleUnsuspend(u._id)} className="btn" style={{ padding: '0.625rem 1rem', background: 'var(--color-brand-pale)', color: 'var(--color-brand)' }}>
                 <UserCheck style={{ width: '16px', height: '16px' }} /> Reactivate
               </button>
             ) : (
@@ -349,29 +349,29 @@ const AdminDashboard = () => {
                       <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)' }}>{u.course || '—'}</td>
                       <td style={{ padding: '0.75rem 1.25rem' }}>
                         <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600,
-                          background: u.is_suspended ? '#fee2e2' : !u.is_verified ? '#fef3c7' : '#d1fae5',
-                          color: u.is_suspended ? '#ef4444' : !u.is_verified ? '#d97706' : '#059669',
+                          background: u.is_suspended ? 'var(--color-danger-pale)' : !u.is_verified ? 'var(--color-warning-pale)' : 'var(--color-brand-pale)',
+                          color: u.is_suspended ? 'var(--color-danger)' : !u.is_verified ? 'var(--color-accent-dk)' : 'var(--color-brand)',
                         }}>{u.is_suspended ? 'Suspended' : !u.is_verified ? 'Unverified' : 'Active'}</span>
                       </td>
                       <td style={{ padding: '0.75rem 1.25rem' }}>
                         {u.is_college_verified ? (
-                          <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: '#d1fae5', color: '#059669' }}>✓ Verified</span>
+                          <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: 'var(--color-brand-pale)', color: 'var(--color-brand)' }}>✓ Verified</span>
                         ) : (
-                          <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: '#fef3c7', color: '#d97706' }}>Pending</span>
+                          <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: 'var(--color-warning-pale)', color: 'var(--color-accent-dk)' }}>Pending</span>
                         )}
                       </td>
                       <td style={{ padding: '0.75rem 1.25rem' }}>
                         <div style={{ display: 'flex', gap: '0.375rem' }}>
                           <button onClick={() => viewProfile(u._id)} title="View" style={{ background: 'var(--color-brand-pale)', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex' }}><Eye style={{ width: '14px', height: '14px' }} /></button>
                           {u.is_college_verified ? (
-                            <button onClick={() => handleUnverify(u._id)} title="Unverify" style={{ background: '#fef3c7', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: '#d97706', display: 'flex' }}><Shield style={{ width: '14px', height: '14px' }} /></button>
+                            <button onClick={() => handleUnverify(u._id)} title="Unverify" style={{ background: 'var(--color-warning-pale)', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: 'var(--color-accent-dk)', display: 'flex' }}><Shield style={{ width: '14px', height: '14px' }} /></button>
                           ) : (
-                            <button onClick={() => handleVerify(u._id)} title="Verify" style={{ background: '#d1fae5', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: '#059669', display: 'flex' }}><ShieldCheck style={{ width: '14px', height: '14px' }} /></button>
+                            <button onClick={() => handleVerify(u._id)} title="Verify" style={{ background: 'var(--color-brand-pale)', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex' }}><ShieldCheck style={{ width: '14px', height: '14px' }} /></button>
                           )}
                           {u.is_suspended ? (
-                            <button onClick={() => handleUnsuspend(u._id)} title="Unsuspend" style={{ background: '#d1fae5', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: '#059669', display: 'flex' }}><UserCheck style={{ width: '14px', height: '14px' }} /></button>
+                            <button onClick={() => handleUnsuspend(u._id)} title="Unsuspend" style={{ background: 'var(--color-brand-pale)', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex' }}><UserCheck style={{ width: '14px', height: '14px' }} /></button>
                           ) : (
-                            <button onClick={() => handleSuspend(u._id)} title="Suspend" style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: '#ef4444', display: 'flex' }}><Ban style={{ width: '14px', height: '14px' }} /></button>
+                            <button onClick={() => handleSuspend(u._id)} title="Suspend" style={{ background: 'var(--color-danger-pale)', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: 'var(--color-danger)', display: 'flex' }}><Ban style={{ width: '14px', height: '14px' }} /></button>
                           )}
                         </div>
                       </td>
@@ -400,9 +400,9 @@ const AdminDashboard = () => {
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: '0.25rem' }}>{r.title}</h2>
               <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>{r.description || 'No description provided.'}</p>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: '#E6EEEE', color: '#215E61' }}>{r.category}</span>
-                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: r.type === 'Paid' ? '#fef3c7' : '#d1fae5', color: r.type === 'Paid' ? '#d97706' : '#059669' }}>{r.type}</span>
-                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: r.status === 'Available' ? '#d1fae5' : '#e2e8f0', color: r.status === 'Available' ? '#059669' : '#64748b' }}>{r.status}</span>
+                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: 'var(--color-brand-pale)', color: 'var(--color-brand)' }}>{r.category}</span>
+                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: r.type === 'Paid' ? 'var(--color-warning-pale)' : 'var(--color-brand-ghost)', color: r.type === 'Paid' ? 'var(--color-accent-dk)' : 'var(--color-brand)' }}>{r.type}</span>
+                <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, background: r.status === 'Available' ? 'var(--color-brand-pale)' : 'var(--color-bg-alt)', color: r.status === 'Available' ? 'var(--color-brand)' : 'var(--color-text-muted)' }}>{r.status}</span>
               </div>
             </div>
           </div>
@@ -459,22 +459,22 @@ const AdminDashboard = () => {
                     <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)' }}>{r.category}</td>
                     <td style={{ padding: '0.75rem 1.25rem' }}>
                       <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600,
-                        background: r.type === 'Paid' ? '#E6EEEE' : r.type === 'Exchange' ? '#fef3c7' : '#d1fae5',
-                        color: r.type === 'Paid' ? '#215E61' : r.type === 'Exchange' ? '#d97706' : '#059669',
+                        background: r.type === 'Paid' ? 'var(--color-brand-pale)' : r.type === 'Exchange' ? 'var(--color-warning-pale)' : 'var(--color-brand-ghost)',
+                        color: r.type === 'Paid' ? 'var(--color-brand)' : r.type === 'Exchange' ? 'var(--color-accent-dk)' : 'var(--color-brand)',
                       }}>{r.type}</span>
                     </td>
                     <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)', fontWeight: 500 }}>{r.price > 0 ? `₹${r.price}` : 'Free'}</td>
                     <td style={{ padding: '0.75rem 1.25rem', color: 'var(--color-text-sub)' }}>{r.owner_id?.name || '—'}</td>
                     <td style={{ padding: '0.75rem 1.25rem' }}>
                       <span style={{ padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600,
-                        background: r.status === 'Available' ? '#d1fae5' : r.status === 'Pending' ? '#fef3c7' : '#e2e8f0',
-                        color: r.status === 'Available' ? '#059669' : r.status === 'Pending' ? '#d97706' : '#64748b',
+                        background: r.status === 'Available' ? 'var(--color-brand-pale)' : r.status === 'Pending' ? 'var(--color-warning-pale)' : 'var(--color-bg-alt)',
+                        color: r.status === 'Available' ? 'var(--color-brand)' : r.status === 'Pending' ? 'var(--color-accent-dk)' : 'var(--color-text-muted)',
                       }}>{r.status}</span>
                     </td>
                     <td style={{ padding: '0.75rem 1.25rem' }}>
                       <div style={{ display: 'flex', gap: '0.375rem' }}>
                         <button onClick={() => setSelectedResource(r)} title="View" style={{ background: 'var(--color-brand-pale)', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex' }}><Eye style={{ width: '14px', height: '14px' }} /></button>
-                        <button onClick={() => handleDeleteResource(r._id)} title="Delete" style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: '#ef4444', display: 'flex' }}><Trash2 style={{ width: '14px', height: '14px' }} /></button>
+                        <button onClick={() => handleDeleteResource(r._id)} title="Delete" style={{ background: 'var(--color-danger-pale)', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer', color: 'var(--color-danger)', display: 'flex' }}><Trash2 style={{ width: '14px', height: '14px' }} /></button>
                       </div>
                     </td>
                   </tr>
@@ -639,15 +639,15 @@ const AdminDashboard = () => {
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }} onClick={() => setConfirmModal(null)} />
           <div className="card-lg anim-up" style={{ position: 'relative', width: '100%', maxWidth: '400px', padding: '1.75rem', margin: '1rem', zIndex: 101 }}>
             <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: confirmModal.icon === 'reactivate' ? '#d1fae5' : 'var(--color-danger-pale)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
-                {confirmModal.icon === 'suspend' ? <Ban style={{ width: '22px', height: '22px', color: 'var(--color-danger)' }} /> : confirmModal.icon === 'reactivate' ? <UserCheck style={{ width: '22px', height: '22px', color: '#059669' }} /> : <Trash2 style={{ width: '22px', height: '22px', color: 'var(--color-danger)' }} />}
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: confirmModal.icon === 'reactivate' ? 'var(--color-brand-pale)' : 'var(--color-danger-pale)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
+                {confirmModal.icon === 'suspend' ? <Ban style={{ width: '22px', height: '22px', color: 'var(--color-danger)' }} /> : confirmModal.icon === 'reactivate' ? <UserCheck style={{ width: '22px', height: '22px', color: 'var(--color-brand)' }} /> : <Trash2 style={{ width: '22px', height: '22px', color: 'var(--color-danger)' }} />}
               </div>
               <h3 style={{ fontSize: '1.125rem', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>{confirmModal.title}</h3>
               <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', marginTop: '0.5rem', lineHeight: 1.5 }}>{confirmModal.message}</p>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button onClick={() => setConfirmModal(null)} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
-              <button onClick={confirmModal.onConfirm} className="btn" style={{ flex: 1, padding: '0.625rem 1rem', background: confirmModal.icon === 'reactivate' ? '#059669' : 'var(--color-danger)', color: 'white', borderRadius: '0.625rem' }}>{confirmModal.btnLabel || 'Confirm'}</button>
+              <button onClick={confirmModal.onConfirm} className="btn" style={{ flex: 1, padding: '0.625rem 1rem', background: confirmModal.icon === 'reactivate' ? 'var(--color-brand)' : 'var(--color-danger)', color: 'white', borderRadius: '0.625rem' }}>{confirmModal.btnLabel || 'Confirm'}</button>
             </div>
           </div>
         </div>
